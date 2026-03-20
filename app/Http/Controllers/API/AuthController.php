@@ -4,27 +4,48 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    //LOGIN
-    public function login(Request $request){
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required'
-        ]);
-
-        $user = User::where('email', $request->email)->first();
-
-        if(!$user || !Hash::check($request->password, $user->password)){
-            return response()->json(['message' => 'Invalid Credentials'], 401);
+    // SPA LOGIN (SESSION)
+    public function login(Request $request)
+    {
+        if (!Auth::attempt($request->only('email', 'password'))) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
-        $user->tokens()->delete();
+        return response()->json([
+            'user' => Auth::user(),
+        ]);
+    }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+    // SPA LOGOUT (SESSION)
+    public function logout(Request $request)
+    {
+        Auth::guard('web')->logout(); // ✅ correct for session
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return response()->json(['message' => 'Logged out']);
+    }
+
+    // CURRENT USER (works for both)
+    public function currentUser(Request $request)
+    {
+        return response()->json($request->user());
+    }
+
+    // API LOGIN (TOKEN)
+    public function apiLogin(Request $request)
+    {
+        if (!Auth::attempt($request->only('email', 'password'))) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
+        }
+
+        $user = Auth::user();
+
+        $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
             'token' => $token,
@@ -32,28 +53,11 @@ class AuthController extends Controller
         ]);
     }
 
-    //LOGOUT
-
-    public function logout(Request $request){
+    // API LOGOUT (TOKEN)
+    public function apiLogout(Request $request)
+    {
         $request->user()->currentAccessToken()->delete();
-        return response()->json(['message' => 'Successfully logged out']);
-    }
 
-    //CURRENT USER
-
-    public function currentUser(Request $request){
-        return response()->json($request->user());
-    }
-
-    //REFRESH TOKEN
-
-    public function refresh(Request $request){
-        $user = $request->user();
-        $user->tokens()->delete();
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'token' => $token
-        ]);
+        return response()->json(['message' => 'Token deleted']);
     }
 }
