@@ -3,11 +3,12 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\UserController;
-use Illuminate\Http\Request;
 
-Route::get('/auth/login', function () {
-    return "Login Page";
-});
+/*
+|--------------------------------------------------------------------------
+| AUTH ROUTES
+|--------------------------------------------------------------------------
+*/
 
 Route::post('/login', [AuthController::class, 'apiLogin']);
 
@@ -16,26 +17,31 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'currentUser']);
 });
 
-Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
-    Route::get('/admin/dashboard', function () {
-        return "Admin Dashboard Only";
-    });
-    Route::post('/admin/create-user', [UserController::class, 'createUser']);
-});
+/*
+|--------------------------------------------------------------------------
+| USER MANAGEMENT ROUTES
+|--------------------------------------------------------------------------
+*/
 
-Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
-    Route::post('/superadmin/create-admin', [UserController::class, 'createAdmin']);
-    Route::get('/superadmin/user-list', function () {
-        return "User list";
-    });
+Route::middleware(['auth:sanctum'])->group(function () {
 
-    Route::post('/superadmin/create-user', [UserController::class, 'superAdminCreateUser']);
-});
+    // GET USERS (Admin + Super Admin)
+    Route::get('/users', [UserController::class, 'index'])
+        ->middleware('role:admin,super_admin');
 
-Route::middleware(['auth:sanctum', 'role:super_admin,admin'])->group(function () {
-    Route::post('/users', [UserController::class, 'store']);
+    // CREATE USER (Admin + Super Admin)
+    Route::post('/users', [UserController::class, 'createUser'])
+        ->middleware('role:admin,super_admin');
 
-    Route::get('/admin/dashboard', function () {
-        return "Admin & Super Admin";
-    });
+    // CREATE ADMIN (Super Admin only)
+    Route::post('/users/admin', [UserController::class, 'createAdmin'])
+        ->middleware('role:super_admin');
+
+    // UPDATE USER
+    Route::put('/users/{id}', [UserController::class, 'updateUser'])
+        ->middleware('role:admin,super_admin');
+
+    // DELETE USER
+    Route::delete('/users/{id}', [UserController::class, 'deleteUser'])
+        ->middleware('role:admin,super_admin');
 });

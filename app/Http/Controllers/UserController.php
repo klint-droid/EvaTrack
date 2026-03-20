@@ -53,10 +53,6 @@ class UserController extends Controller
         ], 201);
     }
 
-    public function superAdminCreateUser(Request $request){
-        return $this->createUser($request);
-    }
-
     public function updateUser(Request $request, $id){
         $user = User::findOrFail($id);
         $authUser = Auth::user();
@@ -94,7 +90,7 @@ class UserController extends Controller
                 'message' => 'You cannot delete yourself'
             ], 403);
         }
-        
+
         if ($user->isSuperAdmin() && User::where('role', User::ROLE_SUPER_ADMIN)->count() <= 1) {
             return response()->json([
                 'message' => 'Cannot delete the last super admin'
