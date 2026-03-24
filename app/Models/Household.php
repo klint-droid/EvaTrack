@@ -13,6 +13,7 @@ class Household extends Model
     protected $fillable = [
         'household_id',
         'household_name',
-        'phone_number'
+        'phone_number',
+        'qr_code'
     ];
 }

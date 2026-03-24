@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\SyncController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\API\HouseholdController;
+use App\Models\Household;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,6 +47,19 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // DELETE USER
     Route::delete('/users/{id}', [UserController::class, 'deleteUser'])
         ->middleware('role:admin,super_admin');
+});
+
+/*
+|--------------------------------------------------------------------------
+| HOUSEHOLD MANAGEMENT ROUTES
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/households', [HouseholdController::class, 'index']);
+    Route::get('/households/search', [HouseholdController::class, 'search']);
+    Route::get('/households/qr/{qr_code}', [HouseholdController::class, 'findQR']);
+    Route::get('/households/{id}', [HouseholdController::class, 'show']);
 });
 
 Route::get('/sync-households', [SyncController::class, 'syncHouseholds']);
