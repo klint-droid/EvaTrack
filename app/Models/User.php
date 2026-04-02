@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -16,12 +17,39 @@ class User extends Authenticatable
     const ROLE_USER = 'user';
     const ROLE_ADMIN = 'admin';
     const ROLE_SUPER_ADMIN = 'super_admin';
+
+    protected $table = 'users';
+    protected $primaryKey = 'user_id';
+    public $incrementing = false;
+    protected $keyType = 'string';
+
+    protected static function boot(){
+        parent::boot();
+
+        static::creating(function ($user) {
+            $prefix = match ($user->role){
+                self::ROLE_ADMIN => 'ADM',
+                self::ROLE_SUPER_ADMIN => 'SUP',
+                default => 'PER',
+            };
+
+            $year = date('Y');
+
+            do{
+                $random = strtoupper(Str::random(6));
+                $userId = "{$prefix}-{$year}-{$random}";
+            } while(self::where('user_id', $userId)->exists());
+
+            $user->user_id = $userId;
+        });
+    }
     /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
     protected $fillable = [
+        'user_id',
         'name',
         'email',
         'password',
@@ -69,4 +97,10 @@ class User extends Authenticatable
     public function canManageUsers(){
         return $this->isAdmin() || $this->isSuperAdmin();
     }
+
+    public function getAuthIdentifierName()
+    {
+        return 'user_id';
+    }
+    
 }

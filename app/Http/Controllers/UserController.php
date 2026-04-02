@@ -18,37 +18,32 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:8',
+            'role' => 'nullable|in:' . implode(',', [
+                User::ROLE_USER,
+                User::ROLE_ADMIN
+            ])
         ]);
+
+        $authUser = Auth::user();
+        $role = User::ROLE_USER;
+
+        if($authUser->isSuperAdmin() && $request->role){
+            $role = $request->role;
+        }
+
+        if($authUser->isAdmin()){
+            $role = User::ROLE_USER;
+        }
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'user'
+            'role' => $role
         ]);
 
         return response()->json([
             'message' => 'User created successfully',
-            'user' => $user,
-        ], 201);
-    }
-
-    public function createAdmin(Request $request){
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|string|min:8',
-        ]);
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => $request->password,
-            'role' => 'admin'
-        ]);
-
-        return response()->json([
-            'message' => 'Admin created successfully',
             'user' => $user,
         ], 201);
     }
@@ -65,14 +60,14 @@ class UserController extends Controller
 
         $request->validate([
             'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|email|unique:users,email,' . $id,
+            'email' => 'sometimes|email|unique:users,email,' . $id . ',user_id',
             'role' => 'sometimes|string'
         ]);
 
         if ($authUser->isAdmin()) {
-            $user->update($request->only('name', 'email'));
-        } else {
             $user->update($request->only('name', 'email', 'role'));
+        } else {
+            $user->update($request->only('name', 'email'));
         }
 
         return response()->json([
@@ -85,7 +80,7 @@ class UserController extends Controller
         $user = User::findOrFail($id);
         $authUser = Auth::user();
 
-        if ($authUser->id === $user->id) {
+        if ($authUser->user_id === $user->user_id) {
             return response()->json([
                 'message' => 'You cannot delete yourself'
             ], 403);

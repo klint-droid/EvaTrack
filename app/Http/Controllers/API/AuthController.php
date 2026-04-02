@@ -8,28 +8,6 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    // SPA LOGIN (SESSION)
-    public function login(Request $request)
-    {
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
-        }
-
-        return response()->json([
-            'user' => Auth::user(),
-        ]);
-    }
-
-    // SPA LOGOUT (SESSION)
-    public function logout(Request $request)
-    {
-        Auth::guard('web')->logout(); // ✅ correct for session
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return response()->json(['message' => 'Logged out']);
-    }
-
     // CURRENT USER (works for both)
     public function currentUser(Request $request)
     {

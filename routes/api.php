@@ -5,7 +5,9 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\SyncController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\API\HouseholdController;
-use App\Models\Household;
+use App\Http\Controllers\API\EvacuationCenterController;
+use App\Http\Controllers\API\RoomController;
+use App\Http\Controllers\API\RoomAssignmentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,23 +30,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::middleware(['auth:sanctum'])->group(function () {
 
-    // GET USERS (Admin + Super Admin)
     Route::get('/users', [UserController::class, 'index'])
         ->middleware('role:admin,super_admin');
 
-    // CREATE USER (Admin + Super Admin)
     Route::post('/users', [UserController::class, 'createUser'])
         ->middleware('role:admin,super_admin');
 
-    // CREATE ADMIN (Super Admin only)
-    Route::post('/users/admin', [UserController::class, 'createAdmin'])
-        ->middleware('role:super_admin');
-
-    // UPDATE USER
     Route::put('/users/{id}', [UserController::class, 'updateUser'])
         ->middleware('role:admin,super_admin');
 
-    // DELETE USER
     Route::delete('/users/{id}', [UserController::class, 'deleteUser'])
         ->middleware('role:admin,super_admin');
 });
@@ -55,11 +49,32 @@ Route::middleware(['auth:sanctum'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/households', [HouseholdController::class, 'index']);
-    Route::get('/households/search', [HouseholdController::class, 'search']);
+Route::prefix('households')
+    ->middleware(['auth:sanctum'])
+    ->group(function () {
+    Route::get('/', [HouseholdController::class, 'index']);
+    Route::get('/search', [HouseholdController::class, 'search']);
     Route::get('/households/qr/{qr_code}', [HouseholdController::class, 'findQR']);
-    Route::get('/households/{id}', [HouseholdController::class, 'show']);
+    Route::get('/{id}', [HouseholdController::class, 'show']);
+    Route::get('/sync-households', [SyncController::class, 'syncHouseholds']);
 });
 
-Route::get('/sync-households', [SyncController::class, 'syncHouseholds']);
+Route::prefix('evacuation-centers')
+    ->middleware(['auth:sanctum'])
+    ->group(function (){
+        Route::get('/', [EvacuationCenterController::class, 'index']);
+        Route::get('/{id}', [EvacuationCenterController::class, 'show']);
+        Route::get('/{id}/capacity', [EvacuationCenterController::class, 'capacity']);
+        Route::middleware('role:admin,super_admin')->group(function () {
+            Route::post('/', [EvacuationCenterController::class, 'store']);
+            Route::put('/{id}', [EvacuationCenterController::class, 'update']);
+            Route::delete('/{id}', [EvacuationCenterController::class, 'destroy']);
+        });
+    });
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('rooms', RoomController::class);
+
+    Route::post('rooms/{room}/assign', [RoomAssignmentController::class, 'assign']);
+    Route::post('rooms/{room}/remove/{household}', [RoomAssignmentController::class, 'remove']);
+});
