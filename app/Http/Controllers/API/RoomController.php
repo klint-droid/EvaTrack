@@ -9,18 +9,14 @@ use App\Models\Room;
 class RoomController extends Controller
 {
     public function index(){
-        return Room::with('evacuationCenter')
-            ->withCount('assignments')
-            ->get()
-            ->map(function($room){
-                return [
-                    'id' => $room->room_id,
-                    'room_number' => $room->room_number,
-                    'max_capacity' => $room->max_capacity,
-                    'current_occupancy' => $room->assignments_count,
-                    'is_available' => $room->assignments_count < $room->max_capacity
-                ];
-            });
+        return Room::withCount('assignments')->get()->map(function($room){
+            return [
+                'id' => $room->room_id,
+                'room_number' => $room->room_number,
+                'max_capacity' => $room->max_capacity,
+                'current_occupancy' => $room->assignments_count,
+            ];
+        });
     }
 
     public function store(Request $request){

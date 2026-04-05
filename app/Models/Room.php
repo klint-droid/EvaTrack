@@ -19,10 +19,14 @@ class Room extends Model
     ];
 
     public function assignments(){
-        return $this->hasMany(RoomAssignment::class);
+        return $this->hasMany(RoomAssignment::class, 'room_id', 'room_id');
     }
 
     public function evacuationCenter(){
-        return $this->belongsTo(EvacuationCenter::class);
+        return $this->belongsTo(
+            EvacuationCenter::class,
+            'evacuation_center_id',
+            'evacuation_center_id'
+            );
     }
 }

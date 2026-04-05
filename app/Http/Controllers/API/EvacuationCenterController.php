@@ -15,11 +15,12 @@ class EvacuationCenterController extends Controller
     }
     public function store(Request $request){
         $validated = $request->validate([
-            'evacuation_center_id' => 'required|string|max:9',
             'name' => 'required|string|max:255',
             'location' => 'required|string|max:255',
             'capacity' => 'required|integer',
         ]);
+
+        $validated['evacuation_center_id'] = uniqid('EC-');
 
         $evacuationCenter = EvacuationCenter::create($validated);
 

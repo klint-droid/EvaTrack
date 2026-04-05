@@ -54,7 +54,7 @@ Route::prefix('households')
     ->group(function () {
     Route::get('/', [HouseholdController::class, 'index']);
     Route::get('/search', [HouseholdController::class, 'search']);
-    Route::get('/households/qr/{qr_code}', [HouseholdController::class, 'findQR']);
+    Route::post('/verify-household', [HouseholdController::class, 'verify']);
     Route::get('/{id}', [HouseholdController::class, 'show']);
     Route::get('/sync-households', [SyncController::class, 'syncHouseholds']);
 });
