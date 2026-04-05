@@ -103,4 +103,11 @@ class User extends Authenticatable
         return 'user_id';
     }
     
+    public function evacuationCenter(){
+        return $this->belongsTo(
+            EvacuationCenter::class,
+            'assigned_evacuation_center_id',
+            'evacuation_center_id'
+        );
+    }
 }

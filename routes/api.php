@@ -8,6 +8,7 @@ use App\Http\Controllers\API\HouseholdController;
 use App\Http\Controllers\API\EvacuationCenterController;
 use App\Http\Controllers\API\RoomController;
 use App\Http\Controllers\API\RoomAssignmentController;
+use App\Http\Controllers\API\EvacuationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,17 +31,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::middleware(['auth:sanctum'])->group(function () {
 
-    Route::get('/users', [UserController::class, 'index'])
-        ->middleware('role:admin,super_admin');
+    Route::middleware('role:admin,super_admin')->group(function () {
 
-    Route::post('/users', [UserController::class, 'createUser'])
-        ->middleware('role:admin,super_admin');
+        Route::get('/users', [UserController::class, 'index']);
+        Route::post('/users', [UserController::class, 'createUser']);
+        Route::put('/users/{id}', [UserController::class, 'updateUser']);
+        Route::delete('/users/{id}', [UserController::class, 'deleteUser']);
 
-    Route::put('/users/{id}', [UserController::class, 'updateUser'])
-        ->middleware('role:admin,super_admin');
+    });
 
-    Route::delete('/users/{id}', [UserController::class, 'deleteUser'])
-        ->middleware('role:admin,super_admin');
+    Route::post('users/{user}/assign-center', [UserController::class, 'assignCenter']);
 });
 
 /*
@@ -57,6 +57,16 @@ Route::prefix('households')
     Route::post('/verify-household', [HouseholdController::class, 'verify']);
     Route::get('/{id}', [HouseholdController::class, 'show']);
     Route::get('/sync-households', [SyncController::class, 'syncHouseholds']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::apiResource('evacuations', EvacuationController::class);
+    
+    Route::get('evacuations/active', [EvacuationController::class, 'active']);
+
+    Route::post('evacuations/process-scan', [EvacuationController::class, 'scan']);
+
 });
 
 Route::prefix('evacuation-centers')
@@ -76,5 +86,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('rooms', RoomController::class);
 
     Route::post('rooms/{room}/assign', [RoomAssignmentController::class, 'assign']);
-    Route::post('rooms/{room}/remove/{household}', [RoomAssignmentController::class, 'remove']);
+    Route::delete('rooms/{room}/remove/{household}', [RoomAssignmentController::class, 'remove']);
 });

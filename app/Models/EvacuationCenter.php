@@ -18,4 +18,8 @@ class EvacuationCenter extends Model
         'capacity',
         'current_occupancy'
     ];
+
+    public function households(){
+        return $this->hasMany(Household::class, 'evacuation_center_id', 'evacuation_center_id');
+    }
 }

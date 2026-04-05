@@ -48,27 +48,63 @@ class UserController extends Controller
         ], 201);
     }
 
-    public function updateUser(Request $request, $id){
+    public function updateUser(Request $request, $id)
+    {
         $user = User::findOrFail($id);
         $authUser = Auth::user();
 
-        if ($user->isSuperAdmin()) {
+        // ❗ Admin cannot touch super admin
+        if ($authUser->isAdmin() && $user->isSuperAdmin()) {
             return response()->json([
-                'message' => 'Cannot update super admin'
+                'message' => 'You cannot modify a super admin'
             ], 403);
         }
 
         $request->validate([
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|unique:users,email,' . $id . ',user_id',
-            'role' => 'sometimes|string'
+            'role' => 'sometimes|in:' . implode(',', [
+                User::ROLE_USER,
+                User::ROLE_ADMIN,
+                User::ROLE_SUPER_ADMIN
+            ])
         ]);
 
-        if ($authUser->isAdmin()) {
-            $user->update($request->only('name', 'email', 'role'));
-        } else {
-            $user->update($request->only('name', 'email'));
+        $data = $request->only('name', 'email');
+
+        // 🔥 SUPER ADMIN LOGIC
+        if ($authUser->isSuperAdmin() && $request->has('role')) {
+
+            // ❗ Prevent self role change
+            if ($authUser->user_id === $user->user_id) {
+                return response()->json([
+                    'message' => 'You cannot change your own role'
+                ], 403);
+            }
+
+            $data['role'] = $request->role;
         }
+
+        // 🔥 ADMIN LOGIC
+        if ($authUser->isAdmin() && $request->has('role')) {
+
+            // ❗ Cannot assign super admin
+            if ($request->role === User::ROLE_SUPER_ADMIN) {
+                return response()->json([
+                    'message' => 'Admin cannot assign super admin role'
+                ], 403);
+            }
+
+            // ✅ Only allow user <-> admin switching
+            if (
+                in_array($user->role, [User::ROLE_USER, User::ROLE_ADMIN]) &&
+                in_array($request->role, [User::ROLE_USER, User::ROLE_ADMIN])
+            ) {
+                $data['role'] = $request->role;
+            }
+        }
+
+        $user->update($data);
 
         return response()->json([
             'message' => 'User updated successfully',
@@ -102,6 +138,31 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'User deleted successfully'
+        ]);
+    }
+
+    public function assignCenter(Request $request, $user_id)
+    {
+        $request->validate([
+            'evacuation_center_id' => 'nullable|exists:evacuation_centers,evacuation_center_id'
+        ]);
+
+        $authUser = Auth::user();
+        $user = User::findOrFail($user_id);
+
+        // ❗ Admin cannot assign super admin
+        if ($authUser->isAdmin() && $user->isSuperAdmin()) {
+            return response()->json([
+                'message' => 'You cannot assign a super admin'
+            ], 403);
+        }
+
+        $user->update([
+            'assigned_evacuation_center_id' => $request->evacuation_center_id
+        ]);
+
+        return response()->json([
+            'message' => 'User assigned successfully'
         ]);
     }
 }

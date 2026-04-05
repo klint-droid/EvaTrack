@@ -12,16 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('rooms', function (Blueprint $table) {
-            $table->string('room_id')->primary();
+            $table->string('room_id', 36)->primary();
 
-            $table->string('evacuation_center_id');
+            $table->string('evacuation_center_id', 36);
             $table->foreign('evacuation_center_id')
                 ->references('evacuation_center_id')
                 ->on('evacuation_centers')
                 ->cascadeOnDelete();
 
-            $table->string('room_number', 255);
+            $table->string('room_number', 50);
             $table->integer('max_capacity');
+            $table->integer('current_occupancy')->default(0);
 
             $table->timestamps();
         });

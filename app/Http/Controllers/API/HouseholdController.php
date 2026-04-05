@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Household;
 use App\Models\Evacuation;
+use App\Http\Requests\VerifyHouseholdRequest;
+use Illuminate\Support\Facades\Auth;
 
 class HouseholdController extends Controller
 {
@@ -16,21 +18,15 @@ class HouseholdController extends Controller
     public function show($id){
         $household = Household::findOrFail($id);
 
-        if(!$household){
-            return response()->json(['message' => 'Household not found'], 404);
-        }
-
         return response()->json($household);
     }
 
     public function verify(Request $request){
 
-        $request->validate([
-            'household_id' => 'required|exists:households,household_id',
-            'evacuation_id' => 'required|exists:evacuations,evacuation_id',
-        ]);
+        $data = $request->validated();
+        $user = Auth::user();
 
-        $household = Household::where('household_id', $request->household_id)->first();
+        $household = Household::where('household_id', $data['household_id'])->first();
 
         if(!$household){
             return response()->json(['message' => 'QR code not found'], 404);
@@ -40,13 +36,13 @@ class HouseholdController extends Controller
             ->where('evacuation_center_id', $request->evacuation_center_id)
             ->first();
 
-        if($record){
-            return response()->json([
-                'message' => 'Already scanned in this evacuation center',
-                'data' => [
-                    'household' => $household,
-                    'record' => $record
-                ]
+        if(!$record){
+            $record = Evacuation::create([
+                'household_id' => $request->household_id,
+                'evacuation_center_id' => $request->evacuation_center_id,
+                'is_verified' => true,
+                'verified_by' => $user->id,
+                'evacuated_at' => now(),
             ]);
         }
 
@@ -78,11 +74,11 @@ class HouseholdController extends Controller
             return response()->json(['message' => 'Query parameter is required'], 400);
         }
 
-        $households = Household::where(function ($q) use ($query) {
-            $q->where('household_name', 'LIKE', "%{$query}%")
-            ->orWhere('household_id', 'LIKE', "%{$query}%");
-        })->paginate(10);
-
-        return response()->json($households);
+        return response()->json(
+            Household::where(function($q) use ($query){
+                $q->where('household_name', 'LIKE', "%$query%")
+                    ->orWhere('household_id', 'LIKE', "%$query%");
+            })->paginate(10)
+        );
     }
 }

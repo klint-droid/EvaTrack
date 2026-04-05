@@ -12,16 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('room_assignments', function (Blueprint $table) {
-            $table->string('room_assignment_id')->primary();
-            $table->string('evacuation_id');
-            $table->string('room_id');
-            $table->string('assigned_by');
-            $table->string('household_id');
+            $table->string('room_assignment_id', 36)->primary();
+
+            $table->string('evacuation_id', 36);
+            $table->string('room_id', 36);
+            $table->string('assigned_by', 36);
+            $table->string('household_id', 36);
+
             $table->boolean('is_self_selected')->default(false);
             $table->timestamps();
 
-            //foreign keys
-
+            // Foreign keys
             $table->foreign('evacuation_id')
                 ->references('evacuation_id')
                 ->on('evacuation_records')
@@ -31,13 +32,24 @@ return new class extends Migration
                 ->references('room_id')
                 ->on('rooms')
                 ->cascadeOnDelete();
-            
+
             $table->foreign('assigned_by')
                 ->references('user_id')
                 ->on('users')
                 ->cascadeOnDelete();
 
-            $table->unique('household_id', 'evacuation_id');
+            $table->foreign('household_id')
+                ->references('household_id')
+                ->on('households')
+                ->cascadeOnDelete();
+
+            // Constraints
+            $table->unique(['household_id', 'evacuation_id']);
+            $table->unique(['room_id', 'household_id']);
+
+            // Indexes
+            $table->index('room_id');
+            $table->index('evacuation_id');
         });
     }
 

@@ -16,4 +16,8 @@ class Household extends Model
         'phone_number',
         'qr_code'
     ];
+
+    public function evacuationCenter(){
+        return $this->belongsTo(EvacuationCenter::class, 'evacuation_center_id', 'evacuation_center_id');
+    }
 }
