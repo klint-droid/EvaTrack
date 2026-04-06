@@ -7,6 +7,7 @@ use App\Models\Evacuation;
 use App\Services\EvacuationService;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\StoreEvacuationRequest;
+use App\Models\EvacuationRecord;
 
 class EvacuationController extends Controller
 {
@@ -21,7 +22,7 @@ class EvacuationController extends Controller
         }
 
         return response()->json([
-            'data' => Evacuation::with('evacuationCenter')
+            'data' => EvacuationRecord::with('evacuationCenter')
                 ->where('evacuation_center_id', $user->assigned_evacuation_center_id)
                 ->get()
         ]);
@@ -31,7 +32,7 @@ class EvacuationController extends Controller
     {
         $user = Auth::user();
 
-        $evacuation = Evacuation::with('evacuationCenter')
+        $evacuation = EvacuationRecord::with('evacuationCenter')
             ->where('evacuation_id', $id)
             ->where('evacuation_center_id', $user->assigned_evacuation_center_id)
             ->first();
@@ -90,7 +91,7 @@ class EvacuationController extends Controller
             ], 403);
         }
 
-        $evacuation = Evacuation::where('evacuation_center_id', $user->assigned_evacuation_center_id)
+        $evacuation = EvacuationRecord::where('evacuation_center_id', $user->assigned_evacuation_center_id)
             ->where('status', 'active') 
             ->latest()
             ->first();

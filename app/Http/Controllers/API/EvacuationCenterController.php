@@ -4,29 +4,32 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\EvacuationCenter;
+use App\Models\EvacuationRecord; // ✅ ADD THIS
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreEvacuationCenterRequest;
 use App\Http\Requests\UpdateEvacuationCenterRequest;
-use PhpParser\Node\Expr\Eval_;
 
 class EvacuationCenterController extends Controller
 {
-    //
     public function index(){
         $centers = EvacuationCenter::all();
 
-        return $centers->map(function ($c) {
-            return [
-                'evacuation_center_id' => $c->evacuation_center_id,
-                'name' => $c->name,
-                'location' => $c->location,
-                'capacity' => $c->capacity,
-                'current_capacity' => $c->households()->count(),
-            ];
-        });
+        return response()->json(
+            $centers->map(function ($c) {
+                return [
+                    'evacuation_center_id' => $c->evacuation_center_id,
+                    'name' => $c->name,
+                    'location' => $c->location,
+                    'capacity' => $c->capacity,
+                    'current_capacity' => $c->evacuationRecords()
+                        ->where('status', 'evacuated')
+                        ->count(),
+                ];
+            })
+        );
     }
+
     public function store(StoreEvacuationCenterRequest $request){
-        
         $data = $request->validated();
 
         $data['evacuation_center_id'] = uniqid('EC-');
@@ -56,12 +59,16 @@ class EvacuationCenterController extends Controller
     }
 
     public function capacity($id){
-        $evacuationCenters = EvacuationCenter::findOrFail($id);
-        $currentOccupancy = $evacuationCenters->households()->count();
+        $center = EvacuationCenter::findOrFail($id);
+
+        $currentOccupancy = EvacuationRecord::where('evacuation_center_id', $id)
+            ->where('status', 'evacuated')
+            ->count();
+
         return response()->json([
-            'capacity' => $evacuationCenters->capacity,
+            'capacity' => $center->capacity,
             'current_occupancy' => $currentOccupancy,
-            'available_space' => $evacuationCenters->capacity - $currentOccupancy
+            'available_space' => $center->capacity - $currentOccupancy
         ]);
     }
 }
