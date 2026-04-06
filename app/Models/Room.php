@@ -13,6 +13,7 @@ class Room extends Model
     public $incrementing = false;
 
     protected $fillable = [
+        'room_id',
         'evacuation_center_id',
         'room_number',
         'max_capacity',

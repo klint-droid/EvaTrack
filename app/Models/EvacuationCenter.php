@@ -17,10 +17,15 @@ class EvacuationCenter extends Model
         'name',
         'location',
         'capacity',
+        'has_rooms'
     ];
 
     public function evacuationRecords()
     {
         return $this->hasMany(EvacuationRecord::class, 'evacuation_center_id', 'evacuation_center_id');
+    }
+
+    public function rooms(){
+        return $this->hasMany(Room::class, 'evacuation_center_id', 'evacuation_center_id');
     }
 }

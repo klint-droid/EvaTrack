@@ -12,20 +12,24 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('room_assignments', function (Blueprint $table) {
-            $table->string('room_assignment_id', 36)->primary();
 
-            $table->string('evacuation_id', 36);
-            $table->string('room_id', 36);
-            $table->string('assigned_by', 36);
-            $table->string('household_id', 36);
+            $table->string('room_assignment_id', 100)->primary();
+
+            $table->string('evacuation_center_id', 100);
+            $table->string('room_id', 100);
+            $table->string('assigned_by_user_id', 100);
+            $table->string('household_id', 100);
 
             $table->boolean('is_self_selected')->default(false);
+            $table->boolean('is_active')->default(true);
+
+            $table->timestamp('assigned_at')->useCurrent();
             $table->timestamps();
 
             // Foreign keys
-            $table->foreign('evacuation_id')
-                ->references('evacuation_id')
-                ->on('evacuation_records')
+            $table->foreign('evacuation_center_id')
+                ->references('evacuation_center_id')
+                ->on('evacuation_centers')
                 ->cascadeOnDelete();
 
             $table->foreign('room_id')
@@ -33,7 +37,7 @@ return new class extends Migration
                 ->on('rooms')
                 ->cascadeOnDelete();
 
-            $table->foreign('assigned_by')
+            $table->foreign('assigned_by_user_id')
                 ->references('user_id')
                 ->on('users')
                 ->cascadeOnDelete();
@@ -43,13 +47,9 @@ return new class extends Migration
                 ->on('households')
                 ->cascadeOnDelete();
 
-            // Constraints
-            $table->unique(['household_id', 'evacuation_id']);
-            $table->unique(['room_id', 'household_id']);
-
             // Indexes
             $table->index('room_id');
-            $table->index('evacuation_id');
+            $table->index('evacuation_center_id');
         });
     }
 

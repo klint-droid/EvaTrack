@@ -26,6 +26,12 @@ class StoreEvacuationCenterRequest extends FormRequest
             'name' => 'required|string|max:255',
             'location' => 'required|string|max:255',
             'capacity' => 'required|integer',
+            'has_rooms' => 'nullable|boolean',
+            'room_count' => 'nullable|integer',
+            'rooms' => 'nullable|array',
+
+            'rooms.*.room_number' => 'required_with:rooms|string|max:50',
+            'rooms.*.max_capacity' => 'required_with:rooms|integer',
         ];
     }
 }

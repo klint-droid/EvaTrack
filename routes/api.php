@@ -71,20 +71,32 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::prefix('evacuation-centers')
     ->middleware(['auth:sanctum'])
-    ->group(function (){
+    ->group(function () {
+
         Route::get('/', [EvacuationCenterController::class, 'index']);
-        Route::get('/{id}', [EvacuationCenterController::class, 'show']);
-        Route::get('/{id}/capacity', [EvacuationCenterController::class, 'capacity']);
+        Route::get('/{evacuation_center}', [EvacuationCenterController::class, 'show']);
+        Route::get('/{evacuation_center}/capacity', [EvacuationCenterController::class, 'capacity']);
+
+        Route::get('/{evacuation_center}/rooms', [RoomController::class, 'byCenter']);
+
         Route::middleware('role:admin,super_admin')->group(function () {
             Route::post('/', [EvacuationCenterController::class, 'store']);
-            Route::put('/{id}', [EvacuationCenterController::class, 'update']);
-            Route::delete('/{id}', [EvacuationCenterController::class, 'destroy']);
+            Route::put('/{evacuation_center}', [EvacuationCenterController::class, 'update']);
+            Route::delete('/{evacuation_center}', [EvacuationCenterController::class, 'destroy']);
         });
     });
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::apiResource('rooms', RoomController::class);
+Route::middleware(['auth:sanctum'])->group(function () {
 
-    Route::post('rooms/{room}/assign', [RoomAssignmentController::class, 'assign']);
-    Route::delete('rooms/{room}/remove/{household}', [RoomAssignmentController::class, 'remove']);
+    Route::get('rooms', [RoomController::class, 'index']);
+    Route::get('rooms/{room}', [RoomController::class, 'show']);
+
+    Route::middleware('role:admin,super_admin')->group(function () {
+        Route::post('rooms', [RoomController::class, 'store']);
+        Route::put('rooms/{room}', [RoomController::class, 'update']);
+        Route::delete('rooms/{room}', [RoomController::class, 'destroy']);
+    });
+    
+    Route::post('rooms/{room}/assignments', [RoomAssignmentController::class, 'assign']);
+    Route::delete('rooms/{room}/assignments/{household}', [RoomAssignmentController::class, 'remove']);
 });
