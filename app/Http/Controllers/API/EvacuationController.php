@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Models\Evacuation;
 use App\Services\EvacuationService;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\StoreEvacuationRequest;
@@ -46,10 +45,9 @@ class EvacuationController extends Controller
         return response()->json($evacuation);
     }
 
-    public function scan(StoreEvacuationRequest $request, EvacuationService $evacuationService)
+    public function scan(StoreEvacuationRequest $request, EvacuationService $service)
     {
         $user = Auth::user();
-        $data = $request->validated();
 
         if (!$user->assigned_evacuation_center_id) {
             return response()->json([
@@ -57,16 +55,10 @@ class EvacuationController extends Controller
             ], 403);
         }
 
-        if ($user->assigned_evacuation_center_id !== $data['evacuation_center_id']) {
-            return response()->json([
-                'message' => 'You are not assigned to this evacuation center'
-            ], 403);
-        }
-
         try {
-            $evacuation = $evacuationService->handleScan(
-                $data['household_id'],
-                $data['evacuation_center_id'],
+            $evacuation = $service->handleScan(
+                $request->household_id,
+                $user->assigned_evacuation_center_id, 
                 $user->user_id
             );
 
@@ -81,6 +73,7 @@ class EvacuationController extends Controller
             ], 400);
         }
     }
+
     public function active()
     {
         $user = Auth::user();
@@ -92,8 +85,7 @@ class EvacuationController extends Controller
         }
 
         $evacuation = EvacuationRecord::where('evacuation_center_id', $user->assigned_evacuation_center_id)
-            ->where('status', 'active') 
-            ->latest()
+            ->where('status', 'evacuated')
             ->first();
 
         if (!$evacuation) {
@@ -103,5 +95,81 @@ class EvacuationController extends Controller
         }
 
         return response()->json($evacuation);
+    }
+
+    public function search(Request $request){
+        $query = $request->input('query');
+
+        $households = Household::where('household_id', $query)
+            ->orWhere('household_name', 'like', "%$query%")
+            ->get();
+
+        return response()->json([
+            'data' => $households
+        ]);
+    }
+
+    public function verify(Request $request, EvacuationService $service){
+        $request->validate([
+            'household_id' => 'required|exists:households,household_id'
+        ]);
+
+        $user = Auth::user();
+
+        if(!$user->assigned_evacuation_center_id){
+            return response()->json([
+                'message' => 'No evacuation center assigned'
+            ], 403);
+        }
+
+        try{
+            $evacuation = $service->handleManual(
+                $request->household_id,
+                $user->assigned_evacuation_center_id,
+                $user->user_id
+            );
+
+            return response()->json([
+                'message' => 'Household verified successfully',
+                'data' => $evacuation
+            ]);
+        }catch(\Exception $e){
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    public function createAndVerify(Request $request, EvacuationService $service)
+    {
+        $request->validate([
+            'household_name' => 'required|string'
+        ]);
+
+        $user = Auth::user();
+
+        if (!$user->assigned_evacuation_center_id) {
+            return response()->json([
+                'message' => 'No evacuation center assigned'
+            ], 403);
+        }
+
+        try {
+            $record = $service->handleNewHousehold(
+                $request->household_name,
+                $user->assigned_evacuation_center_id,
+                $user->user_id
+            );
+
+            return response()->json([
+                'message' => 'Household created and verified',
+                'data' => $record
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 400);
+        }
     }
 }

@@ -50,6 +50,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'user_id',
+        'assigned_evacuation_center_id',
         'name',
         'email',
         'password',
@@ -109,5 +110,17 @@ class User extends Authenticatable
             'assigned_evacuation_center_id',
             'evacuation_center_id'
         );
+    }
+
+    public function hasCenterAccess($centerId){
+        if(this->isAdmin() || $this->isSuperAdmin()){
+            return true;
+        }
+
+        return $this->assigned_evacuation_center_id === $centerId;
+    }
+
+    public function isAssigned(){
+        return !is_null($this->assigned_evacuation_center_id);
     }
 }

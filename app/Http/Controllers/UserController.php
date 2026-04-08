@@ -10,7 +10,15 @@ use Illuminate\Support\Facades\Auth;
 class UserController extends Controller
 {
     public function index(){
-        return response()->json(User::paginate(10));
+        $authUser = Auth::user();
+
+        $query = User::query();
+
+        if($authUser->isAdmin()){
+            $query->where('role', '!=', User::ROLE_SUPER_ADMIN);
+        }
+
+        return response()->json($query->paginate(10));
     }
 
     public function createUser(Request $request){
@@ -155,6 +163,12 @@ class UserController extends Controller
             return response()->json([
                 'message' => 'You cannot assign a super admin'
             ], 403);
+        }
+
+        if ($user->assigned_evacuation_center_id === $request->evacuation_center_id) {
+            return response()->json([
+                'message' => 'User already assigned to this center'
+            ], 200);
         }
 
         $user->update([

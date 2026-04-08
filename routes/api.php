@@ -9,6 +9,8 @@ use App\Http\Controllers\API\EvacuationCenterController;
 use App\Http\Controllers\API\RoomController;
 use App\Http\Controllers\API\RoomAssignmentController;
 use App\Http\Controllers\API\EvacuationController;
+use App\Http\Controllers\API\SmsWebhookController;
+use App\Http\Controllers\API\Admin\UserAssignmentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,9 +40,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::put('/users/{id}', [UserController::class, 'updateUser']);
         Route::delete('/users/{id}', [UserController::class, 'deleteUser']);
 
+        Route::post('/users/{user}/assign-center', [UserController::class, 'assignCenter']);
     });
-
-    Route::post('users/{user}/assign-center', [UserController::class, 'assignCenter']);
 });
 
 /*
@@ -61,11 +62,18 @@ Route::prefix('households')
 
 Route::middleware('auth:sanctum')->group(function () {
 
-    Route::apiResource('evacuations', EvacuationController::class);
+    Route::apiResource('evacuations', EvacuationController::class)
+    ->only(['index', 'show']);
     
     Route::get('evacuations/active', [EvacuationController::class, 'active']);
 
     Route::post('evacuations/process-scan', [EvacuationController::class, 'scan']);
+
+    Route::get('evacuations/search-household', [EvacuationController::class, 'search']);
+
+    Route::post('evacuations/verify-manual', [EvacuationController::class, 'verifyManual']);
+
+    Route::post('evacuations/create-household', [EvacuationController::class, 'createAndVerify']);
 
 });
 
@@ -96,7 +104,35 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::put('rooms/{room}', [RoomController::class, 'update']);
         Route::delete('rooms/{room}', [RoomController::class, 'destroy']);
     });
-    
+
     Route::post('rooms/{room}/assignments', [RoomAssignmentController::class, 'assign']);
     Route::delete('rooms/{room}/assignments/{household}', [RoomAssignmentController::class, 'remove']);
 });
+
+Route::get('/test-device', function () {
+    $sms = new \App\Services\SmsGateService();
+    return $sms->getDevices();
+});
+
+Route::get('/test-sms', function () {
+    $sms = new \App\Services\SmsGateService();
+
+    return $sms->sendSMS('09922260825', 'Milven gwapo');
+});
+
+Route::get('/check-sms/{id}', function ($id) {
+    $sms = new \App\Services\SmsGateService();
+    return $sms->getMessageStatus($id);
+});
+
+Route::get('/register-webhook', function () {
+    $sms = new \App\Services\SmsGateService();
+    return $sms->registerWebhook();
+});
+
+Route::get('/list-webhooks', function () {
+    $sms = new \App\Services\SmsGateService();
+    return $sms->listWebhooks();
+});
+
+Route::post('/sms/webhook', [SmsWebhookController::class, 'handle']);

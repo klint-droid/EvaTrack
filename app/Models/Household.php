@@ -20,4 +20,8 @@ class Household extends Model
     public function evacuationCenter(){
         return $this->belongsTo(EvacuationCenter::class, 'evacuation_center_id', 'evacuation_center_id');
     }
+
+    public function evacuationRecord(){
+        return $this->hasOne(EvacuationRecord::class, 'household_id', 'household_id');
+    }
 }
