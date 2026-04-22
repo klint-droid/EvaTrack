@@ -91,21 +91,56 @@ class SmsGateService
 
         return $number;
     }
-    public function sendSMS($number, $message)
+
+    public function sendSMS($number, $message, $notificationId, $householdId)
     {
-        return Http::withToken($this->getToken())
-            ->post($this->baseUrl . '/messages?skipPhoneValidation=true&deviceActiveWithin=0', [
+        $formattedNumber = $this->formatNumber($number);
+
+        $response = $this->request(
+            'post',
+            '/messages?skipPhoneValidation=true&deviceActiveWithin=0',
+            [
                 'deviceId' => env('SMSGATE_DEVICE_ID'),
-                'phoneNumbers' => [$number],
+                'phoneNumbers' => [$formattedNumber],
                 'message' => $message,
                 'simNumber' => 2,
-            ])->json();
+            ]
+        );
+
+        $data = $response->json();
+
+        $messageId = $data['result']['messageId']
+            ?? $data['messageId']
+            ?? null;
+
+        $isSuccess = $response->successful() && $messageId;
+
+        if (!$isSuccess) {
+            \Log::error('SMS sending failed', [
+                'response' => $data,
+                'number' => $formattedNumber,
+            ]);
+        }
+
+        \App\Models\NotificationLog::create([
+            'notification_id' => $notificationId,
+            'household_id' => $householdId,
+            'channel' => 'sms',
+            'status' => $isSuccess ? 'sent' : 'failed',
+            'sent_at' => now(),
+            'retry_count' => 0,
+            'external_message_id' => $messageId,
+        ]);
+
+        return $messageId;
     }
+
     public function getMessageStatus($messageId)
     {
         return $this->request('get', "/messages/{$messageId}")
             ->json();
     }
+
     public function registerWebhook()
     {
         $events = ['sms:sent', 'sms:delivered', 'sms:failed'];

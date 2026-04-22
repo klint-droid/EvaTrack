@@ -4,65 +4,104 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
-    public function index(){
-        $authUser = Auth::user();
-
-        $query = User::query();
-
-        if($authUser->isAdmin()){
-            $query->where('role', '!=', User::ROLE_SUPER_ADMIN);
-        }
-
-        return response()->json($query->paginate(10));
+    /**
+     * FORMAT USER (reusable)
+     */
+    private function formatUser($user)
+    {
+        return [
+            'user_id' => $user->user_id,
+            'name' => $user->name,
+            'role' => $user->role?->role_key,
+            'role_label' => $user->role?->role_name,
+            'assigned_center_id' => $user->assigned_center_id,
+            'contact_number' => $user->contact_number,
+        ];
     }
 
-    public function createUser(Request $request){
+    /**
+     * LIST USERS
+     */
+    public function index()
+    {
+        $authUser = Auth::user();
+
+        $query = User::with('role');
+
+        // 🔒 evac_admin cannot see super_admin
+        if ($authUser->isEvacAdmin()) {
+            $query->whereHas('role', function ($q) {
+                $q->where('role_key', '!=', 'super_admin');
+            });
+        }
+
+        $users = $query->paginate(10);
+
+        $users->getCollection()->transform(function ($user) {
+            return $this->formatUser($user);
+        });
+
+        return response()->json($users);
+    }
+
+    /**
+     * CREATE USER
+     */
+    public function createUser(Request $request)
+    {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
             'password' => 'required|string|min:8',
-            'role' => 'nullable|in:' . implode(',', [
-                User::ROLE_USER,
-                User::ROLE_ADMIN
-            ])
+            'role' => 'nullable|in:evac_personnel,evac_admin,super_admin',
+            'contact_number' => 'required|string|unique:users,contact_number'
         ]);
 
         $authUser = Auth::user();
-        $role = User::ROLE_USER;
 
-        if($authUser->isSuperAdmin() && $request->role){
-            $role = $request->role;
+        // default role
+        $roleKey = 'evac_personnel';
+
+        if ($authUser->isSuperAdmin() && $request->role) {
+            $roleKey = $request->role;
         }
 
-        if($authUser->isAdmin()){
-            $role = User::ROLE_USER;
+        if ($authUser->isEvacAdmin()) {
+            $roleKey = 'evac_personnel';
         }
+
+        $role = Role::where('role_key', $roleKey)->firstOrFail();
 
         $user = User::create([
             'name' => $request->name,
-            'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => $role
+            'role_id' => $role->role_id,
+            'contact_number' => $request->contact_number,
         ]);
+
+        $user->load('role');
 
         return response()->json([
             'message' => 'User created successfully',
-            'user' => $user,
+            'user' => $this->formatUser($user),
         ], 201);
     }
 
+    /**
+     * UPDATE USER
+     */
     public function updateUser(Request $request, $id)
     {
-        $user = User::findOrFail($id);
+        $user = User::with('role')->findOrFail($id);
         $authUser = Auth::user();
 
-        // ❗ Admin cannot touch super admin
-        if ($authUser->isAdmin() && $user->isSuperAdmin()) {
+        // ❌ evac admin cannot modify super admin
+        if ($authUser->isEvacAdmin() && $user->role?->role_key === 'super_admin') {
             return response()->json([
                 'message' => 'You cannot modify a super admin'
             ], 403);
@@ -70,75 +109,81 @@ class UserController extends Controller
 
         $request->validate([
             'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|email|unique:users,email,' . $id . ',user_id',
-            'role' => 'sometimes|in:' . implode(',', [
-                User::ROLE_USER,
-                User::ROLE_ADMIN,
-                User::ROLE_SUPER_ADMIN
-            ])
+            'role' => 'sometimes|in:evac_personnel,evac_admin,super_admin',
+            'contact_number' => 'sometimes|string|unique:users,contact_number'
         ]);
 
-        $data = $request->only('name', 'email');
+        $data = [];
 
-        // 🔥 SUPER ADMIN LOGIC
+        if ($request->has('name')) {
+            $data['name'] = $request->name;
+        }
+
+        //  SUPER ADMIN ROLE CHANGE
         if ($authUser->isSuperAdmin() && $request->has('role')) {
 
-            // ❗ Prevent self role change
             if ($authUser->user_id === $user->user_id) {
                 return response()->json([
                     'message' => 'You cannot change your own role'
                 ], 403);
             }
 
-            $data['role'] = $request->role;
+            $role = Role::where('role_key', $request->role)->firstOrFail();
+            $data['role_id'] = $role->role_id;
         }
 
-        // 🔥 ADMIN LOGIC
-        if ($authUser->isAdmin() && $request->has('role')) {
+        //  EVAC ADMIN ROLE CHANGE
+        if ($authUser->isEvacAdmin() && $request->has('role')) {
 
-            // ❗ Cannot assign super admin
-            if ($request->role === User::ROLE_SUPER_ADMIN) {
+            if ($request->role === 'super_admin') {
                 return response()->json([
                     'message' => 'Admin cannot assign super admin role'
                 ], 403);
             }
 
-            // ✅ Only allow user <-> admin switching
-            if (
-                in_array($user->role, [User::ROLE_USER, User::ROLE_ADMIN]) &&
-                in_array($request->role, [User::ROLE_USER, User::ROLE_ADMIN])
-            ) {
-                $data['role'] = $request->role;
-            }
+            $role = Role::where('role_key', $request->role)->firstOrFail();
+            $data['role_id'] = $role->role_id;
         }
 
         $user->update($data);
+        $user->load('role');
 
         return response()->json([
             'message' => 'User updated successfully',
-            'user' => $user
+            'user' => $this->formatUser($user),
         ]);
     }
 
-    public function deleteUser($id){
-        $user = User::findOrFail($id);
+    /**
+     * DELETE USER
+     */
+    public function deleteUser($id)
+    {
+        $user = User::with('role')->findOrFail($id);
         $authUser = Auth::user();
 
+        // ❌ cannot delete yourself
         if ($authUser->user_id === $user->user_id) {
             return response()->json([
                 'message' => 'You cannot delete yourself'
             ], 403);
         }
 
-        if ($user->isSuperAdmin() && User::where('role', User::ROLE_SUPER_ADMIN)->count() <= 1) {
+        // ❌ prevent deleting last super admin
+        $superAdminCount = User::whereHas('role', function ($q) {
+            $q->where('role_key', 'super_admin');
+        })->count();
+
+        if ($user->role?->role_key === 'super_admin' && $superAdminCount <= 1) {
             return response()->json([
                 'message' => 'Cannot delete the last super admin'
             ], 403);
         }
 
-        if ($authUser->isAdmin() && !$user->isUser()) {
+        // ❌ evac admin restriction
+        if ($authUser->isEvacAdmin() && $user->role?->role_key !== 'evac_personnel') {
             return response()->json([
-                'message' => 'Admin can only delete users'
+                'message' => 'Admin can only delete personnel'
             ], 403);
         }
 
@@ -149,34 +194,42 @@ class UserController extends Controller
         ]);
     }
 
+    /**
+     * ASSIGN CENTER
+     */
     public function assignCenter(Request $request, $user_id)
     {
         $request->validate([
-            'evacuation_center_id' => 'nullable|exists:evacuation_centers,evacuation_center_id'
+            'assigned_center_id' => 'nullable|exists:evacuation_centers,evacuation_center_id'
         ]);
 
         $authUser = Auth::user();
-        $user = User::findOrFail($user_id);
+        $user = User::with('role')->findOrFail($user_id);
 
-        // ❗ Admin cannot assign super admin
-        if ($authUser->isAdmin() && $user->isSuperAdmin()) {
+        // ❌ evac admin cannot assign super admin
+        if ($authUser->isEvacAdmin() && $user->role?->role_key === 'super_admin') {
             return response()->json([
                 'message' => 'You cannot assign a super admin'
             ], 403);
         }
 
-        if ($user->assigned_evacuation_center_id === $request->evacuation_center_id) {
+        // ✅ no change
+        if ($user->assigned_center_id === $request->assigned_center_id) {
             return response()->json([
-                'message' => 'User already assigned to this center'
-            ], 200);
+                'message' => 'User already assigned to this center',
+                'data' => $this->formatUser($user)
+            ]);
         }
 
         $user->update([
-            'assigned_evacuation_center_id' => $request->evacuation_center_id
+            'assigned_center_id' => $request->assigned_center_id
         ]);
 
+        $user->load('role');
+
         return response()->json([
-            'message' => 'User assigned successfully'
+            'message' => 'User assigned successfully',
+            'data' => $this->formatUser($user)
         ]);
     }
 }

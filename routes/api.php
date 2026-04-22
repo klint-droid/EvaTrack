@@ -11,6 +11,7 @@ use App\Http\Controllers\API\RoomAssignmentController;
 use App\Http\Controllers\API\EvacuationController;
 use App\Http\Controllers\API\SmsWebhookController;
 use App\Http\Controllers\API\Admin\UserAssignmentController;
+use App\Http\Controllers\API\NotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,18 +32,16 @@ Route::middleware('auth:sanctum')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['auth:sanctum', 'role:super_admin,evac_admin'])->group(function () {
 
-    Route::middleware('role:admin,super_admin')->group(function () {
+    Route::get('/users', [UserController::class, 'index']);
+    Route::post('/users', [UserController::class, 'createUser']);
+    Route::put('/users/{id}', [UserController::class, 'updateUser']);
+    Route::delete('/users/{id}', [UserController::class, 'deleteUser']);
 
-        Route::get('/users', [UserController::class, 'index']);
-        Route::post('/users', [UserController::class, 'createUser']);
-        Route::put('/users/{id}', [UserController::class, 'updateUser']);
-        Route::delete('/users/{id}', [UserController::class, 'deleteUser']);
-
-        Route::post('/users/{user}/assign-center', [UserController::class, 'assignCenter']);
-    });
+    Route::post('/users/{user}/assign-center', [UserController::class, 'assignCenter']);
 });
+
 
 /*
 |--------------------------------------------------------------------------
@@ -53,29 +52,42 @@ Route::middleware(['auth:sanctum'])->group(function () {
 Route::prefix('households')
     ->middleware(['auth:sanctum'])
     ->group(function () {
-    Route::get('/', [HouseholdController::class, 'index']);
-    Route::get('/search', [HouseholdController::class, 'search']);
-    Route::post('/verify-household', [HouseholdController::class, 'verify']);
-    Route::get('/{id}', [HouseholdController::class, 'show']);
-    Route::get('/sync-households', [SyncController::class, 'syncHouseholds']);
+
+        Route::get('/', [HouseholdController::class, 'index']);
+        Route::get('/search', [HouseholdController::class, 'search']);
+        Route::get('/{id}', [HouseholdController::class, 'show']);
+
+        Route::post('/', [HouseholdController::class, 'store']);
+
+        Route::get('/sync-households', [SyncController::class, 'syncHouseholds']);
 });
 
-Route::middleware('auth:sanctum')->group(function () {
 
-    Route::apiResource('evacuations', EvacuationController::class)
-    ->only(['index', 'show']);
-    
+/*
+|--------------------------------------------------------------------------
+| EVACUATION ROUTES
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth:sanctum'])->group(function () {
+
+    Route::get('evacuations/search-household', [HouseholdController::class, 'search']);
     Route::get('evacuations/active', [EvacuationController::class, 'active']);
 
     Route::post('evacuations/process-scan', [EvacuationController::class, 'scan']);
-
-    Route::get('evacuations/search-household', [EvacuationController::class, 'search']);
-
     Route::post('evacuations/verify-manual', [EvacuationController::class, 'verifyManual']);
+    Route::post('evacuations/admit', [EvacuationController::class, 'admit']);
 
-    Route::post('evacuations/create-household', [EvacuationController::class, 'createAndVerify']);
-
+    Route::apiResource('evacuations', EvacuationController::class)
+        ->only(['index', 'show']);
 });
+
+
+/*
+|--------------------------------------------------------------------------
+| EVACUATION CENTER ROUTES
+|--------------------------------------------------------------------------
+*/
 
 Route::prefix('evacuation-centers')
     ->middleware(['auth:sanctum'])
@@ -87,52 +99,75 @@ Route::prefix('evacuation-centers')
 
         Route::get('/{evacuation_center}/rooms', [RoomController::class, 'byCenter']);
 
-        Route::middleware('role:admin,super_admin')->group(function () {
+        //  ADMIN ONLY
+        Route::middleware('role:super_admin,evac_admin')->group(function () {
             Route::post('/', [EvacuationCenterController::class, 'store']);
             Route::put('/{evacuation_center}', [EvacuationCenterController::class, 'update']);
             Route::delete('/{evacuation_center}', [EvacuationCenterController::class, 'destroy']);
         });
-    });
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| ROOM + ALLOCATION ROUTES
+|--------------------------------------------------------------------------
+*/
 
 Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('rooms', [RoomController::class, 'index']);
+    Route::get('rooms/suggest', [RoomController::class, 'suggest']);
     Route::get('rooms/{room}', [RoomController::class, 'show']);
 
-    Route::middleware('role:admin,super_admin')->group(function () {
+    // ADMIN ONLY
+    Route::middleware('role:super_admin,evac_admin')->group(function () {
         Route::post('rooms', [RoomController::class, 'store']);
         Route::put('rooms/{room}', [RoomController::class, 'update']);
         Route::delete('rooms/{room}', [RoomController::class, 'destroy']);
     });
 
+    // personnel can assign/remove
     Route::post('rooms/{room}/assignments', [RoomAssignmentController::class, 'assign']);
     Route::delete('rooms/{room}/assignments/{household}', [RoomAssignmentController::class, 'remove']);
 });
 
+
+/*
+|--------------------------------------------------------------------------
+| SMS TESTING (DEV ONLY)
+|--------------------------------------------------------------------------
+*/
+
 Route::get('/test-device', function () {
-    $sms = new \App\Services\SmsGateService();
-    return $sms->getDevices();
+    return (new \App\Services\SmsGateService())->getDevices();
 });
 
 Route::get('/test-sms', function () {
-    $sms = new \App\Services\SmsGateService();
-
-    return $sms->sendSMS('09922260825', 'Milven gwapo');
+    return (new \App\Services\SmsGateService())->sendSMS('09922260825', 'Milven gwapo');
 });
 
 Route::get('/check-sms/{id}', function ($id) {
-    $sms = new \App\Services\SmsGateService();
-    return $sms->getMessageStatus($id);
+    return (new \App\Services\SmsGateService())->getMessageStatus($id);
 });
 
 Route::get('/register-webhook', function () {
-    $sms = new \App\Services\SmsGateService();
-    return $sms->registerWebhook();
+    return (new \App\Services\SmsGateService())->registerWebhook();
 });
 
 Route::get('/list-webhooks', function () {
-    $sms = new \App\Services\SmsGateService();
-    return $sms->listWebhooks();
+    return (new \App\Services\SmsGateService())->listWebhooks();
 });
 
+
+/*
+|--------------------------------------------------------------------------
+| SMS WEBHOOK
+|--------------------------------------------------------------------------
+*/
+
 Route::post('/sms/webhook', [SmsWebhookController::class, 'handle']);
+
+Route::post('/notifications/send', [NotificationController::class, 'send']);
+
+Route::post('/device-token', [DeviceTokenController::class, 'store']);

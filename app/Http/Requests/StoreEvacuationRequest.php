@@ -24,7 +24,6 @@ class StoreEvacuationRequest extends FormRequest
     {
         return [
             'household_id' => 'required|exists:households,household_id',
-            'evacuation_center_id' => 'required|exists:evacuation_centers,evacuation_center_id',
         ];
     }
 }

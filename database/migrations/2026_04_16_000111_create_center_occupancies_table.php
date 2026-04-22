@@ -9,22 +9,22 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
+    protected $connection = 'mysql_v2';
+
     public function up(): void
     {
-        Schema::create('rooms', function (Blueprint $table) {
-            $table->string('room_id', 100)->primary();
+        Schema::connection($this->connection)->create('center_occupancies', function (Blueprint $table) {
+            $table->string('id')->primary();
 
-            $table->string('evacuation_center_id', 100);
+            $table->string('evacuation_center_id');
+
+            $table->integer('current_occupancy');
+            $table->dateTime('last_updated');
+
             $table->foreign('evacuation_center_id')
                 ->references('evacuation_center_id')
                 ->on('evacuation_centers')
                 ->cascadeOnDelete();
-
-            $table->string('room_number', 50);
-            $table->integer('max_capacity');
-            $table->integer('current_occupancy')->default(0);
-
-            $table->timestamps();
         });
     }
 
@@ -33,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('rooms');
+        Schema::connection($this->connection)->dropIfExists('center_occupancies');
     }
 };

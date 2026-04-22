@@ -21,11 +21,22 @@ class UpdateEvacuationCenterRequest extends FormRequest
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
-    {
-        return [
-            'name' => 'required|string|max:255',
-            'location' => 'required|string|max:255',
-            'capacity' => 'required|integer',
-        ];
-    }
+{
+    return [
+        'name' => 'required|string|max:255',
+
+        'latitude' => 'required|numeric',
+        'longitude' => 'required|numeric',
+
+        'capacity' => 'required|integer|min:1',
+
+        'region' => 'nullable|string|max:100',
+        'province' => 'nullable|string|max:100',
+        'city' => 'nullable|string|max:100',
+        'barangay' => 'nullable|string|max:100',
+        'street' => 'nullable|string|max:255',
+        'purok' => 'nullable|string|max:100',
+        'full_address' => 'nullable|string|max:255',
+    ];
+}
 }

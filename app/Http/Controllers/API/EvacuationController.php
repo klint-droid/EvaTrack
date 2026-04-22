@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Services\EvacuationService;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Requests\StoreEvacuationRequest;
+use Illuminate\Http\Request;
+use App\Models\Household;
 use App\Models\EvacuationRecord;
+use App\Services\EvacuationService;
+use App\Http\Requests\StoreEvacuationRequest;
 
 class EvacuationController extends Controller
 {
@@ -14,27 +16,46 @@ class EvacuationController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user->assigned_evacuation_center_id) {
+        $query = EvacuationRecord::with([
+            'household',
+            'evacuatedMembers.member',
+            'roomAllocation.room',
+            'center',
+            'verifiedBy'
+        ])->latest();
+
+        if ($user->isSuperAdmin()) {
+            return response()->json(['data' => $query->get()]);
+        }
+
+        if (!$user->assigned_center_id) {
             return response()->json([
                 'message' => 'No evacuation center assigned'
             ], 403);
         }
 
-        return response()->json([
-            'data' => EvacuationRecord::with('evacuationCenter')
-                ->where('evacuation_center_id', $user->assigned_evacuation_center_id)
-                ->get()
-        ]);
+        $query->where('center_id', $user->assigned_center_id);
+
+        return response()->json(['data' => $query->get()]);
     }
 
     public function show($id)
     {
         $user = Auth::user();
 
-        $evacuation = EvacuationRecord::with('evacuationCenter')
-            ->where('evacuation_id', $id)
-            ->where('evacuation_center_id', $user->assigned_evacuation_center_id)
-            ->first();
+        $query = EvacuationRecord::with([
+            'household',
+            'evacuatedMembers.member',
+            'roomAllocation.room',
+            'center',
+            'verifiedBy'
+        ])->where('evacuation_id', $id);
+
+        if (!$user->isSuperAdmin()) {
+            $query->where('center_id', $user->assigned_center_id);
+        }
+
+        $evacuation = $query->first();
 
         if (!$evacuation) {
             return response()->json([
@@ -49,22 +70,114 @@ class EvacuationController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user->assigned_evacuation_center_id) {
+        if (!$user->isAdmin() && !$user->isSuperAdmin() && $user->role !== 'personnel') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        if (!$user->isSuperAdmin() && !$user->assigned_center_id) {
+            return response()->json(['message' => 'No evacuation center assigned'], 403);
+        }
+
+        if (
+            EvacuationRecord::where('household_id', $request->household_id)
+                ->where('center_id', $user->assigned_center_id)
+                ->where('status', 'evacuated')
+                ->exists()
+        ) {
+            return response()->json([
+                'message' => 'Household already evacuated in this center'
+            ], 400);
+        }
+
+        try {
+            $result = $service->handleScan(
+                $request->household_id,
+                $user->assigned_center_id,
+                $user->user_id
+            );
+
+            return response()->json([
+                'message' => 'Household verified successfully',
+                'data' => $result
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    public function verifyManual(Request $request, EvacuationService $service)
+    {
+        $request->validate([
+            'household_id' => 'required|exists:households,household_id',
+        ]);
+
+        $user = Auth::user();
+
+        if (!$user->assigned_center_id) {
             return response()->json([
                 'message' => 'No evacuation center assigned'
             ], 403);
         }
 
         try {
-            $evacuation = $service->handleScan(
+            $result = $service->handleManual(
                 $request->household_id,
-                $user->assigned_evacuation_center_id, 
+                $user->assigned_center_id,
                 $user->user_id
             );
 
             return response()->json([
-                'message' => 'Household evacuated successfully',
-                'data' => $evacuation
+                'message' => 'Household verified successfully',
+                'data' => $result
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    public function admit(Request $request, EvacuationService $service)
+    {
+        $request->validate([
+            'household_id' => 'required|exists:households,household_id',
+            'member_count' => 'required|integer|min:1'
+        ]);
+
+        $user = Auth::user();
+
+        if (!$user->assigned_center_id) {
+            return response()->json([
+                'message' => 'No evacuation center assigned'
+            ], 403);
+        }
+
+        if (
+            EvacuationRecord::where('household_id', $request->household_id)
+                ->where('center_id', $user->assigned_center_id)
+                ->where('status', 'evacuated')
+                ->exists()
+        ) {
+            return response()->json([
+                'message' => 'Household already evacuated'
+            ], 400);
+        }
+
+        try {
+            $result = $service->handleManualWithCount(
+                $request->household_id,
+                $user->assigned_center_id,
+                $user->user_id,
+                $request->member_count
+            );
+
+            return response()->json([
+                'message' => 'Admission complete',
+                'data' => $result
             ]);
 
         } catch (\Exception $e) {
@@ -78,14 +191,15 @@ class EvacuationController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user->assigned_evacuation_center_id) {
+        if (!$user->assigned_center_id) {
             return response()->json([
                 'message' => 'No evacuation center assigned'
             ], 403);
         }
 
-        $evacuation = EvacuationRecord::where('evacuation_center_id', $user->assigned_evacuation_center_id)
+        $evacuation = EvacuationRecord::where('center_id', $user->assigned_center_id)
             ->where('status', 'evacuated')
+            ->latest()
             ->first();
 
         if (!$evacuation) {
@@ -95,81 +209,5 @@ class EvacuationController extends Controller
         }
 
         return response()->json($evacuation);
-    }
-
-    public function search(Request $request){
-        $query = $request->input('query');
-
-        $households = Household::where('household_id', $query)
-            ->orWhere('household_name', 'like', "%$query%")
-            ->get();
-
-        return response()->json([
-            'data' => $households
-        ]);
-    }
-
-    public function verify(Request $request, EvacuationService $service){
-        $request->validate([
-            'household_id' => 'required|exists:households,household_id'
-        ]);
-
-        $user = Auth::user();
-
-        if(!$user->assigned_evacuation_center_id){
-            return response()->json([
-                'message' => 'No evacuation center assigned'
-            ], 403);
-        }
-
-        try{
-            $evacuation = $service->handleManual(
-                $request->household_id,
-                $user->assigned_evacuation_center_id,
-                $user->user_id
-            );
-
-            return response()->json([
-                'message' => 'Household verified successfully',
-                'data' => $evacuation
-            ]);
-        }catch(\Exception $e){
-            return response()->json([
-                'message' => $e->getMessage()
-            ], 400);
-        }
-    }
-
-    public function createAndVerify(Request $request, EvacuationService $service)
-    {
-        $request->validate([
-            'household_name' => 'required|string'
-        ]);
-
-        $user = Auth::user();
-
-        if (!$user->assigned_evacuation_center_id) {
-            return response()->json([
-                'message' => 'No evacuation center assigned'
-            ], 403);
-        }
-
-        try {
-            $record = $service->handleNewHousehold(
-                $request->household_name,
-                $user->assigned_evacuation_center_id,
-                $user->user_id
-            );
-
-            return response()->json([
-                'message' => 'Household created and verified',
-                'data' => $record
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ], 400);
-        }
     }
 }

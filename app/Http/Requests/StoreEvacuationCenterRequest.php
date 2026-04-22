@@ -24,14 +24,19 @@ class StoreEvacuationCenterRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
-            'location' => 'required|string|max:255',
-            'capacity' => 'required|integer',
-            'has_rooms' => 'nullable|boolean',
-            'room_count' => 'nullable|integer',
-            'rooms' => 'nullable|array',
 
-            'rooms.*.room_number' => 'required_with:rooms|string|max:50',
-            'rooms.*.max_capacity' => 'required_with:rooms|integer',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+
+            'capacity' => 'required|integer|min:1',
+
+            'region' => 'nullable|string|max:100',
+            'province' => 'nullable|string|max:100',
+            'city' => 'nullable|string|max:100',
+            'barangay' => 'nullable|string|max:100',
+            'street' => 'nullable|string|max:255',
+            'purok' => 'nullable|string|max:100',
+            'full_address' => 'nullable|string|max:255',
         ];
     }
 }

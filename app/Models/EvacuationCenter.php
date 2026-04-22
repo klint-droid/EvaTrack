@@ -3,29 +3,56 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\EvacuationRecord;
+use Illuminate\Support\Str;
 
 class EvacuationCenter extends Model
 {
-    protected $table = 'evacuation_centers';
+    protected $connection = 'mysql_v2';
+
     protected $primaryKey = 'evacuation_center_id';
-    protected $keyType = 'string';
     public $incrementing = false;
+    protected $keyType = 'string';
+
+    public $timestamps = false;
 
     protected $fillable = [
-        'evacuation_center_id',
         'name',
-        'location',
+        'address_id',
+        'latitude',
+        'longitude',
         'capacity',
-        'has_rooms'
+        'created_at',
+        'deleted_at'
     ];
 
-    public function evacuationRecords()
+    protected static function boot()
     {
-        return $this->hasMany(EvacuationRecord::class, 'evacuation_center_id', 'evacuation_center_id');
+        parent::boot();
+
+        static::creating(function ($center) {
+            if (!$center->evacuation_center_id) {
+
+                do {
+                    $id = 'EC-' . date('Y') . '-' . strtoupper(Str::random(6));
+                } while (self::where('evacuation_center_id', $id)->exists());
+
+                $center->evacuation_center_id = $id;
+            }
+        });
     }
 
-    public function rooms(){
-        return $this->hasMany(Room::class, 'evacuation_center_id', 'evacuation_center_id');
+    public function address()
+    {
+        return $this->belongsTo(Address::class, 'address_id', 'address_id');
+    }
+
+    public function accommodationUnits()
+    {
+        return $this->hasMany(AccommodationUnit::class, 'center_id', 'evacuation_center_id');
+    }
+
+    public function evacuations()
+    {
+        return $this->hasMany(EvacuationRecord::class, 'center_id', 'evacuation_center_id');
     }
 }

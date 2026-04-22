@@ -8,25 +8,36 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RoleMiddleware
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  Closure(Request): (Response)  $next
-     */
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
+        $user = $request->user();
 
-        if(!$request->user()){
+        //  Not logged in
+        if (!$user) {
             return response()->json([
-                'message' => 'Unauthorized',
+                'message' => 'Unauthorized'
             ], 401);
         }
 
-        if(!in_array($request->user()->role, $roles)){
+        // No roles passed
+        if (empty($roles)) {
             return response()->json([
-                'message' => 'Forbidden'
+                'message' => 'No roles defined for this route'
+            ], 500);
+        }
+
+        // get role key safely
+        $userRole = $user->role?->role_key;
+
+        // Role not allowed
+        if (!in_array($userRole, $roles)) {
+            return response()->json([
+                'message' => 'Forbidden',
+                'user_role' => $userRole,
+                'allowed_roles' => $roles
             ], 403);
         }
+
         return $next($request);
     }
 }

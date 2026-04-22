@@ -5,80 +5,70 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Household;
-use App\Models\Evacuation;
-use App\Http\Requests\VerifyHouseholdRequest;
-use Illuminate\Support\Facades\Auth;
+use App\Services\EvacuationService;
 
 class HouseholdController extends Controller
 {
-    public function index(Request $request){
-        return response()->json(Household::paginate(10));
+    public function index()
+    {
+        return response()->json(
+            Household::with('members')->paginate(10)
+        );
     }
 
-    public function show($id){
-        $household = Household::findOrFail($id);
+    public function show($id)
+    {
+        $household = Household::with('members')
+            ->where('household_id', $id)
+            ->firstOrFail();
 
         return response()->json($household);
     }
 
-    public function verify(Request $request){
+    public function store(Request $request, EvacuationService $service)
+    {
+        $request->validate([
+            'household_name' => 'required|string|max:255',
+            'member_count' => 'required|integer|min:1'
+        ]);
 
-        $data = $request->validated();
-        $user = Auth::user();
+        $household = Household::create([
+            'household_id' => $service->generateHouseholdId('new'),
+            'household_name' => $request->household_name,
+            'member_count' => $request->member_count,
+            'address' => 'N/A'
+        ]);
 
-        $household = Household::where('household_id', $data['household_id'])->first();
+        return response()->json([
+            'message' => 'Household created successfully',
+            'data' => $household
+        ], 201);
+    }
 
-        if(!$household){
-            return response()->json(['message' => 'QR code not found'], 404);
-        }
+    public function search(Request $request)
+    {
+        $query = $request->input('q');
 
-        $record = Evacuation::where('household_id', $request->household_id)
-            ->where('evacuation_center_id', $request->evacuation_center_id)
-            ->first();
-
-        if(!$record){
-            $record = Evacuation::create([
-                'household_id' => $request->household_id,
-                'evacuation_center_id' => $request->evacuation_center_id,
-                'is_verified' => true,
-                'verified_by' => $user->id,
-                'evacuated_at' => now(),
-            ]);
-        }
-
-        if($record->is_verified){
+        if (!$query) {
             return response()->json([
-                'message' => 'Household already verified',
+                'message' => 'Search query is required'
             ], 400);
         }
 
-        $record->update([
-            'is_verified' => true,
-            'evacuated_at' => now(),
-        ]);
-        
-        
-        return response()->json([
-            'message' => 'Household verified successfully',
-            'data' => [
-                'household' => $household,
-                'evacuation_record' => $record,
-            ]
-        ]);
-    }
+        $results = Household::where(function ($qBuilder) use ($query) {
+                $qBuilder->where('household_name', 'LIKE', "%{$query}%")
+                        ->orWhere('household_id', 'LIKE', "%{$query}%");
+            })
+            ->with('members')
+            ->paginate(10);
 
-    public function search(Request $request){
-        $query = $request->input('q');
-
-        if(!$query){
-            return response()->json(['message' => 'Query parameter is required'], 400);
+        if ($results->isEmpty()) {
+            return response()->json([
+                'message' => 'No results found',
+                'data' => []
+            ], 200);
         }
 
-        return response()->json(
-            Household::where(function($q) use ($query){
-                $q->where('household_name', 'LIKE', "%$query%")
-                    ->orWhere('household_id', 'LIKE', "%$query%");
-            })->paginate(10)
-        );
+        return response()->json($results);
     }
 }

@@ -2,24 +2,25 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class SuperAdminSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        if (!User::where('email', env('SUPER_ADMIN_EMAIL'))->exists()) {
+        if (!User::where('role_id', 1)->exists()) {
+            $userId = 'SUP-' . date('Y') . '-' . strtoupper(Str::random(6));
+
             User::create([
-                'name' => env('SUPER_ADMIN_NAME'),
-                'email' => env('SUPER_ADMIN_EMAIL'),
-                'password' => Hash::make(env('SUPER_ADMIN_PASSWORD')),
-                'role' => 'super_admin'
+                'user_id' => $userId,
+                'name' => env('SUPER_ADMIN_NAME', 'Super Admin'),
+                'password' => Hash::make(env('SUPER_ADMIN_PASSWORD', 'StrongPassword123!')),
+                'role_id' => 1, 
+                'contact_number' => env('SUPER_ADMIN_CONTACT', null),
+                'assigned_center_id' => null,
             ]);
         }
     }

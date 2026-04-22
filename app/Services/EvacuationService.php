@@ -4,83 +4,117 @@ namespace App\Services;
 
 use App\Models\EvacuationRecord;
 use App\Models\EvacuationCenter;
+use App\Models\Household;
+use App\Models\EvacuatedMember;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class EvacuationService
 {
-    public function handleScan($householdId, $evacuationCenterId, $userId, $method = 'qr')
+    public function handleScan($householdId, $centerId, $userId, $method = 'qr')
     {
-        $center = EvacuationCenter::where('evacuation_center_id', $evacuationCenterId)
-            ->firstOrFail();
+        return DB::transaction(function () use ($householdId, $centerId, $userId, $method) {
 
-        // ✅ Capacity check
-        if ($center->current_occupancy >= $center->capacity) {
-            throw new \Exception("Evacuation center is full");
-        }
+            EvacuationCenter::where('evacuation_center_id', $centerId)->firstOrFail();
 
-        // ✅ Check existing record
-        $record = EvacuationRecord::where('household_id', $householdId)->first();
+            $this->ensureNotEvacuated($householdId);
 
-        // 🆕 CREATE
-        if (!$record) {
-            $record = EvacuationRecord::create([
-                'evacuation_id' => Str::uuid(),
-                'household_id' => $householdId,
-                'evacuation_center_id' => $evacuationCenterId,
-                'room_assignment_id' => null,
-                'status' => 'evacuated',
-                'is_verified' => 1,
-                'verified_by' => $userId,
-                'method' => $method,
-                'verified_at' => now(),
+            $household = Household::with('members')
+                ->where('household_id', $householdId)
+                ->firstOrFail();
+
+            $count = $household->members->count();
+
+            $record = $this->createEvacuationRecord(
+                $householdId,
+                $centerId,
+                $userId,
+                $count,
+                $method
+            );
+
+            foreach ($household->members as $member) {
+                EvacuatedMember::create([
+                    'evacuated_member_id' => Str::uuid(),
+                    'evacuation_id' => $record->evacuation_id,
+                    'member_id' => $member->member_id,
+                    'verified_at' => now(),
+                ]);
+            }
+
+            return compact('record', 'household');
+        });
+    }
+
+    public function handleManual($householdId, $centerId, $userId)
+    {
+        return $this->handleScan($householdId, $centerId, $userId, 'manual');
+    }
+
+    public function handleManualWithCount($householdId, $centerId, $userId, $count)
+    {
+        return DB::transaction(function () use ($householdId, $centerId, $userId, $count) {
+
+            EvacuationCenter::where('evacuation_center_id', $centerId)->firstOrFail();
+
+            $this->ensureNotEvacuated($householdId);
+
+            $household = Household::where('household_id', $householdId)->firstOrFail();
+
+            // ✅ sync household count
+            $household->update([
+                'member_count' => $count
             ]);
 
-            $center->increment('current_occupancy');
-        }
+            $record = $this->createEvacuationRecord(
+                $householdId,
+                $centerId,
+                $userId,
+                $count,
+                'manual'
+            );
 
-        // 🔄 UPDATE (if not yet evacuated)
-        else if ($record->status !== 'evacuated') {
-            $record->update([
-                'status' => 'evacuated',
-                'evacuation_center_id' => $evacuationCenterId,
-                'is_verified' => 1,
-                'verified_by' => $userId,
-                'method' => 'qr',
-                'verified_at' => now(),
-            ]);
+            return [
+                'evacuation' => $record,
+                'household' => $household
+            ];
+        });
+    }
 
-            $center->increment('current_occupancy');
-        }
+    private function createEvacuationRecord($householdId, $centerId, $userId, $count, $method)
+    {
+        return EvacuationRecord::create([
+            'evacuation_id' => Str::uuid(),
+            'household_id' => $householdId,
+            'center_id' => $centerId,
+            'status' => 'evacuated',
+            'evacuated_count' => $count,
+            'method' => $method,
+            'verified_by' => $userId,
+            'verified_at' => now(),
+        ]);
+    }
 
-        // ⚠️ Already evacuated
-        else {
+    private function ensureNotEvacuated($householdId)
+    {
+        $exists = EvacuationRecord::where('household_id', $householdId)
+            ->where('status', 'evacuated')
+            ->exists();
+
+        if ($exists) {
             throw new \Exception("Household already evacuated");
         }
-
-        return $record;
     }
 
-    public function handleManual($household, $centerId, $userId){
-        return $this->handleScan($household, $centerId, $userId, 'manual');
-    }
-
-    public function generateHouseholdId($type = 'existing'){
+    public function generateHouseholdId($type = 'existing')
+    {
         $prefix = $type === 'new' ? 'NHH-' : 'HH-';
-        
-        do{
+
+        do {
             $number = str_pad(mt_rand(0, 999999999), 9, '0', STR_PAD_LEFT);
             $id = $prefix . $number;
         } while (Household::where('household_id', $id)->exists());
 
         return $id;
-    }
-
-    public function handleNewHousehold($household_name, $centerId, $userId){
-        $household = Household::create([
-            'household_id' => $this->generateHouseholdId('new'),
-            'household_name' => $household_name,
-        ]);
-
-        return $this->handleScan($household->household_id, $centerId, $userId, 'manual');
     }
 }

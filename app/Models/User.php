@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -12,115 +11,110 @@ use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, HasApiTokens;
-    const ROLE_USER = 'user';
-    const ROLE_ADMIN = 'admin';
-    const ROLE_SUPER_ADMIN = 'super_admin';
 
+    const ROLE_SUPER_ADMIN_ID = 1;
+    const ROLE_EVAC_ADMIN_ID = 2;
+    const ROLE_EVAC_PERSONNEL_ID = 3;
+
+    protected $connection = 'mysql_v2';
     protected $table = 'users';
     protected $primaryKey = 'user_id';
+
     public $incrementing = false;
     protected $keyType = 'string';
 
-    protected static function boot(){
-        parent::boot();
-
-        static::creating(function ($user) {
-            $prefix = match ($user->role){
-                self::ROLE_ADMIN => 'ADM',
-                self::ROLE_SUPER_ADMIN => 'SUP',
-                default => 'PER',
-            };
-
-            $year = date('Y');
-
-            do{
-                $random = strtoupper(Str::random(6));
-                $userId = "{$prefix}-{$year}-{$random}";
-            } while(self::where('user_id', $userId)->exists());
-
-            $user->user_id = $userId;
-        });
-    }
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'user_id',
-        'assigned_evacuation_center_id',
         'name',
-        'email',
         'password',
-        'role',
+        'role_id',
+        'contact_number',
+        'assigned_center_id'
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($user) {
+
+            $prefix = match ($user->role_id) {
+                self::ROLE_SUPER_ADMIN_ID => 'SUP',
+                self::ROLE_EVAC_ADMIN_ID => 'EAD',
+                self::ROLE_EVAC_PERSONNEL_ID => 'EPE',
+                default => 'UNK',
+            };
+
+            $year = date('Y');
+
+            do {
+                $random = strtoupper(Str::random(6));
+                $userId = "{$prefix}-{$year}-{$random}";
+            } while (self::where('user_id', $userId)->exists());
+
+            $user->user_id = $userId;
+        });
+    }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class, 'role_id');
+    }
+
+    public function assignedCenter()
+    {
+        return $this->belongsTo(EvacuationCenter::class, 'assigned_center_id');
+    }
+
     public function isSuperAdmin()
     {
-        return $this->role === self::ROLE_SUPER_ADMIN;
+        return $this->role_id === self::ROLE_SUPER_ADMIN_ID;
     }
 
-    public function isAdmin()
+    public function isEvacAdmin()
     {
-        return $this->role === self::ROLE_ADMIN;
+        return $this->role_id === self::ROLE_EVAC_ADMIN_ID;
     }
 
-    public function isUser()
+    public function isEvacPersonnel()
     {
-        return $this->role === self::ROLE_USER;
+        return $this->role_id === self::ROLE_EVAC_PERSONNEL_ID;
     }
 
-    public function canManageUsers(){
-        return $this->isAdmin() || $this->isSuperAdmin();
+    public function canManageUsers()
+    {
+        return $this->isSuperAdmin() || $this->isEvacAdmin();
     }
 
     public function getAuthIdentifierName()
     {
         return 'user_id';
     }
-    
-    public function evacuationCenter(){
-        return $this->belongsTo(
-            EvacuationCenter::class,
-            'assigned_evacuation_center_id',
-            'evacuation_center_id'
-        );
-    }
 
-    public function hasCenterAccess($centerId){
-        if(this->isAdmin() || $this->isSuperAdmin()){
+    public function hasCenterAccess($centerId)
+    {
+        if ($this->canManageUsers()) {
             return true;
         }
 
-        return $this->assigned_evacuation_center_id === $centerId;
+        return $this->assigned_center_id === $centerId;
     }
 
-    public function isAssigned(){
-        return !is_null($this->assigned_evacuation_center_id);
+    public function isAssigned()
+    {
+        return !is_null($this->assigned_center_id);
     }
 }
