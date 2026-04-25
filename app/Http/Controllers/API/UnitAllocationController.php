@@ -17,6 +17,7 @@ class UnitAllocationController extends Controller
     {
         $allocations = UnitAllocation::with([
             'evacuation.household',
+            'assignedBy'
         ])
         ->where('unit_id', $unitId)
         ->get();
@@ -37,7 +38,26 @@ class UnitAllocationController extends Controller
 
             $unit = AccommodationUnit::where('unit_id', $unitId)->firstOrFail();
 
-            // Check if household is already assigned to a unit in this center
+            // Check evacuation record belongs to the same center as the unit
+            $evacuation = EvacuationRecord::where('evacuation_id', $request->evacuation_id)
+                ->where('center_id', $unit->center_id)
+                ->where('status', 'evacuated')
+                ->first();
+
+            if (!$evacuation) {
+                return response()->json([
+                    'message' => 'Evacuation record not found or does not belong to this center.'
+                ], 404);
+            }
+
+            // Check if event is still active
+            if ($evacuation->event && $evacuation->event->ended_at) {
+                return response()->json([
+                    'message' => 'Cannot assign household. The evacuation event has already ended.'
+                ], 400);
+            }
+
+            // Check if household is already assigned to any unit in this center
             $alreadyAssigned = UnitAllocation::whereHas('unit', function ($q) use ($unit) {
                 $q->where('center_id', $unit->center_id);
             })
@@ -50,15 +70,18 @@ class UnitAllocationController extends Controller
                 ], 400);
             }
 
-            // Get the evacuation record to know evacuated_count
-            $evacuation = EvacuationRecord::where('evacuation_id', $request->evacuation_id)
-                ->firstOrFail();
-
             // Check unit capacity
             $available = $unit->max_capacity - $unit->current_occupancy;
+
+            if ($available <= 0) {
+                return response()->json([
+                    'message' => 'This unit is already full.'
+                ], 400);
+            }
+
             if ($evacuation->evacuated_count > $available) {
                 return response()->json([
-                    'message' => "Not enough space. Unit has {$available} slots available."
+                    'message' => "Not enough space. This household has {$evacuation->evacuated_count} members but only {$available} slots are available."
                 ], 400);
             }
 
@@ -94,8 +117,9 @@ class UnitAllocationController extends Controller
             $evacuation = EvacuationRecord::where('evacuation_id', $allocation->evacuation_id)
                 ->firstOrFail();
 
-            // Decrease unit occupancy
-            $unit->decrement('current_occupancy', $evacuation->evacuated_count);
+            // Decrease unit occupancy but never go below 0
+            $newOccupancy = max(0, $unit->current_occupancy - $evacuation->evacuated_count);
+            $unit->update(['current_occupancy' => $newOccupancy]);
 
             $allocation->delete();
 
@@ -105,17 +129,19 @@ class UnitAllocationController extends Controller
         });
     }
 
-    // Get unassigned evacuations for a center (for the assign dropdown)
+    // Get unassigned evacuations for a center
     public function unassigned($centerId)
     {
-        $assigned = UnitAllocation::whereHas('unit', function ($q) use ($centerId) {
+        $assignedIds = UnitAllocation::whereHas('unit', function ($q) use ($centerId) {
             $q->where('center_id', $centerId);
-        })->pluck('evacuation_id');
+        })->pluck('evacuation_id')->toArray();
 
         $unassigned = EvacuationRecord::with('household')
             ->where('center_id', $centerId)
             ->where('status', 'evacuated')
-            ->whereNotIn('evacuation_id', $assigned)
+            ->when(!empty($assignedIds), function ($q) use ($assignedIds) {
+                $q->whereNotIn('evacuation_id', $assignedIds);
+            })
             ->get();
 
         return response()->json(['data' => $unassigned]);

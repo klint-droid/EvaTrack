@@ -36,11 +36,28 @@ class AccommodationUnitController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user->isAdmin() && !$user->isSuperAdmin()) {
+        if (!$user->isEvacAdmin() && !$user->isSuperAdmin()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        EvacuationCenter::where('evacuation_center_id', $centerId)->firstOrFail();
+        $center = EvacuationCenter::where('evacuation_center_id', $centerId)->firstOrFail();
+
+        if ($request->max_capacity > $center->capacity) {
+            return response()->json([
+                'message' => "Unit capacity ({$request->max_capacity}) cannot exceed center capacity ({$center->capacity})."
+            ], 422);
+        }
+
+        $existingTotal = AccommodationUnit::where('center_id', $centerId)
+            ->whereNull('deleted_at')
+            ->sum('max_capacity');
+        $newTotal = $existingTotal + $request->max_capacity;
+
+        if ($newTotal > $center->capacity) {
+            return response()->json([
+                'message' => "Total unit capacity would be {$newTotal}, exceeding center capacity of {$center->capacity}. Available remaining: " . ($center->capacity - $existingTotal) . "."
+            ], 422);
+        }
 
         $unit = AccommodationUnit::create([
             'center_id'    => $centerId,
@@ -56,18 +73,38 @@ class AccommodationUnitController extends Controller
         ], 201);
     }
 
-    // Update a unit
     public function update(UpdateAccommodationUnitRequest $request, $centerId, $unitId)
     {
         $user = Auth::user();
 
-        if (!$user->isAdmin() && !$user->isSuperAdmin()) {
+        if (!$user->isEvacAdmin() && !$user->isSuperAdmin()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         $unit = AccommodationUnit::where('unit_id', $unitId)
             ->where('center_id', $centerId)
             ->firstOrFail();
+
+        $center = EvacuationCenter::where('evacuation_center_id', $centerId)->firstOrFail();
+
+        if ($request->max_capacity > $center->capacity) {
+            return response()->json([
+                'message' => "Unit capacity ({$request->max_capacity}) cannot exceed center capacity ({$center->capacity})."
+            ], 422);
+        }
+
+        $existingTotal = AccommodationUnit::where('center_id', $centerId)
+            ->where('unit_id', '!=', $unitId)
+            ->whereNull('deleted_at')
+            ->sum('max_capacity');
+
+        $newTotal = $existingTotal + $request->max_capacity;
+
+        if ($newTotal > $center->capacity) {
+            return response()->json([
+                'message' => "Total unit capacity would be {$newTotal}, exceeding center capacity of {$center->capacity}. Available remaining: " . ($center->capacity - $existingTotal) . "."
+            ], 422);
+        }
 
         $unit->update($request->validated());
 
@@ -77,12 +114,11 @@ class AccommodationUnitController extends Controller
         ]);
     }
 
-    // Soft delete a unit
     public function destroy($centerId, $unitId)
     {
         $user = Auth::user();
 
-        if (!$user->isAdmin() && !$user->isSuperAdmin()) {
+        if (!$user->isEvacAdmin() && !$user->isSuperAdmin()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
@@ -90,7 +126,13 @@ class AccommodationUnitController extends Controller
             ->where('center_id', $centerId)
             ->firstOrFail();
 
-        $unit->update(['deleted_at' => now()]);
+        if ($unit->current_occupancy > 0) {
+            return response()->json([
+                'message' => 'Cannot delete a unit with current occupants. Unassign all households first.'
+            ], 400);
+        }
+
+        $unit->delete();
 
         return response()->json(['message' => 'Unit deleted successfully']);
     }
