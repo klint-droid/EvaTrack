@@ -21,6 +21,7 @@ class EvacuationCenter extends Model
         'latitude',
         'longitude',
         'capacity',
+        'current_event_id',
         'created_at',
         'deleted_at'
     ];

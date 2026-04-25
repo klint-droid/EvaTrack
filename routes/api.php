@@ -12,6 +12,9 @@ use App\Http\Controllers\API\EvacuationController;
 use App\Http\Controllers\API\SmsWebhookController;
 use App\Http\Controllers\API\Admin\UserAssignmentController;
 use App\Http\Controllers\API\NotificationController;
+use App\Http\Controllers\API\EvacuationEventController;
+use App\Http\Controllers\API\AccommodationUnitController;
+use App\Http\Controllers\API\UnitAllocationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -110,31 +113,6 @@ Route::prefix('evacuation-centers')
 
 /*
 |--------------------------------------------------------------------------
-| ROOM + ALLOCATION ROUTES
-|--------------------------------------------------------------------------
-*/
-
-Route::middleware(['auth:sanctum'])->group(function () {
-
-    Route::get('rooms', [RoomController::class, 'index']);
-    Route::get('rooms/suggest', [RoomController::class, 'suggest']);
-    Route::get('rooms/{room}', [RoomController::class, 'show']);
-
-    // ADMIN ONLY
-    Route::middleware('role:super_admin,evac_admin')->group(function () {
-        Route::post('rooms', [RoomController::class, 'store']);
-        Route::put('rooms/{room}', [RoomController::class, 'update']);
-        Route::delete('rooms/{room}', [RoomController::class, 'destroy']);
-    });
-
-    // personnel can assign/remove
-    Route::post('rooms/{room}/assignments', [RoomAssignmentController::class, 'assign']);
-    Route::delete('rooms/{room}/assignments/{household}', [RoomAssignmentController::class, 'remove']);
-});
-
-
-/*
-|--------------------------------------------------------------------------
 | SMS TESTING (DEV ONLY)
 |--------------------------------------------------------------------------
 */
@@ -171,3 +149,31 @@ Route::post('/sms/webhook', [SmsWebhookController::class, 'handle']);
 Route::post('/notifications/send', [NotificationController::class, 'send']);
 
 Route::post('/device-token', [DeviceTokenController::class, 'store']);
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('events', [EvacuationEventController::class, 'index']);
+    Route::get('events/active', [EvacuationEventController::class, 'active']);
+    Route::post('events', [EvacuationEventController::class, 'store']);
+    Route::patch('events/{id}/end', [EvacuationEventController::class, 'end']);
+    Route::patch('/events/{id}/assign-centers', [EvacuationEventController::class, 'assignCenters']);
+    Route::patch('/centers/{centerId}/unassign', [EvacuationEventController::class, 'unassignCenter']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/accommodation-types', [AccommodationUnitController::class, 'types']);
+
+    Route::get('/centers/{centerId}/units', [AccommodationUnitController::class, 'index']);
+    Route::post('/centers/{centerId}/units', [AccommodationUnitController::class, 'store']);
+    Route::patch('/centers/{centerId}/units/{unitId}', [AccommodationUnitController::class, 'update']);
+    Route::delete('/centers/{centerId}/units/{unitId}', [AccommodationUnitController::class, 'destroy']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    // Get unassigned households for a center
+    Route::get('/centers/{centerId}/unassigned', [UnitAllocationController::class, 'unassigned']);
+
+    // Unit allocations
+    Route::get('/units/{unitId}/allocations', [UnitAllocationController::class, 'index']);
+    Route::post('/units/{unitId}/allocations', [UnitAllocationController::class, 'assign']);
+    Route::delete('/units/{unitId}/allocations/{allocationId}', [UnitAllocationController::class, 'unassign']);
+});

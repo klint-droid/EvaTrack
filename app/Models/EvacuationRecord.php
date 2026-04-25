@@ -31,6 +31,7 @@ class EvacuationRecord extends Model
     }
 
     protected $fillable = [
+        'event_id',
         'household_id',
         'center_id',
         'status',
@@ -55,18 +56,23 @@ class EvacuationRecord extends Model
     // 👤 Verified by user
     public function verifiedBy()
     {
-        return $this->belongsTo(User::class, 'verified_by');
+        return $this->belongsTo(User::class, 'verified_by', 'user_id');
     }
 
     // 👥 Evacuated members (RENAMED for clarity)
     public function evacuatedMembers()
     {
-        return $this->hasMany(EvacuatedMember::class, 'evacuation_id');
+        return $this->hasMany(EvacuatedMember::class, 'evacuation_id', 'evacuation_id');
     }
 
     // 🛏️ Room allocation
-    public function roomAllocation()
+    public function unitAllocation()
     {
-        return $this->hasOne(RoomAllocation::class, 'evacuation_id');
+        return $this->hasOne(UnitAllocation::class, 'evacuation_id', 'evacuation_id');
+    }
+
+    public function event()
+    {
+        return $this->belongsTo(EvacuationEvent::class, 'event_id', 'event_id');
     }
 }

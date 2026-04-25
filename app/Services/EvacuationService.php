@@ -8,12 +8,28 @@ use App\Models\Household;
 use App\Models\EvacuatedMember;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use App\Models\EvacuationEvent;
 
 class EvacuationService
 {
-    public function handleScan($householdId, $centerId, $userId, $method = 'qr')
+    private function resolveEventId(?string $eventId, string $centerId): string
     {
-        return DB::transaction(function () use ($householdId, $centerId, $userId, $method) {
+        if ($eventId) {
+            return $eventId;
+        }
+
+        $center = EvacuationCenter::where('evacuation_center_id', $centerId)->firstOrFail();
+
+        if (!$center->current_event_id) {
+            throw new \Exception('This evacuation center has no active event assigned. Please contact your admin.');
+        }
+
+        return $center->current_event_id;
+    }
+
+    public function handleScan($householdId, $centerId, $userId, $method = 'qr', $eventId = null)
+    {
+        return DB::transaction(function () use ($householdId, $centerId, $userId, $method, $eventId) {
 
             EvacuationCenter::where('evacuation_center_id', $centerId)->firstOrFail();
 
@@ -30,7 +46,8 @@ class EvacuationService
                 $centerId,
                 $userId,
                 $count,
-                $method
+                $method,
+                $eventId
             );
 
             foreach ($household->members as $member) {
@@ -46,14 +63,14 @@ class EvacuationService
         });
     }
 
-    public function handleManual($householdId, $centerId, $userId)
+    public function handleManual($householdId, $centerId, $userId, $eventId = null)
     {
-        return $this->handleScan($householdId, $centerId, $userId, 'manual');
+        return $this->handleScan($householdId, $centerId, $userId, 'manual', $eventId);
     }
 
-    public function handleManualWithCount($householdId, $centerId, $userId, $count)
+    public function handleManualWithCount($householdId, $centerId, $userId, $count, $eventId = null)
     {
-        return DB::transaction(function () use ($householdId, $centerId, $userId, $count) {
+        return DB::transaction(function () use ($householdId, $centerId, $userId, $count, $eventId) {
 
             EvacuationCenter::where('evacuation_center_id', $centerId)->firstOrFail();
 
@@ -71,7 +88,8 @@ class EvacuationService
                 $centerId,
                 $userId,
                 $count,
-                'manual'
+                'manual',
+                $eventId
             );
 
             return [
@@ -81,12 +99,12 @@ class EvacuationService
         });
     }
 
-    private function createEvacuationRecord($householdId, $centerId, $userId, $count, $method)
+    private function createEvacuationRecord($householdId, $centerId, $userId, $count, $method, $eventId = null)
     {
         return EvacuationRecord::create([
-            'evacuation_id' => Str::uuid(),
             'household_id' => $householdId,
             'center_id' => $centerId,
+            'event_id' => $this->resolveEventId($eventId, $centerId),
             'status' => 'evacuated',
             'evacuated_count' => $count,
             'method' => $method,

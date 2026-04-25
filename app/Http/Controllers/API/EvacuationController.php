@@ -93,7 +93,9 @@ class EvacuationController extends Controller
             $result = $service->handleScan(
                 $request->household_id,
                 $user->assigned_center_id,
-                $user->user_id
+                $user->user_id,
+                'qr',
+                $request->event_id
             );
 
             return response()->json([
@@ -112,6 +114,7 @@ class EvacuationController extends Controller
     {
         $request->validate([
             'household_id' => 'required|exists:households,household_id',
+            'event_id' => 'nullable|exists:evacuation_events,event_id',
         ]);
 
         $user = Auth::user();
@@ -126,7 +129,8 @@ class EvacuationController extends Controller
             $result = $service->handleManual(
                 $request->household_id,
                 $user->assigned_center_id,
-                $user->user_id
+                $user->user_id,
+                $request->event_id
             );
 
             return response()->json([
@@ -145,7 +149,8 @@ class EvacuationController extends Controller
     {
         $request->validate([
             'household_id' => 'required|exists:households,household_id',
-            'member_count' => 'required|integer|min:1'
+            'member_count' => 'required|integer|min:1',
+            'event_id' => 'nullable|exists:evacuation_events,event_id',
         ]);
 
         $user = Auth::user();
@@ -172,7 +177,8 @@ class EvacuationController extends Controller
                 $request->household_id,
                 $user->assigned_center_id,
                 $user->user_id,
-                $request->member_count
+                $request->member_count,
+                $request->event_id
             );
 
             return response()->json([

@@ -15,11 +15,18 @@ class EvacuationCenterController extends Controller
 {
     public function index()
     {
-        $centers = EvacuationCenter::with('address')->withCount([
-            'evacuations as current_occupancy' => function ($query) {
-                $query->where('status', 'evacuated');
-            }
-        ])->get();
+        $centers = EvacuationCenter::with('address')
+            ->withCount([
+                'evacuations as household_count' => function ($query) {
+                    $query->where('status', 'evacuated');
+                }
+            ])
+            ->withSum([
+                'evacuations as current_occupancy' => function ($query) {
+                    $query->where('status', 'evacuated');
+                }
+            ], 'evacuated_count')
+            ->get();
 
         return response()->json($centers);
     }

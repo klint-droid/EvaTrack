@@ -31,6 +31,15 @@ return new class extends Migration
             $table->dateTime('created_at')->nullable();
             $table->dateTime('updated_at')->nullable();
 
+            $table->foreign('event_id')
+                ->references('event_id')
+                ->on('evacuation_events');
+
+            $table->foreign('household_id')
+                ->references('household_id')
+                ->on('households')
+                ->onDelete('cascade');
+
             $table->foreign('center_id')
                 ->references('evacuation_center_id')
                 ->on('evacuation_centers');

@@ -17,9 +17,9 @@ return new class extends Migration
             $table->string('household_name', 100);
             $table->integer('member_count');
 
-            $table->string('address_id');
+            $table->string('address_id')->nullable();
 
-            $table->string('contact_number', 50);
+            $table->string('contact_number', 50)->nullable();
 
             $table->dateTime('created_at')->nullable();
             $table->dateTime('deleted_at')->nullable();
@@ -27,7 +27,7 @@ return new class extends Migration
             $table->foreign('address_id')
                 ->references('address_id')
                 ->on('addresses')
-                ->cascadeOnDelete();
+                ->nullOnDelete();
         });
     }
 
