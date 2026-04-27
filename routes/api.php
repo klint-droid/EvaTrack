@@ -17,6 +17,7 @@ use App\Http\Controllers\API\AccommodationUnitController;
 use App\Http\Controllers\API\UnitAllocationController;
 use App\Http\Controllers\API\HouseholdMemberController;
 use App\Http\Controllers\API\ResourceRequestController;
+use App\Http\Controllers\API\CenterIssueReportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -199,4 +200,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/resource-requests/{id}', [ResourceRequestController::class, 'show']);
     Route::patch('/resource-requests/{id}/status', [ResourceRequestController::class, 'updateStatus']);
     Route::delete('/resource-requests/{id}', [ResourceRequestController::class, 'destroy']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/center-issue-reports', [CenterIssueReportController::class, 'index']);
+    Route::post('/center-issue-reports', [CenterIssueReportController::class, 'store']);
+    Route::get('/center-issue-reports/{id}', [CenterIssueReportController::class, 'show']);
+    Route::patch('/center-issue-reports/{id}', [CenterIssueReportController::class, 'update']);
+    Route::patch('/center-issue-reports/{id}/status', [CenterIssueReportController::class, 'updateStatus']);
+    Route::delete('/center-issue-reports/{id}', [CenterIssueReportController::class, 'destroy']);
 });
