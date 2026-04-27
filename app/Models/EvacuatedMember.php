@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class EvacuatedMember extends Model
 {
@@ -10,6 +11,8 @@ class EvacuatedMember extends Model
     protected $primaryKey = 'evacuated_member_id';
     public $incrementing = false;
     protected $keyType = 'string';
+    protected $table = 'evacuated_members';
+    public $timestamps = false;
 
     protected static function boot()
     {
@@ -30,6 +33,7 @@ class EvacuatedMember extends Model
     }
 
     protected $fillable = [
+        'evacuated_member_id',
         'evacuation_id',
         'member_id',
         'verified_at'
@@ -37,11 +41,11 @@ class EvacuatedMember extends Model
 
     public function evacuation()
     {
-        return $this->belongsTo(EvacuationRecord::class, 'evacuation_id');
+        return $this->belongsTo(EvacuationRecord::class, 'evacuation_id', 'evacuation_id');
     }
 
     public function member()
     {
-        return $this->belongsTo(HouseholdMember::class, 'member_id');
+        return $this->belongsTo(HouseholdMember::class, 'member_id', 'member_id');
     }
 }

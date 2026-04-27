@@ -19,6 +19,8 @@ return new class extends Migration
 
             $table->dateTime('verified_at')->nullable();
 
+            $table->unique(['evacuation_id', 'member_id'], 'unique_evacuation_member');
+
             $table->foreign('evacuation_id')
                 ->references('evacuation_id')
                 ->on('evacuation_records')
@@ -27,7 +29,7 @@ return new class extends Migration
             $table->foreign('member_id')
                 ->references('member_id')
                 ->on('household_members')
-                ->cascadeOnDelete();
+                ->restrictOnDelete();
         });
     }
 

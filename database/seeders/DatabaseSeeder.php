@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             SuperAdminSeeder::class,
             EvacAdminSeeder::class,
+            UrgencyLevelSeeder::class,
         ]);
     }
 }

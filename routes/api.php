@@ -15,6 +15,8 @@ use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\EvacuationEventController;
 use App\Http\Controllers\API\AccommodationUnitController;
 use App\Http\Controllers\API\UnitAllocationController;
+use App\Http\Controllers\API\HouseholdMemberController;
+use App\Http\Controllers\API\ResourceRequestController;
 
 /*
 |--------------------------------------------------------------------------
@@ -52,19 +54,23 @@ Route::middleware(['auth:sanctum', 'role:super_admin,evac_admin'])->group(functi
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('households')
-    ->middleware(['auth:sanctum'])
-    ->group(function () {
 
-        Route::get('/', [HouseholdController::class, 'index']);
-        Route::get('/search', [HouseholdController::class, 'search']);
-        Route::get('/{id}', [HouseholdController::class, 'show']);
-
-        Route::post('/', [HouseholdController::class, 'store']);
-
-        Route::get('/sync-households', [SyncController::class, 'syncHouseholds']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/households', [HouseholdController::class, 'index']);
+    Route::get('/households/search', [HouseholdController::class, 'search']);
+    Route::get('/households/{id}', [HouseholdController::class, 'show']);
+    Route::post('/households', [HouseholdController::class, 'store']);
+    Route::patch('/households/{id}', [HouseholdController::class, 'update']);
+    Route::delete('/households/{id}', [HouseholdController::class, 'destroy']);
 });
 
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/households/{householdId}/members', [HouseholdMemberController::class, 'index']);
+    Route::post('/households/{householdId}/members', [HouseholdMemberController::class, 'store']);
+    Route::patch('/households/{householdId}/members/{memberId}', [HouseholdMemberController::class, 'update']);
+    Route::delete('/households/{householdId}/members/{memberId}', [HouseholdMemberController::class, 'destroy']);
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -80,6 +86,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('evacuations/process-scan', [EvacuationController::class, 'scan']);
     Route::post('evacuations/verify-manual', [EvacuationController::class, 'verifyManual']);
     Route::post('evacuations/admit', [EvacuationController::class, 'admit']);
+
+    Route::patch(
+        'evacuations/{evacuationId}/members/{memberId}/status',
+        [EvacuationController::class, 'updateMemberStatus']
+    );
+
+    Route::delete('/evacuations/{evacuationId}', [EvacuationController::class, 'deleteRecord']);
 
     Route::apiResource('evacuations', EvacuationController::class)
         ->only(['index', 'show']);
@@ -176,4 +189,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/units/{unitId}/allocations', [UnitAllocationController::class, 'index']);
     Route::post('/units/{unitId}/allocations', [UnitAllocationController::class, 'assign']);
     Route::delete('/units/{unitId}/allocations/{allocationId}', [UnitAllocationController::class, 'unassign']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/urgency-levels', [ResourceRequestController::class, 'urgencyLevels']);
+
+    Route::get('/resource-requests', [ResourceRequestController::class, 'index']);
+    Route::post('/resource-requests', [ResourceRequestController::class, 'store']);
+    Route::get('/resource-requests/{id}', [ResourceRequestController::class, 'show']);
+    Route::patch('/resource-requests/{id}/status', [ResourceRequestController::class, 'updateStatus']);
+    Route::delete('/resource-requests/{id}', [ResourceRequestController::class, 'destroy']);
 });

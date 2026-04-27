@@ -4,6 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use App\Models\EvacuationRecord;
+use App\Models\HouseholdMember;
+use App\Models\UnitAllocation;
+use App\Models\Address;
 
 class Household extends Model
 {
@@ -50,5 +54,22 @@ class Household extends Model
     public function address()
     {
         return $this->belongsTo(Address::class, 'address_id', 'address_id');
+    }
+
+    public function currentEvacuation(){
+        return $this->hasOne(EvacuationRecord::class, 'household_id')
+            ->where('status', 'evacuated')
+            ->latest();
+    }
+
+    public function currentAllocation(){
+        return $this->hasOneThrough(
+            UnitAllocation::class,
+            EvacuationRecord::class,
+            'household_id',
+            'evacuation_id',
+            'household_id',
+            'evacuation_id'
+        );
     }
 }
