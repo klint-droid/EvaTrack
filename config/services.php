@@ -38,5 +38,9 @@ return [
         'app_id' => env('ONESIGNAL_APP_ID'),
         'api_key' => env('ONESIGNAL_API_KEY'),
     ],
+    'textbee' => [
+        'api_key' => env('TEXTBEE_API_KEY'),
+        'device_id' => env('TEXTBEE_DEVICE_ID'),
+    ],
 
 ];

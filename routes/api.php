@@ -6,8 +6,6 @@ use App\Http\Controllers\API\SyncController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\API\HouseholdController;
 use App\Http\Controllers\API\EvacuationCenterController;
-use App\Http\Controllers\API\RoomController;
-use App\Http\Controllers\API\RoomAssignmentController;
 use App\Http\Controllers\API\EvacuationController;
 use App\Http\Controllers\API\SmsWebhookController;
 use App\Http\Controllers\API\Admin\UserAssignmentController;
@@ -39,22 +37,18 @@ Route::middleware('auth:sanctum')->group(function () {
 */
 
 Route::middleware(['auth:sanctum', 'role:super_admin,evac_admin'])->group(function () {
-
     Route::get('/users', [UserController::class, 'index']);
     Route::post('/users', [UserController::class, 'createUser']);
     Route::put('/users/{id}', [UserController::class, 'updateUser']);
     Route::delete('/users/{id}', [UserController::class, 'deleteUser']);
-
     Route::post('/users/{user}/assign-center', [UserController::class, 'assignCenter']);
 });
-
 
 /*
 |--------------------------------------------------------------------------
 | HOUSEHOLD MANAGEMENT ROUTES
 |--------------------------------------------------------------------------
 */
-
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/households', [HouseholdController::class, 'index']);
@@ -64,7 +58,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/households/{id}', [HouseholdController::class, 'update']);
     Route::delete('/households/{id}', [HouseholdController::class, 'destroy']);
 });
-
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/households/{householdId}/members', [HouseholdMemberController::class, 'index']);
@@ -80,25 +73,19 @@ Route::middleware('auth:sanctum')->group(function () {
 */
 
 Route::middleware(['auth:sanctum'])->group(function () {
-
     Route::get('evacuations/search-household', [HouseholdController::class, 'search']);
     Route::get('evacuations/active', [EvacuationController::class, 'active']);
-
     Route::post('evacuations/process-scan', [EvacuationController::class, 'scan']);
     Route::post('evacuations/verify-manual', [EvacuationController::class, 'verifyManual']);
     Route::post('evacuations/admit', [EvacuationController::class, 'admit']);
-
     Route::patch(
         'evacuations/{evacuationId}/members/{memberId}/status',
         [EvacuationController::class, 'updateMemberStatus']
     );
-
     Route::delete('/evacuations/{evacuationId}', [EvacuationController::class, 'deleteRecord']);
-
     Route::apiResource('evacuations', EvacuationController::class)
         ->only(['index', 'show']);
 });
-
 
 /*
 |--------------------------------------------------------------------------
@@ -109,60 +96,23 @@ Route::middleware(['auth:sanctum'])->group(function () {
 Route::prefix('evacuation-centers')
     ->middleware(['auth:sanctum'])
     ->group(function () {
-
         Route::get('/', [EvacuationCenterController::class, 'index']);
         Route::get('/{evacuation_center}', [EvacuationCenterController::class, 'show']);
         Route::get('/{evacuation_center}/capacity', [EvacuationCenterController::class, 'capacity']);
 
-        Route::get('/{evacuation_center}/rooms', [RoomController::class, 'byCenter']);
-
-        //  ADMIN ONLY
+        // ADMIN ONLY
         Route::middleware('role:super_admin,evac_admin')->group(function () {
             Route::post('/', [EvacuationCenterController::class, 'store']);
             Route::put('/{evacuation_center}', [EvacuationCenterController::class, 'update']);
             Route::delete('/{evacuation_center}', [EvacuationCenterController::class, 'destroy']);
         });
-});
-
-
-/*
-|--------------------------------------------------------------------------
-| SMS TESTING (DEV ONLY)
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/test-device', function () {
-    return (new \App\Services\SmsGateService())->getDevices();
-});
-
-Route::get('/test-sms', function () {
-    return (new \App\Services\SmsGateService())->sendSMS('09922260825', 'Milven gwapo');
-});
-
-Route::get('/check-sms/{id}', function ($id) {
-    return (new \App\Services\SmsGateService())->getMessageStatus($id);
-});
-
-Route::get('/register-webhook', function () {
-    return (new \App\Services\SmsGateService())->registerWebhook();
-});
-
-Route::get('/list-webhooks', function () {
-    return (new \App\Services\SmsGateService())->listWebhooks();
-});
-
+    });
 
 /*
 |--------------------------------------------------------------------------
-| SMS WEBHOOK
+| EVACUATION EVENT ROUTES
 |--------------------------------------------------------------------------
 */
-
-Route::post('/sms/webhook', [SmsWebhookController::class, 'handle']);
-
-Route::post('/notifications/send', [NotificationController::class, 'send']);
-
-Route::post('/device-token', [DeviceTokenController::class, 'store']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('events', [EvacuationEventController::class, 'index']);
@@ -173,34 +123,53 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::patch('/centers/{centerId}/unassign', [EvacuationEventController::class, 'unassignCenter']);
 });
 
+/*
+|--------------------------------------------------------------------------
+| ACCOMMODATION UNIT ROUTES
+|--------------------------------------------------------------------------
+*/
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/accommodation-types', [AccommodationUnitController::class, 'types']);
-
     Route::get('/centers/{centerId}/units', [AccommodationUnitController::class, 'index']);
     Route::post('/centers/{centerId}/units', [AccommodationUnitController::class, 'store']);
     Route::patch('/centers/{centerId}/units/{unitId}', [AccommodationUnitController::class, 'update']);
     Route::delete('/centers/{centerId}/units/{unitId}', [AccommodationUnitController::class, 'destroy']);
 });
 
-Route::middleware('auth:sanctum')->group(function () {
-    // Get unassigned households for a center
-    Route::get('/centers/{centerId}/unassigned', [UnitAllocationController::class, 'unassigned']);
+/*
+|--------------------------------------------------------------------------
+| UNIT ALLOCATION ROUTES
+|--------------------------------------------------------------------------
+*/
 
-    // Unit allocations
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/centers/{centerId}/unassigned', [UnitAllocationController::class, 'unassigned']);
     Route::get('/units/{unitId}/allocations', [UnitAllocationController::class, 'index']);
     Route::post('/units/{unitId}/allocations', [UnitAllocationController::class, 'assign']);
     Route::delete('/units/{unitId}/allocations/{allocationId}', [UnitAllocationController::class, 'unassign']);
 });
 
+/*
+|--------------------------------------------------------------------------
+| RESOURCE REQUEST ROUTES
+|--------------------------------------------------------------------------
+*/
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/urgency-levels', [ResourceRequestController::class, 'urgencyLevels']);
-
     Route::get('/resource-requests', [ResourceRequestController::class, 'index']);
     Route::post('/resource-requests', [ResourceRequestController::class, 'store']);
     Route::get('/resource-requests/{id}', [ResourceRequestController::class, 'show']);
     Route::patch('/resource-requests/{id}/status', [ResourceRequestController::class, 'updateStatus']);
     Route::delete('/resource-requests/{id}', [ResourceRequestController::class, 'destroy']);
 });
+
+/*
+|--------------------------------------------------------------------------
+| CENTER ISSUE REPORT ROUTES
+|--------------------------------------------------------------------------
+*/
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/center-issue-reports', [CenterIssueReportController::class, 'index']);
@@ -210,3 +179,29 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/center-issue-reports/{id}/status', [CenterIssueReportController::class, 'updateStatus']);
     Route::delete('/center-issue-reports/{id}', [CenterIssueReportController::class, 'destroy']);
 });
+
+/*
+|--------------------------------------------------------------------------
+| NOTIFICATION ROUTES
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('notifications')
+    ->middleware('auth:sanctum')
+    ->group(function () {
+        // Preview & send
+        Route::get('/preview', [NotificationController::class, 'preview']);
+        Route::post('/', [NotificationController::class, 'send']);
+        
+        // List all
+        Route::get('/', [NotificationController::class, 'index']);
+        
+        // Urgency levels lookup
+        Route::get('/urgency-levels', [NotificationController::class, 'urgencyLevels']);
+        
+        // Single notification actions
+        Route::get('/{notification}', [NotificationController::class, 'show']);
+        Route::get('/{notification}/logs', [NotificationController::class, 'logs']);
+        Route::post('/{notification}/acknowledge', [NotificationController::class, 'acknowledge']);
+        Route::delete('/{notification}', [NotificationController::class, 'cancel']);
+    });
