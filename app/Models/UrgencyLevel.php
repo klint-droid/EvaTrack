@@ -10,8 +10,6 @@ class UrgencyLevel extends Model
     protected $connection = 'mysql_v2';
     protected $table = 'urgency_levels';
     protected $primaryKey = 'urgency_id';
-
-    public $incrementing = false;
     protected $keyType = 'string';
     public $timestamps = false;
 
@@ -20,21 +18,6 @@ class UrgencyLevel extends Model
         'urgency_key',
         'urgency_label',
     ];
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            if (!$model->urgency_id) {
-                do {
-                    $id = 'URG-' . date('Y') . '-' . strtoupper(Str::random(6));
-                } while (self::where('urgency_id', $id)->exists());
-
-                $model->urgency_id = $id;
-            }
-        });
-    }
 
     public function resourceRequests()
     {

@@ -10,7 +10,7 @@ return new class extends Migration
 
     public function up(): void
     {
-        Schema::connection($this->connection)->create('accommodation_types', function (Blueprint $table) {
+        Schema::connection($this->connection)->create('recurrence_types', function (Blueprint $table) {
             $table->id('type_id');
             $table->string('type_key', 50)->unique();
             $table->string('type_label', 100);
@@ -19,6 +19,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::connection($this->connection)->dropIfExists('accommodation_types');
+        Schema::connection($this->connection)->dropIfExists('recurrence_types');
     }
 };

@@ -11,17 +11,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::connection($this->connection)->create('addresses', function (Blueprint $table) {
-
-            $table->string('address_id')->primary();
-
-            $table->string('region')->nullable();
-            $table->string('province')->nullable();
-            $table->string('city')->nullable();
-            $table->string('barangay')->nullable();
-
-            $table->string('street')->nullable();
-            $table->string('purok')->nullable();
-            $table->string('full_address')->nullable();
+            $table->id('address_id');
+            $table->text('street_address')->nullable();
+            $table->foreignId('purok_id')->nullable()->constrained('puroks', 'purok_id')->onDelete('cascade');
+            $table->foreignId('sitio_id')->nullable()->constrained('sitios', 'sitio_id')->onDelete('cascade');
+            $table->foreignId('barangay_id')->nullable()->constrained('barangays', 'barangay_id')->onDelete('cascade');
+            $table->foreignId('city_id')->nullable()->constrained('cities', 'city_id')->onDelete('cascade');
+            $table->foreignId('province_id')->nullable()->constrained('provinces', 'province_id')->onDelete('cascade');
+            $table->foreignId('region_id')->nullable()->constrained('regions', 'region_id')->onDelete('cascade');
+            $table->timestamps();
+            $table->softDeletes();
         });
     }
 

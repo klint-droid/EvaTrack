@@ -11,35 +11,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::connection($this->connection)->create('notification_logs', function (Blueprint $table) {
-
             $table->id('log_id');
-
-            $table->string('notification_id', 50);
-            $table->string('household_id', 50);
-
-            $table->enum('channel', ['sms', 'push']);
-            $table->enum('status', ['sent', 'failed', 'retrying']);
-
-            $table->timestamp('sent_at')->nullable();
+            $table->foreignId('notification_id')->nullable()->constrained('notifications', 'notif_id')->onDelete('cascade');
+            $table->string('household_id', 255)->nullable();
+            $table->foreignId('channel_id')->nullable()->constrained('notification_channels', 'channel_id')->onDelete('set null');
+            $table->foreignId('status_id')->nullable()->constrained('notification_statuses', 'status_id')->onDelete('set null');
+            $table->dateTime('sent_at')->nullable();
             $table->integer('retry_count')->default(0);
-
-            $table->string('external_message_id', 100)->nullable();
-
-            $table->timestamps();
-            $table->index('notification_id');
-            $table->index('household_id');
-            $table->index('external_message_id');
-            $table->index(['notification_id', 'household_id']);
-
-            $table->foreign('notification_id')
-                ->references('notif_id')
-                ->on('notifications')
-                ->cascadeOnDelete();
+            $table->string('external_message_id', 255)->nullable();
 
             $table->foreign('household_id')
-                ->references('household_id')
-                ->on('households')
-                ->cascadeOnDelete();
+                  ->references('household_id')
+                  ->on('households')
+                  ->onDelete('cascade');
         });
     }
 

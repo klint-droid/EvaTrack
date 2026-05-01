@@ -10,15 +10,15 @@ return new class extends Migration
 
     public function up(): void
     {
-        Schema::connection($this->connection)->create('roles', function (Blueprint $table) {
-            $table->id('role_id');
-            $table->string('role_key')->unique();
-            $table->string('role_name');
+        Schema::connection($this->connection)->create('genders', function (Blueprint $table) {
+            $table->id('gender_id');
+            $table->string('gender_key', 20)->unique();
+            $table->string('gender_label', 20);
         });
     }
 
     public function down(): void
     {
-        Schema::connection($this->connection)->dropIfExists('roles');
+        Schema::connection($this->connection)->dropIfExists('genders');
     }
 };

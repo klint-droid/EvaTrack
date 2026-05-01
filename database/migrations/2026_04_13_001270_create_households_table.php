@@ -11,23 +11,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::connection($this->connection)->create('households', function (Blueprint $table) {
-
-            $table->string('household_id')->primary();
-
+            $table->string('household_id', 255)->primary();
             $table->string('household_name', 100);
-            $table->integer('member_count');
-
-            $table->string('address_id')->nullable();
-
+            $table->foreignId('address_id')->nullable()->constrained('addresses', 'address_id')->onDelete('set null');
             $table->string('contact_number', 50)->nullable();
-
-            $table->dateTime('created_at')->nullable();
-            $table->dateTime('deleted_at')->nullable();
-
-            $table->foreign('address_id')
-                ->references('address_id')
-                ->on('addresses')
-                ->nullOnDelete();
+            $table->string('emergency_contact', 50)->nullable();
+            $table->string('created_by', 255);
+            $table->timestamps();
+            $table->softDeletes();
         });
     }
 

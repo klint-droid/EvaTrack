@@ -11,25 +11,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::connection($this->connection)->create('evacuated_members', function (Blueprint $table) {
-
-            $table->string('evacuated_member_id')->primary();
-
-            $table->string('evacuation_id');
-            $table->string('member_id');
-
+            $table->id('evacuated_member_id');
+            $table->foreignId('evacuation_id')->nullable()->constrained('evacuation_records', 'evacuation_id')->onDelete('cascade');
+            $table->string('member_id', 255)->nullable();
             $table->dateTime('verified_at')->nullable();
 
-            $table->unique(['evacuation_id', 'member_id'], 'unique_evacuation_member');
-
-            $table->foreign('evacuation_id')
-                ->references('evacuation_id')
-                ->on('evacuation_records')
-                ->cascadeOnDelete();
-
             $table->foreign('member_id')
-                ->references('member_id')
-                ->on('household_members')
-                ->restrictOnDelete();
+                  ->references('member_id')
+                  ->on('household_members')
+                  ->onDelete('cascade');
         });
     }
 

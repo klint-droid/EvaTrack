@@ -10,20 +10,17 @@ return new class extends Migration
 
     public function up(): void
     {
-        Schema::connection($this->connection)->create('evacuation_events', function (Blueprint $table) {
-
-            $table->string('event_id')->primary();
-
+        Schema::connection($this->connection)->create('disaster_events', function (Blueprint $table) {
+            $table->string('event_id', 255)->primary();
             $table->string('name', 100);
-            $table->string('type', 50);
-
-            $table->dateTime('started_at');
+            $table->string('type', 50)->nullable();
+            $table->dateTime('started_at')->nullable();
             $table->dateTime('ended_at')->nullable();
         });
     }
 
     public function down(): void
     {
-        Schema::connection($this->connection)->dropIfExists('evacuation_events');
+        Schema::connection($this->connection)->dropIfExists('disaster_events');
     }
 };

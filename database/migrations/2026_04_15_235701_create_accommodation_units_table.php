@@ -6,41 +6,27 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     protected $connection = 'mysql_v2';
 
     public function up(): void
     {
         Schema::connection($this->connection)->create('accommodation_units', function (Blueprint $table) {
-            $table->string('unit_id')->primary();
-
-            $table->string('center_id');
-            $table->string('name');
-
-            $table->string('type_id');
-
-            $table->integer('max_capacity');
+            $table->id('unit_id');
+            $table->string('center_id', 255)->nullable();
+            $table->string('name', 100);
+            $table->foreignId('type_id')->nullable()->constrained('accommodation_types', 'type_id')->onDelete('set null');
+            $table->integer('max_capacity')->nullable();
             $table->integer('current_occupancy')->default(0);
-
-            $table->dateTime('created_at')->nullable();
-            $table->dateTime('deleted_at')->nullable();
+            $table->timestamp('created_at')->nullable();
+            $table->softDeletes();
 
             $table->foreign('center_id')
-                ->references('evacuation_center_id')
-                ->on('evacuation_centers')
-                ->cascadeOnDelete();
-
-            $table->foreign('type_id')
-                ->references('type_id')
-                ->on('accommodation_types');
+                  ->references('evacuation_center_id')
+                  ->on('evacuation_centers')
+                  ->onDelete('cascade');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::connection($this->connection)->dropIfExists('accommodation_units');

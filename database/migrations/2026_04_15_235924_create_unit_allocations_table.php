@@ -6,43 +6,25 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     protected $connection = 'mysql_v2';
 
     public function up(): void
     {
         Schema::connection($this->connection)->create('unit_allocations', function (Blueprint $table) {
-            $table->string('allocation_id')->primary();
-
-            $table->string('evacuation_id');
-            $table->string('unit_id');
-
-            $table->string('assigned_by')->nullable();
+            $table->id('allocation_id');
+            $table->foreignId('evacuation_id')->nullable()->constrained('evacuation_records', 'evacuation_id')->onDelete('cascade');
+            $table->foreignId('unit_id')->nullable()->constrained('accommodation_units', 'unit_id')->onDelete('cascade');
+            $table->string('assigned_by', 255)->nullable();
             $table->boolean('selected_by_resident')->default(false);
-
-            $table->dateTime('created_at')->nullable();
-
-            $table->foreign('evacuation_id')
-                ->references('evacuation_id')
-                ->on('evacuation_records')
-                ->cascadeOnDelete();
-
-            $table->foreign('unit_id')
-                ->references('unit_id')
-                ->on('accommodation_units');
+            $table->timestamp('created_at')->nullable();
 
             $table->foreign('assigned_by')
-                ->references('user_id')
-                ->on('users')
-                ->nullOnDelete();
+                  ->references('user_id')
+                  ->on('users')
+                  ->onDelete('set null');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::connection($this->connection)->dropIfExists('unit_allocations');

@@ -10,22 +10,24 @@ return new class extends Migration
 
     public function up(): void
     {
-        Schema::connection($this->connection)->create('notification_recipients', function (Blueprint $table) {
+        Schema::connection($this->connection)->create('device_tokens', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('notification_id')->nullable()->constrained('notifications', 'notif_id')->onDelete('cascade');
             $table->string('household_id', 255)->nullable();
-            $table->dateTime('read_at')->nullable();
-            $table->dateTime('acknowledged_at')->nullable();
+            $table->string('player_id', 255)->unique();
+            $table->integer('battery_level')->nullable();
+            $table->integer('signal_strength')->nullable();
+            $table->dateTime('logged_at')->nullable();
+            $table->timestamps();
 
             $table->foreign('household_id')
                   ->references('household_id')
                   ->on('households')
-                  ->onDelete('cascade');
+                  ->onDelete('set null');
         });
     }
 
     public function down(): void
     {
-        Schema::connection($this->connection)->dropIfExists('notification_recipients');
+        Schema::connection($this->connection)->dropIfExists('device_tokens');
     }
 };
