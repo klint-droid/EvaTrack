@@ -41,38 +41,44 @@ class EvacuationRecord extends Model
         'verified_at'
     ];
 
-    // 🏠 Household
+    protected $casts = [
+        'verified_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
+    public function event()
+    {
+        return $this->belongsTo(DisasterEvent::class, 'event_id', 'event_id');
+    }
+
     public function household()
     {
-        return $this->belongsTo(Household::class, 'household_id');
+        return $this->belongsTo(Household::class, 'household_id', 'household_id');
     }
 
-    // 🏢 Center
     public function center()
     {
-        return $this->belongsTo(EvacuationCenter::class, 'center_id');
+        return $this->belongsTo(EvacuationCenter::class, 'center_id', 'evacuation_center_id');
     }
 
-    // 👤 Verified by user
-    public function verifiedBy()
+    public function status()
+    {
+        return $this->belongsTo(HouseholdStatus::class, 'status_id', 'status_id');
+    }
+
+    public function verifier()
     {
         return $this->belongsTo(User::class, 'verified_by', 'user_id');
     }
 
-    // 👥 Evacuated members (RENAMED for clarity)
     public function evacuatedMembers()
     {
         return $this->hasMany(EvacuatedMember::class, 'evacuation_id', 'evacuation_id');
     }
 
-    // 🛏️ Room allocation
-    public function unitAllocation()
+    public function unitAllocations()
     {
-        return $this->hasOne(UnitAllocation::class, 'evacuation_id', 'evacuation_id');
-    }
-
-    public function event()
-    {
-        return $this->belongsTo(EvacuationEvent::class, 'event_id', 'event_id');
+        return $this->hasMany(UnitAllocation::class, 'evacuation_id', 'evacuation_id');
     }
 }

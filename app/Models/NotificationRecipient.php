@@ -8,15 +8,19 @@ class NotificationRecipient extends Model
 {
     protected $connection = 'mysql_v2';
     protected $table = 'notification_recipients';
+    public $timestamps = false;
 
     protected $fillable = [
         'notification_id',
         'household_id',
         'read_at',
-        'acknowledged_at'
+        'acknowledged_at',
     ];
 
-    public $timestamps = false;
+    protected $casts = [
+        'read_at' => 'datetime',
+        'acknowledged_at' => 'datetime',
+    ];
 
     public function notification()
     {

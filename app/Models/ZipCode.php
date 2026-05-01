@@ -4,13 +4,26 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Purok extends Model
+class ZipCode extends Model
 {
-    protected $table = 'puroks';
-    protected $primaryKey = 'purok_id';
+    protected $table = 'zip_codes';
+    protected $primaryKey = 'zipcode_id';
     public $timestamps = false;
 
-    protected $fillable = ['purok_name', 'sitio_id', 'barangay_id', 'city_id', 'province_id', 'region_id'];
+    protected $fillable = [
+        'zipcode_name',
+        'purok_id',
+        'sitio_id',
+        'barangay_id',
+        'city_id',
+        'province_id',
+        'region_id',
+    ];
+
+    public function purok()
+    {
+        return $this->belongsTo(Purok::class, 'purok_id', 'purok_id');
+    }
 
     public function sitio()
     {

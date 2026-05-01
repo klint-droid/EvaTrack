@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreignId('city_id')->nullable()->constrained('cities', 'city_id')->onDelete('cascade');
             $table->foreignId('province_id')->nullable()->constrained('provinces', 'province_id')->onDelete('cascade');
             $table->foreignId('region_id')->nullable()->constrained('regions', 'region_id')->onDelete('cascade');
+            $table->foreignId('zip_code')->nullable()->constrained('zip_codes', 'zipcode_id')->onDelete('cascade');
             $table->timestamps();
             $table->softDeletes();
         });

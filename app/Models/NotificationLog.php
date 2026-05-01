@@ -7,18 +7,21 @@ use Illuminate\Database\Eloquent\Model;
 class NotificationLog extends Model
 {
     protected $connection = 'mysql_v2';
+    protected $table = 'notification_logs';
     protected $primaryKey = 'log_id';
+    public $timestamps = false;
 
-    
     protected $fillable = [
         'notification_id',
         'household_id',
-        'channel',
-        'status',
+        'channel_id',
+        'status_id',
         'sent_at',
         'retry_count',
-        'external_message_id'
+        'external_message_id',
     ];
+
+    protected $casts = ['sent_at' => 'datetime'];
 
     public function notification()
     {
@@ -28,5 +31,15 @@ class NotificationLog extends Model
     public function household()
     {
         return $this->belongsTo(Household::class, 'household_id', 'household_id');
+    }
+
+    public function channel()
+    {
+        return $this->belongsTo(NotificationChannel::class, 'channel_id', 'channel_id');
+    }
+
+    public function status()
+    {
+        return $this->belongsTo(NotificationStatus::class, 'status_id', 'status_id');
     }
 }

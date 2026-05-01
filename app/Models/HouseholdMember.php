@@ -14,14 +14,18 @@ class HouseholdMember extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'member_id',
         'household_id',
-        'name',
-        'age',
-        'gender',
-        'is_pwd',
-        'is_pregnant',
-        'relation',
+        'first_name',
+        'middle_name',
+        'last_name',
+        'birthdate',
+        'gender_id',
+        'civil_status_id',
+        'relationship_id',
+    ];
+
+    protected $casts = [
+        'birth_date' => 'date',
     ];
 
     protected static function boot()
@@ -37,12 +41,33 @@ class HouseholdMember extends Model
         });
     }
 
-    public function household()
+        public function household()
     {
-        return $this->belongsTo(Household::class, 'household_id');
+        return $this->belongsTo(Household::class, 'household_id', 'household_id');
     }
 
-    public function evacuatedEntries(){
+    public function gender()
+    {
+        return $this->belongsTo(Gender::class, 'gender_id', 'gender_id');
+    }
+
+    public function relationshipDetail()
+    {
+        return $this->belongsTo(Relationship::class, 'relationship_id', 'relationship_id');
+    }
+
+    public function civilStatusDetail()
+    {
+        return $this->belongsTo(CivilStatus::class, 'civil_status_id', 'status_id');
+    }
+
+    public function vulnerableGroups()
+    {
+        return $this->hasMany(MemberVulnerableGroup::class, 'member_id', 'member_id');
+    }
+
+    public function evacuatedMembers()
+    {
         return $this->hasMany(EvacuatedMember::class, 'member_id', 'member_id');
     }
 }

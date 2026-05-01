@@ -3,43 +3,19 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 
 class EvacuatedMember extends Model
 {
     protected $connection = 'mysql_v2';
-    protected $primaryKey = 'evacuated_member_id';
-    public $incrementing = false;
-    protected $keyType = 'string';
     protected $table = 'evacuated_members';
+    protected $primaryKey = 'evacuated_member_id';
     public $timestamps = false;
 
-    protected static function boot()
-    {
-        parent::boot();
+    protected $fillable = ['evacuation_id', 'member_id', 'verified_at'];
 
-        static::creating(function ($evacuatedMember) {
+    protected $casts = ['verified_at' => 'datetime'];
 
-            $prefix = 'EM';
-            $year = date('Y');
-
-            do {
-                $random = strtoupper(Str::random(6));
-                $id = "{$prefix}-{$year}-{$random}";
-            } while (self::where('evacuated_member_id', $id)->exists());
-
-            $evacuatedMember->evacuated_member_id = $id;
-        });
-    }
-
-    protected $fillable = [
-        'evacuated_member_id',
-        'evacuation_id',
-        'member_id',
-        'verified_at'
-    ];
-
-    public function evacuation()
+    public function evacuationRecord()
     {
         return $this->belongsTo(EvacuationRecord::class, 'evacuation_id', 'evacuation_id');
     }

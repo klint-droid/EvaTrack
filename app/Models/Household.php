@@ -3,19 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
-use App\Models\EvacuationRecord;
-use App\Models\HouseholdMember;
-use App\Models\UnitAllocation;
-use App\Models\Address;
 
 class Household extends Model
 {
+    use SoftDeletes;
     protected $connection = 'mysql_v2';
     protected $primaryKey = 'household_id';
     public $incrementing = false;
     protected $keyType = 'string';
-    public $timestamps = false;
 
     protected static function boot()
     {
@@ -34,13 +31,21 @@ class Household extends Model
 
     protected $fillable = [
         'household_name',
-        'member_count',
         'address_id',
         'contact_number',
-        'created_at',
-        'deleted_at'
+        'emergency_contact',
+        'created_by',
     ];
 
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
+    ];
+    public function user()
+    {
+        return $this->hasOne(User::class, 'household_id', 'household_id');
+    }
     public function members()
     {
         return $this->hasMany(HouseholdMember::class, 'household_id');
@@ -54,6 +59,19 @@ class Household extends Model
     public function address()
     {
         return $this->belongsTo(Address::class, 'address_id', 'address_id');
+    }
+
+    public function deviceTokens()
+    {
+        return $this->hasMany(DeviceToken::class, 'household_id', 'household_id');
+    }
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'user_id');
+    }
+    public function notificationRecepients()
+    {
+        return $this->hasMany(NotificationRecipient::class, 'household_id', 'household_id');
     }
 
     public function currentEvacuation(){

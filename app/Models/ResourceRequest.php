@@ -10,24 +10,24 @@ class ResourceRequest extends Model
     protected $connection = 'mysql_v2';
     protected $table = 'resource_requests';
     protected $primaryKey = 'request_id';
-
     public $incrementing = false;
     protected $keyType = 'string';
 
     protected $fillable = [
-        'request_id',
         'evacuation_center_id',
         'requested_by',
         'handled_by',
-        'request_type',
         'resource_type',
         'quantity',
         'description',
         'urgency_id',
-        'status',
-        'target_agency',
+        'status_id',
     ];
 
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
     protected static function boot()
     {
         parent::boot();
@@ -48,18 +48,23 @@ class ResourceRequest extends Model
         return $this->belongsTo(EvacuationCenter::class, 'evacuation_center_id', 'evacuation_center_id');
     }
 
-    public function requestedBy()
+    public function requester()
     {
         return $this->belongsTo(User::class, 'requested_by', 'user_id');
     }
 
-    public function handledBy()
+    public function handler()
     {
         return $this->belongsTo(User::class, 'handled_by', 'user_id');
     }
 
-    public function urgency()
+    public function urgencyLevel()
     {
         return $this->belongsTo(UrgencyLevel::class, 'urgency_id', 'urgency_id');
+    }
+
+    public function status()
+    {
+        return $this->belongsTo(ResourceRequestStatus::class, 'status_id', 'status_id');
     }
 }

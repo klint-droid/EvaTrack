@@ -19,6 +19,7 @@ return new class extends Migration
             $table->date('birth_date');
             $table->foreignId('gender_id')->nullable()->constrained('genders', 'gender_id')->onDelete('set null');
             $table->foreignId('relationship_id')->nullable()->constrained('relationships', 'relationship_id')->onDelete('set null');
+            $table->foreignId('civil_status_id')->nullable()->constrained('civil_statuses', 'status_id')->onDelete('set null');
 
             $table->foreign('household_id')
                   ->references('household_id')

@@ -3,40 +3,67 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Address extends Model
 {
-    protected $connection = 'mysql_v2';
+    use SoftDeletes;
 
+    protected $connection = 'mysql_v2';
+    protected $table = 'addresses';
     protected $primaryKey = 'address_id';
-    public $incrementing = false;
     protected $keyType = 'string';
-    public $timestamps = false;
 
     protected $fillable = [
-        'region',
-        'province',
-        'city',
-        'barangay',
-        'street',
-        'purok',
-        'full_address'
+        'street_address',
+        'purok_id',
+        'barangay_id',
+        'sitio_id',
+        'city_id',
+        'province_id',
+        'region_id',
+        'zip_code',
     ];
 
-    protected static function boot()
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
+    ];
+
+    public function purok()
     {
-        parent::boot();
+        return $this->belongsTo(Purok::class, 'purok_id', 'purok_id');
+    }
 
-        static::creating(function ($model) {
-            if (!$model->address_id) {
-                do {
-                    $id = 'ADDR-' . date('Y') . '-' . strtoupper(Str::random(6));
-                } while (self::where('address_id', $id)->exists());
+    public function barangay()
+    {
+        return $this->belongsTo(Barangay::class, 'barangay_id', 'barangay_id');
+    }
 
-                $model->address_id = $id;
-            }
-        });
+    public function sitio()
+    {
+        return $this->belongsTo(Sitio::class, 'sitio_id', 'sitio_id');
+    }
+
+    public function city()
+    {
+        return $this->belongsTo(City::class, 'city_id', 'city_id');
+    }
+
+    public function province()
+    {
+        return $this->belongsTo(Province::class, 'province_id', 'province_id');
+    }
+
+    public function region()
+    {
+        return $this->belongsTo(Region::class, 'region_id', 'region_id');
+    }
+
+    public function zipCode()
+    {
+        return $this->belongsTo(ZipCode::class, 'zip_code', 'zipcode_id');
     }
 
     public function households()

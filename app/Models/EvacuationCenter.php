@@ -25,6 +25,12 @@ class EvacuationCenter extends Model
         'created_at',
         'deleted_at'
     ];
+    protected $casts = [
+        'latitude' => 'decimal:7',
+        'longitude' => 'decimal:7',
+        'created_at' => 'datetime',
+        'deleted_at' => 'datetime',
+    ];
 
     protected static function boot()
     {
@@ -42,6 +48,11 @@ class EvacuationCenter extends Model
         });
     }
 
+    public function currentEvent()
+    {
+        return $this->belongsTo(DisasterEvent::class, 'current_event_id', 'event_id');
+    }
+
     public function address()
     {
         return $this->belongsTo(Address::class, 'address_id', 'address_id');
@@ -52,8 +63,28 @@ class EvacuationCenter extends Model
         return $this->hasMany(AccommodationUnit::class, 'center_id', 'evacuation_center_id');
     }
 
-    public function evacuations()
+    public function evacuationRecords()
     {
         return $this->hasMany(EvacuationRecord::class, 'center_id', 'evacuation_center_id');
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class, 'evacuation_center_id', 'evacuation_center_id');
+    }
+
+    public function centerOccupancy()
+    {
+        return $this->hasOne(CenterOccupancy::class, 'evacuation_center_id', 'evacuation_center_id');
+    }
+
+    public function issueReports()
+    {
+        return $this->hasMany(CenterIssueReport::class, 'evacuation_center_id', 'evacuation_center_id');
+    }
+
+    public function resourceRequests()
+    {
+        return $this->hasMany(ResourceRequest::class, 'evacuation_center_id', 'evacuation_center_id');
     }
 }

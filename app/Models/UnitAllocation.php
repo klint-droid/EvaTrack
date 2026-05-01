@@ -3,27 +3,27 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 
 class UnitAllocation extends Model
 {
     protected $connection = 'mysql_v2';
     protected $table = 'unit_allocations';
     protected $primaryKey = 'allocation_id';
-    public $incrementing = false;
-    protected $keyType = 'string';
-    public $timestamps = false;
+    const UPDATED_AT = null;
 
     protected $fillable = [
-        'allocation_id',
         'evacuation_id',
         'unit_id',
         'assigned_by',
         'selected_by_resident',
-        'created_at',
     ];
 
-    public function evacuation()
+    protected $casts = [
+        'selected_by_resident' => 'boolean',
+        'created_at' => 'datetime',
+    ];
+
+    public function evacuationRecord()
     {
         return $this->belongsTo(EvacuationRecord::class, 'evacuation_id', 'evacuation_id');
     }
@@ -33,22 +33,8 @@ class UnitAllocation extends Model
         return $this->belongsTo(AccommodationUnit::class, 'unit_id', 'unit_id');
     }
 
-    public function assignedBy()
+    public function assigner()
     {
         return $this->belongsTo(User::class, 'assigned_by', 'user_id');
-    }
-
-    protected static function boot()
-    {
-        parent::boot();
-        static::creating(function ($model) {
-            if (!$model->allocation_id) {
-                do {
-                    $id = 'UA-' . date('Y') . '-' . strtoupper(Str::random(6));
-                } while (self::where('allocation_id', $id)->exists());
-                $model->allocation_id = $id;
-            }
-            $model->created_at = now();
-        });
     }
 }

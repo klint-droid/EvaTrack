@@ -1,0 +1,77 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
+
+class DisasterEvent extends Model
+{
+    use SoftDeletes;
+    protected $connection = 'mysql_v2';
+    protected $table = 'disaster_events';
+    protected $primaryKey = 'event_id';
+    public $incrementing = false;
+    protected $keyType = 'string';
+
+    protected $fillable = [
+        'name',
+        'type_id',
+        'started_at',
+        'ended_at',
+    ];
+
+    protected $casts = [
+        'started_at' => 'datetime',
+        'ended_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
+    ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (!$model->event_id) {
+                do {
+                    $id = 'EVT-' . date('Ymd') . '-' . strtoupper(Str::random(6));
+                } while (self::where('event_id', $id)->exists());
+
+                $model->event_id = $id;
+            }
+        });
+    }
+
+    public function primaryType()
+    {
+        return $this->belongsTo(DisasterType::class, 'type_id', 'type_id');
+    }
+
+    public function types()
+    {
+        return $this->belongsToMany(
+            DisasterType::class,
+            'disaster_event_types',
+            'event_id',
+            'type_id'
+        );
+    }
+
+    public function evacuationCenters()
+    {
+        return $this->hasMany(EvacuationCenter::class, 'current_event_id', 'event_id');
+    }
+
+    public function evacuationRecords()
+    {
+        return $this->hasMany(EvacuationRecord::class, 'event_id', 'event_id');
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class, 'evacuation_event_id', 'event_id');
+    }
+}
