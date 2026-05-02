@@ -22,6 +22,16 @@ class DatabaseSeeder extends Seeder
             SuperAdminSeeder::class,
             EvacAdminSeeder::class,
             UrgencyLevelSeeder::class,
+            AccommodationTypeSeeder::class,
+            RelationshipsTableSeeder::class,
+            GendersTableSeeder::class,
+            VulnerableGroupsTableSeeder::class,
+            SeverityLevelsTableSeeder::class,     
+            DisasterTypesTableSeeder::class,
+            HouseholdStatusTableSeeder::class,
+            AnalyticsJobStatusTableSeeder::class,
+            CenterIssueCategoryTableSeeder::class,
+            PsgcSeeder::class,
         ]);
     }
 }

@@ -6,11 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Province extends Model
 {
+    protected $connection = 'mysql_v2';
     protected $table = 'provinces';
     protected $primaryKey = 'province_id';
     public $timestamps = false;
 
-    protected $fillable = ['province_name', 'region_id'];
+    protected $fillable = ['province_code', 'province_name', 'region_id'];
 
     public function region()
     {
@@ -24,21 +25,6 @@ class Province extends Model
 
     public function barangays()
     {
-        return $this->hasMany(Barangay::class, 'province_id', 'province_id');
-    }
-
-    public function sitios()
-    {
-        return $this->hasMany(Sitio::class, 'province_id', 'province_id');
-    }
-
-    public function puroks()
-    {
-        return $this->hasMany(Purok::class, 'province_id', 'province_id');
-    }
-
-    public function zipCodes()
-    {
-        return $this->hasMany(ZipCode::class, 'province_id', 'province_id');
+        return $this->hasManyThrough(Barangay::class, City::class, 'province_id', 'city_id');
     }
 }

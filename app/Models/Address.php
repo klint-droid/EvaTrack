@@ -8,34 +8,22 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Address extends Model
 {
     use SoftDeletes;
-
     protected $connection = 'mysql_v2';
     protected $table = 'addresses';
     protected $primaryKey = 'address_id';
-    protected $keyType = 'string';
+    public $timestamps = true;
 
     protected $fillable = [
-        'street_address',
-        'purok_id',
-        'barangay_id',
-        'sitio_id',
-        'city_id',
-        'province_id',
-        'region_id',
-        'zip_code',
+        'street_address', 
+        'barangay_id', 
+        'sitio_id', 
+        'purok_id', 
+        'zipcode_id'
     ];
 
-    protected $casts = [
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
-    ];
+    protected $dates = ['created_at', 'updated_at', 'deleted_at'];
 
-    public function purok()
-    {
-        return $this->belongsTo(Purok::class, 'purok_id', 'purok_id');
-    }
-
+    // Relationships
     public function barangay()
     {
         return $this->belongsTo(Barangay::class, 'barangay_id', 'barangay_id');
@@ -46,33 +34,47 @@ class Address extends Model
         return $this->belongsTo(Sitio::class, 'sitio_id', 'sitio_id');
     }
 
-    public function city()
+    public function purok()
     {
-        return $this->belongsTo(City::class, 'city_id', 'city_id');
+        return $this->belongsTo(Purok::class, 'purok_id', 'purok_id');
     }
 
-    public function province()
+    public function zipcode()
     {
-        return $this->belongsTo(Province::class, 'province_id', 'province_id');
+        return $this->belongsTo(ZipCode::class, 'zipcode_id', 'zipcode_id');
     }
 
-    public function region()
+    // Accessor to get full address
+    public function getFullAddressAttribute()
     {
-        return $this->belongsTo(Region::class, 'region_id', 'region_id');
-    }
-
-    public function zipCode()
-    {
-        return $this->belongsTo(ZipCode::class, 'zip_code', 'zipcode_id');
-    }
-
-    public function households()
-    {
-        return $this->hasMany(Household::class, 'address_id', 'address_id');
-    }
-
-    public function evacuationCenters()
-    {
-        return $this->hasMany(EvacuationCenter::class, 'address_id', 'address_id');
+        $parts = [];
+        
+        if ($this->street_address) {
+            $parts[] = $this->street_address;
+        }
+        
+        if ($this->purok) {
+            $parts[] = "Purok {$this->purok->purok_name}";
+        } elseif ($this->sitio) {
+            $parts[] = "Sitio {$this->sitio->sitio_name}";
+        }
+        
+        if ($this->barangay) {
+            $parts[] = $this->barangay->barangay_name;
+        }
+        
+        if ($this->barangay && $this->barangay->city) {
+            $parts[] = $this->barangay->city->city_name;
+        }
+        
+        if ($this->barangay && $this->barangay->city && $this->barangay->city->province) {
+            $parts[] = $this->barangay->city->province->province_name;
+        }
+        
+        if ($this->zipcode) {
+            $parts[] = $this->zipcode->zipcode;
+        }
+        
+        return implode(', ', $parts);
     }
 }

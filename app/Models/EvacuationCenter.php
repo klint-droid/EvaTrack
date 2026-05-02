@@ -17,17 +17,18 @@ class EvacuationCenter extends Model
 
     protected $fillable = [
         'name',
-        'address_id',
+        'osm_address',
         'latitude',
         'longitude',
         'capacity',
         'current_event_id',
         'created_at',
-        'deleted_at'
+        'deleted_at',
     ];
+
     protected $casts = [
-        'latitude' => 'decimal:7',
-        'longitude' => 'decimal:7',
+        'latitude'   => 'decimal:7',
+        'longitude'  => 'decimal:7',
         'created_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
@@ -38,7 +39,6 @@ class EvacuationCenter extends Model
 
         static::creating(function ($center) {
             if (!$center->evacuation_center_id) {
-
                 do {
                     $id = 'EC-' . date('Y') . '-' . strtoupper(Str::random(6));
                 } while (self::where('evacuation_center_id', $id)->exists());
@@ -51,11 +51,6 @@ class EvacuationCenter extends Model
     public function currentEvent()
     {
         return $this->belongsTo(DisasterEvent::class, 'current_event_id', 'event_id');
-    }
-
-    public function address()
-    {
-        return $this->belongsTo(Address::class, 'address_id', 'address_id');
     }
 
     public function accommodationUnits()

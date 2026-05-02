@@ -6,34 +6,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class Purok extends Model
 {
+    protected $connection = 'mysql_v2';
     protected $table = 'puroks';
     protected $primaryKey = 'purok_id';
     public $timestamps = false;
 
-    protected $fillable = ['purok_name', 'sitio_id', 'barangay_id', 'city_id', 'province_id', 'region_id'];
+    protected $fillable = ['purok_name', 'sitio_id'];
 
     public function sitio()
     {
         return $this->belongsTo(Sitio::class, 'sitio_id', 'sitio_id');
     }
 
-    public function barangay()
+    public function addresses()
     {
-        return $this->belongsTo(Barangay::class, 'barangay_id', 'barangay_id');
-    }
-
-    public function city()
-    {
-        return $this->belongsTo(City::class, 'city_id', 'city_id');
-    }
-
-    public function province()
-    {
-        return $this->belongsTo(Province::class, 'province_id', 'province_id');
-    }
-
-    public function region()
-    {
-        return $this->belongsTo(Region::class, 'region_id', 'region_id');
+        return $this->hasMany(Address::class, 'purok_id', 'purok_id');
     }
 }

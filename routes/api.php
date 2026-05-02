@@ -16,6 +16,7 @@ use App\Http\Controllers\API\UnitAllocationController;
 use App\Http\Controllers\API\HouseholdMemberController;
 use App\Http\Controllers\API\ResourceRequestController;
 use App\Http\Controllers\API\CenterIssueReportController;
+use App\Http\Controllers\API\AddressController;
 
 /*
 |--------------------------------------------------------------------------
@@ -205,3 +206,7 @@ Route::prefix('notifications')
         Route::post('/{notification}/acknowledge', [NotificationController::class, 'acknowledge']);
         Route::delete('/{notification}', [NotificationController::class, 'cancel']);
     });
+
+Route::get('/barangays', [AddressController::class, 'barangays']);
+Route::get('/barangays/{id}/sitios', [AddressController::class, 'sitios']);
+Route::get('/sitios/{id}/puroks', [AddressController::class, 'puroks']);

@@ -20,7 +20,6 @@ class HouseholdMember extends Model
         'last_name',
         'birthdate',
         'gender_id',
-        'civil_status_id',
         'relationship_id',
     ];
 
@@ -54,11 +53,6 @@ class HouseholdMember extends Model
     public function relationshipDetail()
     {
         return $this->belongsTo(Relationship::class, 'relationship_id', 'relationship_id');
-    }
-
-    public function civilStatusDetail()
-    {
-        return $this->belongsTo(CivilStatus::class, 'civil_status_id', 'status_id');
     }
 
     public function vulnerableGroups()
