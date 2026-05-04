@@ -27,15 +27,7 @@ class UpdateEvacuationCenterRequest extends FormRequest
             'latitude'          => 'required|numeric',
             'longitude'         => 'required|numeric',
             'capacity'          => 'required|integer|min:1',
-
-            'street_address'    => 'nullable|string|max:200',
-            'region_id'         => 'nullable|exists:regions,region_id',
-            'province_id'       => 'nullable|exists:provinces,province_id',
-            'city_id'           => 'nullable|exists:cities,city_id',
-            'barangay_id'       => 'nullable|exists:barangays,barangay_id',
-            'sitio_id'          => 'nullable|exists:sitios,sitio_id',
-            'purok_id'          => 'nullable|exists:puroks,purok_id',
-            'zipcode_id'        => 'nullable|exists:zipcodes,zipcode_id',
+            'osm_address'       => 'required|string',
         ];
     }
 }

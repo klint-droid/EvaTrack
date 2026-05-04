@@ -211,7 +211,7 @@ class EvacuationService
             'household_id'    => $householdId,
             'center_id'       => $centerId,
             'event_id'        => $this->resolveEventId($eventId, $centerId),
-            'status'          => 'evacuated',
+            'household_status_id'          => 2,
             'evacuated_count' => $count,
             'method'          => $method,
             'verified_by'     => $userId,
@@ -245,7 +245,7 @@ class EvacuationService
     {
         $exists = EvacuationRecord::where('household_id', $householdId)
             ->where('center_id', $centerId)
-            ->where('status', 'evacuated')
+            ->where('household_status_id', 2)
             ->exists();
 
         if ($exists) {

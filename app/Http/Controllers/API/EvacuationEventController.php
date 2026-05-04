@@ -7,6 +7,7 @@ use App\Models\EvacuationEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Models\EvacuationCenter;
+use App\Models\DisasterEvent;
 
 class EvacuationEventController extends Controller
 {
@@ -14,14 +15,14 @@ class EvacuationEventController extends Controller
     public function index()
     {
         return response()->json([
-            'data' => EvacuationEvent::latest('started_at')->get()
+            'data' => DisasterEvent::latest('started_at')->get()
         ]);
     }
 
     // Get active event (no ended_at yet)
     public function active()
     {
-        $event = EvacuationEvent::whereNull('ended_at')->latest('started_at')->first();
+        $event = DisasterEvent::whereNull('ended_at')->latest('started_at')->first();
 
         if (!$event) {
             return response()->json(['message' => 'No active event'], 404);
@@ -38,7 +39,7 @@ class EvacuationEventController extends Controller
             'type' => 'required|string|max:50',
         ]);
 
-        $event = EvacuationEvent::create([
+        $event = DisasterEvent::create([
             'event_id'   => 'EVT-' . date('Y') . '-' . strtoupper(Str::random(6)),
             'name'       => $request->name,
             'type'       => $request->type,
@@ -54,7 +55,7 @@ class EvacuationEventController extends Controller
     // End/close an event
     public function end($id)
     {
-        $event = EvacuationEvent::where('event_id', $id)->firstOrFail();
+        $event = DisasterEvent::where('event_id', $id)->firstOrFail();
 
         if ($event->ended_at) {
             return response()->json(['message' => 'Event already ended'], 400);
@@ -76,7 +77,7 @@ class EvacuationEventController extends Controller
             'center_id.*' => 'exists:evacuation_centers,evacuation_center_id'
         ]);
 
-        $event = EvacuationEvent::where('event_id', $id)->firstOrFail();
+        $event = DisasterEvent::where('event_id', $id)->firstOrFail();
 
         if ($event->ended_at) {
             return response()->json(['message' => 'Event already ended'], 400);

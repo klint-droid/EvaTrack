@@ -34,7 +34,6 @@ class Household extends Model
         'address_id',
         'contact_number',
         'emergency_contact',
-        'created_by',
     ];
 
     protected $casts = [
@@ -65,10 +64,7 @@ class Household extends Model
     {
         return $this->hasMany(DeviceToken::class, 'household_id', 'household_id');
     }
-    public function creator()
-    {
-        return $this->belongsTo(User::class, 'created_by', 'user_id');
-    }
+
     public function notificationRecepients()
     {
         return $this->hasMany(NotificationRecipient::class, 'household_id', 'household_id');
@@ -76,7 +72,7 @@ class Household extends Model
 
     public function currentEvacuation(){
         return $this->hasOne(EvacuationRecord::class, 'household_id')
-            ->where('status', 'evacuated')
+            ->where('household_status_id', 2)
             ->latest();
     }
 

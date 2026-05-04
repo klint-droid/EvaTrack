@@ -25,11 +25,11 @@ class EvacuationController extends Controller
             'unitAllocation.unit.type',
             'center',
             'event',
-            'verifiedBy'
+            'verifier'
         ]);
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
+        if ($request->filled('household_status_id')) {
+            $query->where('household_status_id', $request->household_status_id);
         }
 
         if ($user->isSuperAdmin() || $user->isEvacAdmin()) {
@@ -81,7 +81,7 @@ class EvacuationController extends Controller
             'unitAllocation.unit.type',
             'center',
             'event',
-            'verifiedBy'
+            'verifier'
         ])->where('evacuation_id', $id);
 
         if ($user->isEvacPersonnel()) {
@@ -129,7 +129,7 @@ class EvacuationController extends Controller
 
         $alreadyEvacuated = EvacuationRecord::where('household_id', $request->household_id)
             ->where('center_id', $user->assigned_center_id)
-            ->where('status', 'evacuated')
+            ->where('household_status_id', 2)
             ->exists();
 
         if ($alreadyEvacuated) {
@@ -162,7 +162,7 @@ class EvacuationController extends Controller
     {
         $request->validate([
             'household_id' => 'required|exists:households,household_id',
-            'event_id' => 'nullable|exists:evacuation_events,event_id',
+            'event_id'     => 'nullable|exists:evacuation_events,event_id',
         ]);
 
         $user = Auth::user();
@@ -207,7 +207,7 @@ class EvacuationController extends Controller
         $request->validate([
             'household_id' => 'required|exists:households,household_id',
             'member_count' => 'required|integer|min:1',
-            'event_id' => 'nullable|exists:evacuation_events,event_id',
+            'event_id'     => 'nullable|exists:evacuation_events,event_id',
         ]);
 
         $user = Auth::user();
@@ -230,7 +230,7 @@ class EvacuationController extends Controller
 
         $alreadyEvacuated = EvacuationRecord::where('household_id', $request->household_id)
             ->where('center_id', $user->assigned_center_id)
-            ->where('status', 'evacuated')
+            ->where('household_status_id', 2)
             ->exists();
 
         if ($alreadyEvacuated) {
@@ -279,7 +279,7 @@ class EvacuationController extends Controller
             'verifiedBy'
         ])
             ->where('center_id', $user->assigned_center_id)
-            ->where('status', 'evacuated')
+            ->where('household_status_id', 2)
             ->latest('verified_at')
             ->first();
 
@@ -329,7 +329,6 @@ class EvacuationController extends Controller
             }
 
             $record->evacuatedMembers()->delete();
-
             $record->delete();
 
             return response()->json([
@@ -341,7 +340,7 @@ class EvacuationController extends Controller
     public function updateMemberStatus(Request $request, $evacuationId, $memberId)
     {
         $validated = $request->validate([
-            'status' => 'required|in:evacuated,not_verified',
+            'household_status_id' => 'required|exists:household_statuses,id',
         ]);
 
         $user = Auth::user();
@@ -352,7 +351,7 @@ class EvacuationController extends Controller
                 'evacuatedMembers'
             ])
                 ->where('evacuation_id', $evacuationId)
-                ->where('status', 'evacuated')
+                ->where('household_status_id', 2)
                 ->firstOrFail();
 
             if (
@@ -370,11 +369,11 @@ class EvacuationController extends Controller
 
             $oldCount = (int) $record->evacuated_count;
 
-            if ($validated['status'] === 'evacuated') {
+            if ($validated['household_status_id'] === 2) {
                 EvacuatedMember::firstOrCreate(
                     [
                         'evacuation_id' => $record->evacuation_id,
-                        'member_id' => $member->member_id,
+                        'member_id'     => $member->member_id,
                     ],
                     [
                         'verified_at' => now(),
@@ -382,7 +381,7 @@ class EvacuationController extends Controller
                 );
             }
 
-            if ($validated['status'] === 'not_verified') {
+            if ($validated['household_status_id'] !== 2) {
                 EvacuatedMember::where('evacuation_id', $record->evacuation_id)
                     ->where('member_id', $member->member_id)
                     ->delete();
@@ -417,7 +416,7 @@ class EvacuationController extends Controller
 
             return response()->json([
                 'message' => 'Member evacuation status updated successfully.',
-                'data' => $record->fresh([
+                'data'    => $record->fresh([
                     'household.address',
                     'household.members',
                     'evacuatedMembers.member',
