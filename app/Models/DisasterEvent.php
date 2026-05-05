@@ -18,6 +18,7 @@ class DisasterEvent extends Model
     protected $fillable = [
         'name',
         'type_id',
+        'severity_level_id',
         'started_at',
         'ended_at',
     ];
@@ -45,6 +46,9 @@ class DisasterEvent extends Model
         });
     }
 
+    public function severity(){
+        return $this->belongsTo(SeverityLevel::class, 'severity_level_id', 'severity_id');
+    }
     public function primaryType()
     {
         return $this->belongsTo(DisasterType::class, 'type_id', 'type_id');

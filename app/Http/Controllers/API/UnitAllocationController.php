@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\UnitAllocation;
 use App\Models\AccommodationUnit;
 use App\Models\EvacuationRecord;
+use App\Models\HouseholdStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,8 +17,8 @@ class UnitAllocationController extends Controller
     public function index($unitId)
     {
         $allocations = UnitAllocation::with([
-            'evacuation.household',
-            'assignedBy'
+            'evacuationRecord.household',
+            'assigner'           
         ])
         ->where('unit_id', $unitId)
         ->get();
@@ -29,19 +30,27 @@ class UnitAllocationController extends Controller
     public function assign(Request $request, $unitId)
     {
         $request->validate([
-            'evacuation_id' => 'required|exists:evacuation_records,evacuation_id',
+            'evacuation_id' => [
+                'required',
+                function($attribute, $value, $fail) {
+                    if (!EvacuationRecord::where('evacuation_id', $value)->exists()) {
+                        $fail('The selected evacuation record is invalid.');
+                    }
+                }
+            ],
         ]);
 
         $user = Auth::user();
 
-        return DB::transaction(function () use ($request, $unitId, $user) {
+        $evacuatedStatusId = HouseholdStatus::where('status_key', 'evacuated')->value('status_id');
+
+        return DB::transaction(function () use ($request, $unitId, $user, $evacuatedStatusId) {
 
             $unit = AccommodationUnit::where('unit_id', $unitId)->firstOrFail();
 
-            // Check evacuation record belongs to the same center as the unit
             $evacuation = EvacuationRecord::where('evacuation_id', $request->evacuation_id)
                 ->where('center_id', $unit->center_id)
-                ->where('status', 'evacuated')
+                ->where('household_status_id', $evacuatedStatusId)
                 ->first();
 
             if (!$evacuation) {
@@ -57,12 +66,10 @@ class UnitAllocationController extends Controller
                 ], 400);
             }
 
-            // Check if household is already assigned to any unit in this center
-            $alreadyAssigned = UnitAllocation::whereHas('unit', function ($q) use ($unit) {
-                $q->where('center_id', $unit->center_id);
-            })
-            ->where('evacuation_id', $request->evacuation_id)
-            ->exists();
+            $alreadyAssigned = UnitAllocation::join('accommodation_units', 'unit_allocations.unit_id', '=', 'accommodation_units.unit_id')
+                ->where('accommodation_units.center_id', $unit->center_id)
+                ->where('unit_allocations.evacuation_id', $request->evacuation_id)
+                ->exists();
 
             if ($alreadyAssigned) {
                 return response()->json([
@@ -74,9 +81,7 @@ class UnitAllocationController extends Controller
             $available = $unit->max_capacity - $unit->current_occupancy;
 
             if ($available <= 0) {
-                return response()->json([
-                    'message' => 'This unit is already full.'
-                ], 400);
+                return response()->json(['message' => 'This unit is already full.'], 400);
             }
 
             if ($evacuation->evacuated_count > $available) {
@@ -85,7 +90,6 @@ class UnitAllocationController extends Controller
                 ], 400);
             }
 
-            // Create allocation
             $allocation = UnitAllocation::create([
                 'evacuation_id'        => $request->evacuation_id,
                 'unit_id'              => $unitId,
@@ -93,12 +97,11 @@ class UnitAllocationController extends Controller
                 'selected_by_resident' => false,
             ]);
 
-            // Update unit occupancy
             $unit->increment('current_occupancy', $evacuation->evacuated_count);
 
             return response()->json([
                 'message' => 'Household assigned successfully.',
-                'data'    => $allocation->load('evacuation.household')
+                'data'    => $allocation->load('evacuationRecord.household')
             ], 201);
         });
     }
@@ -117,28 +120,29 @@ class UnitAllocationController extends Controller
             $evacuation = EvacuationRecord::where('evacuation_id', $allocation->evacuation_id)
                 ->firstOrFail();
 
-            // Decrease unit occupancy but never go below 0
             $newOccupancy = max(0, $unit->current_occupancy - $evacuation->evacuated_count);
             $unit->update(['current_occupancy' => $newOccupancy]);
 
             $allocation->delete();
 
-            return response()->json([
-                'message' => 'Household unassigned successfully.'
-            ]);
+            return response()->json(['message' => 'Household unassigned successfully.']);
         });
     }
 
     // Get unassigned evacuations for a center
     public function unassigned($centerId)
     {
-        $assignedIds = UnitAllocation::whereHas('unit', function ($q) use ($centerId) {
-            $q->where('center_id', $centerId);
-        })->pluck('evacuation_id')->toArray();
+
+        $evacuatedStatusId = HouseholdStatus::where('status_key', 'evacuated')->value('status_id');
+
+        $assignedIds = UnitAllocation::join('accommodation_units', 'unit_allocations.unit_id', '=', 'accommodation_units.unit_id')
+            ->where('accommodation_units.center_id', $centerId)
+            ->pluck('unit_allocations.evacuation_id')
+            ->toArray();
 
         $unassigned = EvacuationRecord::with('household')
             ->where('center_id', $centerId)
-            ->where('status', 'evacuated')
+            ->where('household_status_id', $evacuatedStatusId)  // ✅ direct column
             ->when(!empty($assignedIds), function ($q) use ($assignedIds) {
                 $q->whereNotIn('evacuation_id', $assignedIds);
             })

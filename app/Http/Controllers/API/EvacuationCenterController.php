@@ -37,7 +37,9 @@ class EvacuationCenterController extends Controller
 
     public function show(EvacuationCenter $center)
     {
-        return response()->json($center);
+        return response()->json([
+            'data' => $center
+        ]);
     }
 
     public function update(UpdateEvacuationCenterRequest $request, EvacuationCenter $center){

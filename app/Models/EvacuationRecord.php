@@ -8,27 +8,10 @@ use Illuminate\Support\Str;
 class EvacuationRecord extends Model
 {
     protected $connection = 'mysql_v2';
+
+    protected $table = 'evacuation_records';
+
     protected $primaryKey = 'evacuation_id';
-    public $incrementing = false;
-    protected $keyType = 'string';
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($evacuation) {
-
-            $prefix = 'EV';
-            $year = date('Y');
-
-            do {
-                $random = strtoupper(Str::random(6));
-                $id = "{$prefix}-{$year}-{$random}";
-            } while (self::where('evacuation_id', $id)->exists());
-
-            $evacuation->evacuation_id = $id;
-        });
-    }
 
     protected $fillable = [
         'event_id',
@@ -80,5 +63,10 @@ class EvacuationRecord extends Model
     public function unitAllocations()
     {
         return $this->hasMany(UnitAllocation::class, 'evacuation_id', 'evacuation_id');
+    }
+
+    public function unitAllocation()
+    {
+        return $this->hasOne(UnitAllocation::class, 'evacuation_id', 'evacuation_id');
     }
 }

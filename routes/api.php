@@ -17,6 +17,8 @@ use App\Http\Controllers\API\HouseholdMemberController;
 use App\Http\Controllers\API\ResourceRequestController;
 use App\Http\Controllers\API\CenterIssueReportController;
 use App\Http\Controllers\API\AddressController;
+use App\Http\Controllers\API\DisasterTypeController;
+use App\Http\Controllers\API\SeverityLevelController;
 
 /*
 |--------------------------------------------------------------------------
@@ -93,22 +95,19 @@ Route::middleware(['auth:sanctum'])->group(function () {
 | EVACUATION CENTER ROUTES
 |--------------------------------------------------------------------------
 */
-
 Route::prefix('evacuation-centers')
     ->middleware(['auth:sanctum'])
     ->group(function () {
         Route::get('/', [EvacuationCenterController::class, 'index']);
-        Route::get('/{evacuation_center}', [EvacuationCenterController::class, 'show']);
-        Route::get('/{evacuation_center}/capacity', [EvacuationCenterController::class, 'capacity']);
+        Route::get('/{center}', [EvacuationCenterController::class, 'show']);
+        Route::get('/{center}/capacity', [EvacuationCenterController::class, 'capacity']);
 
-        // ADMIN ONLY
         Route::middleware('role:super_admin,evac_admin')->group(function () {
             Route::post('/', [EvacuationCenterController::class, 'store']);
-            Route::put('/{evacuation_center}', [EvacuationCenterController::class, 'update']);
-            Route::delete('/{evacuation_center}', [EvacuationCenterController::class, 'destroy']);
+            Route::put('/{center}', [EvacuationCenterController::class, 'update']);
+            Route::delete('/{center}', [EvacuationCenterController::class, 'destroy']);
         });
     });
-
 /*
 |--------------------------------------------------------------------------
 | EVACUATION EVENT ROUTES
@@ -138,7 +137,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/centers/{centerId}/units/{unitId}', [AccommodationUnitController::class, 'destroy']);
 });
 
-/*
+/* 
 |--------------------------------------------------------------------------
 | UNIT ALLOCATION ROUTES
 |--------------------------------------------------------------------------
@@ -210,3 +209,6 @@ Route::prefix('notifications')
 Route::get('/barangays', [AddressController::class, 'barangays']);
 Route::get('/barangays/{id}/sitios', [AddressController::class, 'sitios']);
 Route::get('/sitios/{id}/puroks', [AddressController::class, 'puroks']);
+
+Route::get('/disaster-types', [DisasterTypeController::class, 'index']);
+Route::get('/severity-levels', [SeverityLevelController::class, 'index']);

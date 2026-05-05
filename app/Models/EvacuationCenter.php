@@ -82,4 +82,8 @@ class EvacuationCenter extends Model
     {
         return $this->hasMany(ResourceRequest::class, 'evacuation_center_id', 'evacuation_center_id');
     }
+
+    public function getRouteKeyName(){
+        return 'evacuation_center_id';
+    }
 }

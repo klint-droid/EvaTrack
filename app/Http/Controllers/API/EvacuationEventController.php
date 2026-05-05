@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Models\EvacuationCenter;
 use App\Models\DisasterEvent;
+use App\Models\DisasterType;
+use App\Models\SeverityLevel;
 
 class EvacuationEventController extends Controller
 {
@@ -15,20 +17,25 @@ class EvacuationEventController extends Controller
     public function index()
     {
         return response()->json([
-            'data' => DisasterEvent::latest('started_at')->get()
+            'data' => DisasterEvent::with(['primaryType', 'severity'])
+                ->latest('started_at')
+                ->get()
         ]);
     }
 
     // Get active event (no ended_at yet)
     public function active()
     {
-        $event = DisasterEvent::whereNull('ended_at')->latest('started_at')->first();
+        $event = DisasterEvent::with(['primaryType', 'types', 'evacuationCenters'])
+            ->whereNull('ended_at')
+            ->latest('started_at')
+            ->first();
 
         if (!$event) {
             return response()->json(['message' => 'No active event'], 404);
         }
 
-        return response()->json($event);
+        return response()->json(['data' => $event]);
     }
 
     // Create a new event
@@ -36,19 +43,38 @@ class EvacuationEventController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:100',
-            'type' => 'required|string|max:50',
+            'type_id' => [
+                'required',
+                function($attribute, $value, $fail) {
+                    $existingType = DisasterType::where('type_id', $value)->exists();
+
+                    if(!$existingType) {
+                        $fail('The selected type is invalid');
+                    }
+                },
+            ],  
+            'severity_id' => [
+                'required',
+                function($attribute, $value, $fail) {
+                    $existingSeverity = SeverityLevel::where('severity_id', $value)->exists();
+
+                    if(!$existingSeverity) {
+                        $fail('The selected severity is invalid');
+                    }
+                },
+            ]
         ]);
 
         $event = DisasterEvent::create([
-            'event_id'   => 'EVT-' . date('Y') . '-' . strtoupper(Str::random(6)),
             'name'       => $request->name,
-            'type'       => $request->type,
+            'type_id'       => $request->type_id,
+            'severity_level_id'   => $request->severity_id,
             'started_at' => now(),
         ]);
 
         return response()->json([
             'message' => 'Event created successfully',
-            'data'    => $event
+            'data'    => $event->load(['primaryType', 'severity'])
         ], 201);
     }
 
@@ -90,7 +116,7 @@ class EvacuationEventController extends Controller
 
         return response()->json([
             'message' => 'Centers assigned successfully',
-            'data'    => $event
+            'data'    => $event->load('evacuationCenters')
         ]);
     }
 

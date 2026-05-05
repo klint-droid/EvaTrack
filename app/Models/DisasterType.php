@@ -17,7 +17,6 @@ class DisasterType extends Model
     protected $fillable = [
         'type_code',
         'type_name',
-        'severity_level',
         'is_active',
     ];
 
@@ -27,11 +26,6 @@ class DisasterType extends Model
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
-
-    public function severityLevel()
-    {
-        return $this->belongsTo(SeverityLevel::class, 'severity_level', 'severity_id');
-    }
 
     public function events()
     {
