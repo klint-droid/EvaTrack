@@ -78,15 +78,17 @@ class UnitAllocationController extends Controller
             }
 
             // Check unit capacity
-            $available = $unit->max_capacity - $unit->current_occupancy;
+            $currentOccupancy = UnitAllocation::where('unit_id', $unitId)
+                ->join('evacuation_records', 'unit_allocations.evacuation_id', '=', 'evacuations.evacuation_id')
+                ->sum('evacuations.evacuated_count');
 
-            if ($available <= 0) {
+            if ($currentOccupancy <= 0) {
                 return response()->json(['message' => 'This unit is already full.'], 400);
             }
 
-            if ($evacuation->evacuated_count > $available) {
+            if ($evacuation->evacuated_count > $currentOccupancy) {
                 return response()->json([
-                    'message' => "Not enough space. This household has {$evacuation->evacuated_count} members but only {$available} slots are available."
+                    'message' => "Not enough space. This household has {$evacuation->evacuated_count} members but only {$currentOccupancy} slots are available."
                 ], 400);
             }
 
@@ -96,8 +98,6 @@ class UnitAllocationController extends Controller
                 'assigned_by'          => $user->user_id,
                 'selected_by_resident' => false,
             ]);
-
-            $unit->increment('current_occupancy', $evacuation->evacuated_count);
 
             return response()->json([
                 'message' => 'Household assigned successfully.',
@@ -120,9 +120,6 @@ class UnitAllocationController extends Controller
             $evacuation = EvacuationRecord::where('evacuation_id', $allocation->evacuation_id)
                 ->firstOrFail();
 
-            $newOccupancy = max(0, $unit->current_occupancy - $evacuation->evacuated_count);
-            $unit->update(['current_occupancy' => $newOccupancy]);
-
             $allocation->delete();
 
             return response()->json(['message' => 'Household unassigned successfully.']);
@@ -142,7 +139,7 @@ class UnitAllocationController extends Controller
 
         $unassigned = EvacuationRecord::with('household')
             ->where('center_id', $centerId)
-            ->where('household_status_id', $evacuatedStatusId)  // ✅ direct column
+            ->where('household_status_id', $evacuatedStatusId)
             ->when(!empty($assignedIds), function ($q) use ($assignedIds) {
                 $q->whereNotIn('evacuation_id', $assignedIds);
             })

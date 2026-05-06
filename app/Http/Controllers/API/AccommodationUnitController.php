@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AccommodationUnit;
 use App\Models\AccommodationType;
 use App\Models\EvacuationCenter;
+use App\Models\UnitAllocation;
 use App\Http\Requests\StoreAccommodationUnitRequest;
 use App\Http\Requests\UpdateAccommodationUnitRequest;
 use Illuminate\Support\Facades\Auth;
@@ -15,10 +16,17 @@ class AccommodationUnitController extends Controller
     // Get all units for a center
     public function index($centerId)
     {
-        $units = AccommodationUnit::with('type')
-            ->where('center_id', $centerId)
-            ->whereNull('deleted_at')
-            ->get();
+        $units = AccommodationUnit::where('center_id', $centerId)
+            ->get()
+            ->map(function ($unit){
+                $occupancy = UnitAllocation::where('unit_id', $unit->unit_id)
+                    ->join('evacuation_records', 'unit_allocations.evacuation_id', '=', 'evacuation_records.evacuation_id')
+                    ->sum('evacuation_records.evacuated_count');
+                
+                $unit->current_occupancy = $occupancy;
+
+                return $unit;
+            });
 
         return response()->json(['data' => $units]);
     }
