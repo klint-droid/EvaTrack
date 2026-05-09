@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ResourceRequestStatus extends Model
 {
     protected $connection = 'mysql_v2';
-    protected $table = 'resource_request_statuses';
+    protected $table = 'resource_request_status';
     protected $primaryKey = 'status_id';
     public $timestamps = false;
 
