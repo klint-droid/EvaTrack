@@ -116,7 +116,7 @@ class ResourceRequestController extends Controller
 
         $validated = $request->validate([
             'evacuation_center_id' => [
-                'required',
+                'nullable',
                 function($attribute, $value, $fail) {
                     if($value && !EvacuationCenter::where('evacuation_center_id', $value)->exists()) {
                         $fail('Evacuation center does not exist.');
