@@ -7,6 +7,8 @@ use App\Models\Household;
 use App\Models\Notification;
 use App\Models\NotificationLog;
 use App\Models\NotificationRecipient;
+use App\Models\NotificationChannel;
+use App\Models\NotificationStatus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -17,6 +19,15 @@ class NotificationService
         protected OneSignalService $push,
     ) {}
 
+    private function channelId(string $key): int
+    {
+        return NotificationChannel::where('channel_key', $key)->value('channel_id');
+    }
+
+    private function statusId(string $key): int
+    {
+        return NotificationStatus::where('status_key', $key)->value('status_id');
+    }
     public function dispatch(array $payload): Notification
     {
         $householdIds = $this->resolveRecipients(
@@ -143,8 +154,8 @@ class NotificationService
             NotificationLog::create([
                 'notification_id'     => $notification->notif_id,
                 'household_id'        => $household->household_id,
-                'channel'             => 'sms',
-                'status'              => $result['success'] ? 'sent' : 'failed',
+                'channel_id'             => $this->channelId('sms'),
+                'status_id'              => $this->statusId($result['success'] ? 'sent' : 'failed'),
                 'sent_at'             => $result['success'] ? now() : null,
                 'external_message_id' => $result['message_id'] ?? null,
             ]);
@@ -173,13 +184,16 @@ class NotificationService
             ['notif_id' => $notification->notif_id],
         );
 
+        $channelId = $this->channelId('push');
+        $statusId  = $this->statusId($result['success'] ? 'sent' : 'failed');
+
         $tokens->groupBy('household_id')
-            ->each(function ($group, $householdId) use ($notification, $result) {
+            ->each(function ($group, $householdId) use ($channelId, $notification, $result, $statusId) {
                 NotificationLog::create([
                     'notification_id'     => $notification->notif_id,
                     'household_id'        => $householdId,
-                    'channel'             => 'push',
-                    'status'              => $result['success'] ? 'sent' : 'failed',
+                    'channel_id'             => $channelId,
+                    'status_id'              => $statusId,
                     'sent_at'             => $result['success'] ? now() : null,
                     'external_message_id' => $result['notification_id'] ?? null,
                 ]);

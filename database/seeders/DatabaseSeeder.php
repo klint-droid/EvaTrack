@@ -31,7 +31,8 @@ class DatabaseSeeder extends Seeder
             HouseholdStatusTableSeeder::class,
             AnalyticsJobStatusTableSeeder::class,
             CenterIssueCategoryTableSeeder::class,
-            ResourceRequestStatusSeeder::class
+            ResourceRequestStatusSeeder::class,
+            NotificationLookupSeeder::class,
         ]);
     }
 }
