@@ -20,6 +20,7 @@ use App\Http\Controllers\API\AddressController;
 use App\Http\Controllers\API\DisasterTypeController;
 use App\Http\Controllers\API\SeverityLevelController;
 use App\Http\Controllers\API\LookupController;
+use App\Http\Controllers\API\AnalyticsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -221,3 +222,8 @@ Route::get('/sitios/{id}/puroks', [AddressController::class, 'puroks']);
 
 Route::get('/disaster-types', [DisasterTypeController::class, 'index']);
 Route::get('/severity-levels', [SeverityLevelController::class, 'index']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/analytics/event/{eventId}', [AnalyticsController::class, 'eventAnalytics']);
+    Route::get('/analytics/event/{eventId}/center/{centerId}', [AnalyticsController::class, 'centerAnalytics']);
+});

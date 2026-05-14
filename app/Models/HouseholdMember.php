@@ -69,4 +69,14 @@ class HouseholdMember extends Model
     {
         return $this->hasMany(EvacuatedMember::class, 'member_id', 'member_id');
     }
+
+    public function vulnerableGroupDetails()
+    {
+        return $this->belongsToMany(
+            VulnerableGroup::class,
+            'member_vulnerable_groups',
+            'member_id',
+            'vulnerable_group_id'
+        );
+    }
 }
