@@ -19,6 +19,7 @@ use App\Http\Controllers\API\CenterIssueReportController;
 use App\Http\Controllers\API\AddressController;
 use App\Http\Controllers\API\DisasterTypeController;
 use App\Http\Controllers\API\SeverityLevelController;
+use App\Http\Controllers\API\LookupController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,6 +34,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'currentUser']);
 });
 
+/*
+|--------------------------------------------------------------------------
+| LOOK UPS
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/lookups', [LookupController::class, 'index']);
+});
 /*
 |--------------------------------------------------------------------------
 | USER MANAGEMENT ROUTES

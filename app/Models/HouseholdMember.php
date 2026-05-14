@@ -18,9 +18,10 @@ class HouseholdMember extends Model
         'first_name',
         'middle_name',
         'last_name',
-        'birthdate',
+        'birth_date',
         'gender_id',
         'relationship_id',
+        'civil_status_id',
     ];
 
     protected $casts = [
@@ -48,6 +49,10 @@ class HouseholdMember extends Model
     public function gender()
     {
         return $this->belongsTo(Gender::class, 'gender_id', 'gender_id');
+    }
+
+    public function civilStatus(){
+        return $this->belongsTo(CivilStatus::class, 'civil_status_id', 'status_id');
     }
 
     public function relationshipDetail()

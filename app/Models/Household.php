@@ -47,7 +47,7 @@ class Household extends Model
     }
     public function members()
     {
-        return $this->hasMany(HouseholdMember::class, 'household_id');
+        return $this->hasMany(HouseholdMember::class, 'household_id', 'household_id');
     }
 
     public function evacuations()

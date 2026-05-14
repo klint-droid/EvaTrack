@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
             CenterIssueCategoryTableSeeder::class,
             ResourceRequestStatusSeeder::class,
             NotificationLookupSeeder::class,
+            CivilStatusSeeder::class,
         ]);
     }
 }
