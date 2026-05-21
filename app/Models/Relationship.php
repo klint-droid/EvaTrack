@@ -13,6 +13,13 @@ class Relationship extends Model
 
     protected $fillable = ['relationship_key', 'relationship_label'];
 
+    protected $appends = ['label'];
+
+    public function getLabelAttribute()
+    {
+        return $this->relationship_label ?? ($this->attributes['label'] ?? null);
+    }
+
     public function members()
     {
         return $this->hasMany(HouseholdMember::class, 'relationship', 'relationship_id');

@@ -22,6 +22,10 @@ class EvacuationController extends Controller
         return [
             'household.address',
             'household.members',
+            'household.members.gender',
+            'household.members.relationship',
+            'household.members.civilStatus',
+            'household.members.vulnerableGroupDetails',
             'evacuatedMembers.member',
             'unitAllocation.unit.type',  
             'center',
@@ -281,10 +285,6 @@ class EvacuationController extends Controller
             }
 
             if ($record->unitAllocation && $record->unitAllocation->unit) {
-                $unit = $record->unitAllocation->unit;
-                $unit->update([
-                    'current_occupancy' => max(0, $unit->current_occupancy - $record->evacuated_count)
-                ]);
                 $record->unitAllocation->delete();
             }
 
@@ -297,6 +297,17 @@ class EvacuationController extends Controller
 
     public function updateMemberStatus(Request $request, $evacuationId, $memberId)
     {
+        if ($request->has('status') && !$request->has('household_status_id')) {
+            $statusStr = $request->input('status');
+            $statusId = 1; // Default to Active/Not Verified
+            if ($statusStr === 'evacuated') {
+                $statusId = 2;
+            } elseif ($statusStr === 'not_verified' || $statusStr === 'not_evacuated') {
+                $statusId = 1;
+            }
+            $request->merge(['household_status_id' => $statusId]);
+        }
+
         $request->validate([
             'household_status_id' => [
                 'required',
@@ -353,10 +364,6 @@ class EvacuationController extends Controller
                         throw new \Exception('Unit does not have enough available slots.');
                     }
                 }
-
-                $unit->update([
-                    'current_occupancy' => max(0, $unit->current_occupancy + $difference)
-                ]);
             }
 
             return response()->json([

@@ -13,6 +13,13 @@ class Gender extends Model
 
     protected $fillable = ['gender_key', 'gender_label'];
 
+    protected $appends = ['label'];
+
+    public function getLabelAttribute()
+    {
+        return $this->gender_label ?? ($this->attributes['label'] ?? null);
+    }
+
     public function members()
     {
         return $this->hasMany(HouseholdMember::class, 'gender_id', 'gender_id');

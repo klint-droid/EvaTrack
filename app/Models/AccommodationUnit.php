@@ -19,8 +19,16 @@ class AccommodationUnit extends Model
         'name',
         'type_id',
         'max_capacity',
-        'current_occupancy',
     ];
+
+    protected $appends = ['current_occupancy'];
+
+    public function getCurrentOccupancyAttribute()
+    {
+        return (int) $this->unitAllocations()
+            ->join('evacuation_records', 'unit_allocations.evacuation_id', '=', 'evacuation_records.evacuation_id')
+            ->sum('evacuation_records.evacuated_count');
+    }
 
     protected $casts = [
         'created_at' => 'datetime',

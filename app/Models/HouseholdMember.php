@@ -24,6 +24,8 @@ class HouseholdMember extends Model
         'civil_status_id',
     ];
 
+    protected $appends = ['vulnerable_groups'];
+
     protected $casts = [
         'birth_date' => 'date',
     ];
@@ -78,5 +80,17 @@ class HouseholdMember extends Model
             'member_id',
             'vulnerable_group_id'
         );
+    }
+
+    public function relationship()
+    {
+        return $this->belongsTo(Relationship::class, 'relationship_id', 'relationship_id');
+    }
+
+    public function getVulnerableGroupsAttribute()
+    {
+        return $this->relationLoaded('vulnerableGroupDetails') 
+            ? $this->vulnerableGroupDetails 
+            : $this->vulnerableGroupDetails()->get();
     }
 }

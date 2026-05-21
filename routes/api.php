@@ -224,6 +224,8 @@ Route::get('/disaster-types', [DisasterTypeController::class, 'index']);
 Route::get('/severity-levels', [SeverityLevelController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/analytics/dashboard', [AnalyticsController::class, 'dashboard']);
+    Route::get('/analytics/events-list', [AnalyticsController::class, 'eventsList']);
     Route::get('/analytics/event/{eventId}', [AnalyticsController::class, 'eventAnalytics']);
     Route::get('/analytics/event/{eventId}/center/{centerId}', [AnalyticsController::class, 'centerAnalytics']);
 });

@@ -34,13 +34,15 @@ class HouseholdMemberController extends Controller
     public function store(Request $request, $householdId)
     {
         $request->validate([
-            'first_name'      => 'required|string|max:100',
-            'middle_name'     => 'nullable|string|max:100',
-            'last_name'       => 'required|string|max:100',
-            'birth_date'      => 'required|date',
-            'gender_id'       => ['nullable', 'integer', 'in:' . implode(',', $this->statusIds('genders', 'gender_id'))],
-            'relationship_id' => ['nullable', 'integer', 'in:' . implode(',', $this->statusIds('relationships', 'relationship_id'))],
-            'civil_status_id' => ['nullable', 'integer', 'in:' . implode(',', $this->statusIds('civil_statuses', 'status_id'))],
+            'first_name'           => 'required|string|max:100',
+            'middle_name'          => 'nullable|string|max:100',
+            'last_name'            => 'required|string|max:100',
+            'birth_date'           => 'required|date',
+            'gender_id'            => ['nullable', 'integer', 'in:' . implode(',', $this->statusIds('genders', 'gender_id'))],
+            'relationship_id'      => ['nullable', 'integer', 'in:' . implode(',', $this->statusIds('relationships', 'relationship_id'))],
+            'civil_status_id'      => ['nullable', 'integer', 'in:' . implode(',', $this->statusIds('civil_statuses', 'status_id'))],
+            'vulnerable_group_ids' => 'nullable|array',
+            'vulnerable_group_ids.*' => 'integer',
         ]);
 
         Household::where('household_id', $householdId)->firstOrFail();
@@ -58,9 +60,13 @@ class HouseholdMemberController extends Controller
                 'civil_status_id' => $request->civil_status_id,
             ]);
 
+            if ($request->has('vulnerable_group_ids')) {
+                $member->vulnerableGroupDetails()->sync($request->vulnerable_group_ids);
+            }
+
             return response()->json([
                 'message' => 'Member added successfully.',
-                'data'    => $member,
+                'data'    => $member->fresh(['gender', 'relationship', 'civilStatus', 'vulnerableGroupDetails']),
             ], 201);
         });
     }
@@ -68,33 +74,41 @@ class HouseholdMemberController extends Controller
     public function update(Request $request, $householdId, $memberId)
     {
         $request->validate([
-            'first_name'      => 'required|string|max:100',
-            'middle_name'     => 'nullable|string|max:100',
-            'last_name'       => 'required|string|max:100',
-            'birth_date'      => 'required|date',
-            'gender_id'       => ['nullable', 'integer', 'in:' . implode(',', $this->statusIds('genders', 'gender_id'))],
-            'relationship_id' => ['nullable', 'integer', 'in:' . implode(',', $this->statusIds('relationships', 'relationship_id'))],
-            'civil_status_id' => ['nullable', 'integer', 'in:' . implode(',', $this->statusIds('civil_statuses', 'status_id'))],
+            'first_name'           => 'required|string|max:100',
+            'middle_name'          => 'nullable|string|max:100',
+            'last_name'            => 'required|string|max:100',
+            'birth_date'           => 'required|date',
+            'gender_id'            => ['nullable', 'integer', 'in:' . implode(',', $this->statusIds('genders', 'gender_id'))],
+            'relationship_id'      => ['nullable', 'integer', 'in:' . implode(',', $this->statusIds('relationships', 'relationship_id'))],
+            'civil_status_id'      => ['nullable', 'integer', 'in:' . implode(',', $this->statusIds('civil_statuses', 'status_id'))],
+            'vulnerable_group_ids' => 'nullable|array',
+            'vulnerable_group_ids.*' => 'integer',
         ]);
 
         $member = HouseholdMember::where('member_id', $memberId)
             ->where('household_id', $householdId)
             ->firstOrFail();
 
-        $member->update($request->only([
-            'first_name',
-            'middle_name',
-            'last_name',
-            'birth_date',
-            'gender_id',
-            'relationship_id',
-            'civil_status_id',
-        ]));
+        return DB::connection('mysql_v2')->transaction(function () use ($request, $member) {
+            $member->update($request->only([
+                'first_name',
+                'middle_name',
+                'last_name',
+                'birth_date',
+                'gender_id',
+                'relationship_id',
+                'civil_status_id',
+            ]));
 
-        return response()->json([
-            'message' => 'Member updated successfully.',
-            'data'    => $member->fresh(),
-        ]);
+            if ($request->has('vulnerable_group_ids')) {
+                $member->vulnerableGroupDetails()->sync($request->vulnerable_group_ids);
+            }
+
+            return response()->json([
+                'message' => 'Member updated successfully.',
+                'data'    => $member->fresh(['gender', 'relationship', 'civilStatus', 'vulnerableGroupDetails']),
+            ]);
+        });
     }
 
     public function destroy($householdId, $memberId)

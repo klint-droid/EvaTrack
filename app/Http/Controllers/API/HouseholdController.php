@@ -18,6 +18,10 @@ class HouseholdController extends Controller
     {
         return [
             'members',
+            'members.gender',
+            'members.relationship',
+            'members.civilStatus',
+            'members.vulnerableGroupDetails',
             'address',
             'currentEvacuation.center',
             'currentEvacuation.event',

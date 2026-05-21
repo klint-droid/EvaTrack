@@ -15,6 +15,47 @@ class AnalyticsController extends Controller
         $this->analyticsService = $analyticsService;
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | DASHBOARD (new)
+    |--------------------------------------------------------------------------
+    */
+
+    public function dashboard(Request $request)
+    {
+        $eventId = $request->query('event_id', 'all');
+
+        $data = $this->analyticsService->getDashboardAnalytics($eventId);
+
+        return response()->json([
+            'success'  => true,
+            'event_id' => $eventId,
+            'data'     => $data,
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | EVENTS LIST (for dropdown selector)
+    |--------------------------------------------------------------------------
+    */
+
+    public function eventsList()
+    {
+        $events = $this->analyticsService->getEventsList();
+
+        return response()->json([
+            'success' => true,
+            'events'  => $events,
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | LEGACY ENDPOINTS (preserved)
+    |--------------------------------------------------------------------------
+    */
+
     public function eventAnalytics($eventId)
     {
         $data = $this->analyticsService->getEventAnalytics($eventId);

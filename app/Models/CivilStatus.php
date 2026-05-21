@@ -16,6 +16,13 @@ class CivilStatus extends Model
         'status_label'
     ];
 
+    protected $appends = ['label'];
+
+    public function getLabelAttribute()
+    {
+        return $this->status_label ?? ($this->attributes['label'] ?? null);
+    }
+
     public function householdMembers(){
         return $this->hasMany(HouseholdMember::class, 'civil_status_id', 'status_id');
     }
