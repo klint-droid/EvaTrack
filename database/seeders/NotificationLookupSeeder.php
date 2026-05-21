@@ -22,5 +22,11 @@ class NotificationLookupSeeder extends Seeder
             ['status_key' => 'scheduled', 'status_label' => 'Scheduled'],
             ['status_key' => 'cancelled', 'status_label' => 'Cancelled'],
         ]);
+
+        DB::connection('mysql_v2')->table('recurrence_types')->insertOrIgnore([
+            ['type_key' => 'hourly', 'type_label' => 'Hourly'],
+            ['type_key' => 'daily',  'type_label' => 'Daily'],
+            ['type_key' => 'weekly', 'type_label' => 'Weekly'],
+        ]);
     }
 }

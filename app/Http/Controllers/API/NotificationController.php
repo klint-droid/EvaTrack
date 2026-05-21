@@ -57,7 +57,8 @@ class NotificationController extends Controller
             'sender',
             'urgencyLevel',
             'recipients.household',
-            'logs',
+            'logs.channel',
+            'logs.status',
         ])->find($id);
 
         if (!$notification) {
@@ -81,7 +82,7 @@ class NotificationController extends Controller
             ], 404);
         }
 
-        $logs = NotificationLog::with('household')
+        $logs = NotificationLog::with(['household', 'channel', 'status'])
             ->where('notification_id', $id)
             ->orderByDesc('created_at')
             ->paginate(50);

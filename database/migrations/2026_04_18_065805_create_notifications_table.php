@@ -24,6 +24,10 @@ return new class extends Migration
             $table->dateTime('recurrence_end_at')->nullable();
             $table->dateTime('last_sent_at')->nullable();
 
+            $table->string('channel', 50)->nullable();
+            $table->string('status', 50)->nullable();
+            $table->string('target_filter', 50)->nullable();
+
             $table->timestamp('created_at')->nullable();
             // Manual foreign keys for string primary keys
             $table->foreign('sent_by')

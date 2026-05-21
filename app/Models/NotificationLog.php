@@ -23,6 +23,18 @@ class NotificationLog extends Model
 
     protected $casts = ['sent_at' => 'datetime'];
 
+    protected $appends = ['channel', 'status'];
+
+    public function getChannelAttribute()
+    {
+        return $this->channel?->channel_key;
+    }
+
+    public function getStatusAttribute()
+    {
+        return $this->status?->status_key;
+    }
+
     public function notification()
     {
         return $this->belongsTo(Notification::class, 'notification_id', 'notif_id');

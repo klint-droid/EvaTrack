@@ -9,13 +9,12 @@ class CenterIssueCategoryTableSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::table('center_issue_categories')->insert([
-            ['category_key' => 'shelter', 'category_label' => 'Shelter'],
-            ['category_key' => 'food', 'category_label' => 'Food & Nutrition'],
-            ['category_key' => 'health', 'category_label' => 'Health & Medical'],
-            ['category_key' => 'water', 'category_label' => 'Water'],
-            ['category_key' => 'sanitation', 'category_label' => 'Sanitation'],
-            ['category_key' => 'protection', 'category_label' => 'Protection'],
+        DB::connection('mysql_v2')->table('center_issue_categories')->insertOrIgnore([
+            ['category_id' => 1, 'category_key' => 'incident', 'category_label' => 'Incident'],
+            ['category_id' => 2, 'category_key' => 'facility_issue', 'category_label' => 'Facility Issue'],
+            ['category_id' => 3, 'category_key' => 'health_issue', 'category_label' => 'Health Issue'],
+            ['category_id' => 4, 'category_key' => 'safety_issue', 'category_label' => 'Safety Issue'],
+            ['category_id' => 5, 'category_key' => 'other', 'category_label' => 'Other'],
         ]);
     }
 }

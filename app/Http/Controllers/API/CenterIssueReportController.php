@@ -17,7 +17,7 @@ class CenterIssueReportController extends Controller
         $user = Auth::user();
 
         $query = CenterIssueReport::with([
-            'center.address',
+            'center',
             'reporter',
             'handler',
             'category',
@@ -154,7 +154,7 @@ class CenterIssueReportController extends Controller
         return response()->json([
             'message' => 'Center issue report submitted successfully.',
             'data' => $this->formatReport($report->load([
-                'center.address',
+                'center',
                 'reporter',
                 'handler',
                 'category',
@@ -169,7 +169,7 @@ class CenterIssueReportController extends Controller
         $user = Auth::user();
 
         $query = CenterIssueReport::with([
-            'center.address',
+            'center',
             'reporter',
             'handler',
             'category',
@@ -261,7 +261,7 @@ class CenterIssueReportController extends Controller
         return response()->json([
             'message' => 'Center issue report updated successfully.',
             'data' => $this->formatReport($report->fresh([
-                'center.address',
+                'center',
                 'reporter',
                 'handler',
                 'category',

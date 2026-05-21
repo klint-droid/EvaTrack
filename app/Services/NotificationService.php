@@ -47,7 +47,12 @@ class NotificationService
         $isRecurring  = !empty($payload['is_recurring']) && $payload['is_recurring'];
         $status       = ($isScheduled || $isRecurring) ? 'scheduled' : 'pending';
 
-        $notification = DB::connection('mysql_v2')->transaction(function () use ($payload, $householdIds, $channel, $status, $isRecurring) {
+        $recurrenceTypeId = null;
+        if ($isRecurring && !empty($payload['recurrence_type'])) {
+            $recurrenceTypeId = \App\Models\RecurrenceType::where('type_key', $payload['recurrence_type'])->value('type_id');
+        }
+
+        $notification = DB::connection('mysql_v2')->transaction(function () use ($payload, $householdIds, $channel, $status, $isRecurring, $recurrenceTypeId) {
 
             $notification = Notification::create([
                 'message'              => $payload['message'],
@@ -60,7 +65,7 @@ class NotificationService
                 'status'               => $status,
                 'target_filter'        => $payload['target_filter'] ?? 'all',
                 'is_recurring'         => $isRecurring,
-                'recurrence_type'      => $payload['recurrence_type']   ?? null,
+                'recurrence_type_id'   => $recurrenceTypeId,
                 'recurrence_end_at'    => $payload['recurrence_end_at'] ?? null,
             ]);
 

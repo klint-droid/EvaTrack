@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
             HouseholdStatusTableSeeder::class,
             AnalyticsJobStatusTableSeeder::class,
             CenterIssueCategoryTableSeeder::class,
+            CenterIssueReportStatusSeeder::class,
             ResourceRequestStatusSeeder::class,
             NotificationLookupSeeder::class,
             CivilStatusSeeder::class,

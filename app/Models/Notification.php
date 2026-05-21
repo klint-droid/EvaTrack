@@ -22,6 +22,9 @@ class Notification extends Model
         'recurrence_type_id',
         'recurrence_end_at',
         'last_sent_at',
+        'channel',
+        'status',
+        'target_filter',
     ];
 
     protected $casts = [
@@ -31,6 +34,15 @@ class Notification extends Model
         'last_sent_at' => 'datetime',
         'created_at' => 'datetime',
     ];
+
+    protected $appends = ['recurrence_type'];
+
+    public function getRecurrenceTypeAttribute()
+    {
+        return $this->relationLoaded('recurrenceType')
+            ? $this->getRelationValue('recurrenceType')?->type_key
+            : $this->recurrenceType()->first()?->type_key;
+    }
 
     public function sender()
     {
