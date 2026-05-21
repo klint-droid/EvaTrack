@@ -4,6 +4,9 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\CenterIssueReport;
+use App\Models\CenterIssueReportStatus;
+use App\Models\CenterIssueCategory;
+use App\Models\SeverityLevel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -15,8 +18,11 @@ class CenterIssueReportController extends Controller
 
         $query = CenterIssueReport::with([
             'center.address',
-            'reportedBy',
-            'handledBy',
+            'reporter',
+            'handler',
+            'category',
+            'severityLevel',
+            'status',
         ]);
 
         if ($user->isEvacPersonnel()) {
@@ -43,15 +49,21 @@ class CenterIssueReportController extends Controller
         }
 
         if ($request->filled('category')) {
-            $query->where('category', $request->category);
+            $query->whereHas('category', function ($q) use ($request) {
+                $q->where('category_key', $request->category);
+            });
         }
 
         if ($request->filled('severity')) {
-            $query->where('severity', $request->severity);
+            $query->whereHas('severityLevel', function ($q) use ($request) {
+                $q->where('severity_key', $request->severity);
+            });
         }
 
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $query->whereHas('status', function ($q) use ($request) {
+                $q->where('status_key', $request->status);
+            });
         }
 
         if ($request->filled('q')) {
@@ -64,13 +76,21 @@ class CenterIssueReportController extends Controller
             });
         }
 
+        // Build summary counts using the lookup table relationships
+        $openStatusId = CenterIssueReportStatus::where('status_key', 'open')->value('status_id');
+        $inProgressStatusId = CenterIssueReportStatus::where('status_key', 'in_progress')->value('status_id');
+        $resolvedStatusId = CenterIssueReportStatus::where('status_key', 'resolved')->value('status_id');
+        $criticalSeverityId = SeverityLevel::where('severity_key', 'critical')->value('severity_id');
+
         return response()->json([
-            'data' => $query->latest('created_at')->get(),
+            'data' => $query->latest('created_at')->get()->map(function ($report) {
+                return $this->formatReport($report);
+            }),
             'summary' => [
-                'open' => (clone $query)->where('status', 'open')->count(),
-                'in_progress' => (clone $query)->where('status', 'in_progress')->count(),
-                'resolved' => (clone $query)->where('status', 'resolved')->count(),
-                'critical' => (clone $query)->where('severity', 'critical')->count(),
+                'open' => $openStatusId ? (clone $query)->where('status_id', $openStatusId)->count() : 0,
+                'in_progress' => $inProgressStatusId ? (clone $query)->where('status_id', $inProgressStatusId)->count() : 0,
+                'resolved' => $resolvedStatusId ? (clone $query)->where('status_id', $resolvedStatusId)->count() : 0,
+                'critical' => $criticalSeverityId ? (clone $query)->where('severity_id', $criticalSeverityId)->count() : 0,
             ],
         ]);
     }
@@ -91,7 +111,6 @@ class CenterIssueReportController extends Controller
 
         $validated = $request->validate([
             'evacuation_center_id' => 'nullable|exists:evacuation_centers,evacuation_center_id',
-
             'category' => 'required|in:incident,facility_issue,health_issue,safety_issue,other',
             'title' => 'required|string|max:150',
             'description' => 'required|string',
@@ -116,24 +135,32 @@ class CenterIssueReportController extends Controller
             $centerId = $validated['evacuation_center_id'];
         }
 
+        // Resolve string keys to foreign key IDs
+        $categoryId = CenterIssueCategory::where('category_key', $validated['category'])->value('category_id');
+        $severityId = SeverityLevel::where('severity_key', $validated['severity'])->value('severity_id');
+        $statusId = CenterIssueReportStatus::where('status_key', 'open')->value('status_id');
+
         $report = CenterIssueReport::create([
             'evacuation_center_id' => $centerId,
             'reported_by' => $user->user_id,
             'handled_by' => null,
-            'category' => $validated['category'],
+            'category_id' => $categoryId,
             'title' => $validated['title'],
             'description' => $validated['description'],
-            'severity' => $validated['severity'],
-            'status' => 'open',
+            'severity_id' => $severityId,
+            'status_id' => $statusId,
         ]);
 
         return response()->json([
             'message' => 'Center issue report submitted successfully.',
-            'data' => $report->load([
+            'data' => $this->formatReport($report->load([
                 'center.address',
-                'reportedBy',
-                'handledBy',
-            ]),
+                'reporter',
+                'handler',
+                'category',
+                'severityLevel',
+                'status',
+            ])),
         ], 201);
     }
 
@@ -143,8 +170,11 @@ class CenterIssueReportController extends Controller
 
         $query = CenterIssueReport::with([
             'center.address',
-            'reportedBy',
-            'handledBy',
+            'reporter',
+            'handler',
+            'category',
+            'severityLevel',
+            'status',
         ])->where('report_id', $id);
 
         if ($user->isEvacPersonnel()) {
@@ -166,7 +196,7 @@ class CenterIssueReportController extends Controller
         }
 
         return response()->json([
-            'data' => $report,
+            'data' => $this->formatReport($report),
         ]);
     }
 
@@ -174,7 +204,7 @@ class CenterIssueReportController extends Controller
     {
         $user = Auth::user();
 
-        $report = CenterIssueReport::where('report_id', $id)->firstOrFail();
+        $report = CenterIssueReport::with('status')->where('report_id', $id)->firstOrFail();
 
         if ($user->isEvacPersonnel()) {
             if ($report->reported_by !== $user->user_id) {
@@ -183,7 +213,8 @@ class CenterIssueReportController extends Controller
                 ], 403);
             }
 
-            if (!in_array($report->status, ['open'])) {
+            // Check if report status is 'open' via the relationship
+            if ($report->status && $report->status->status_key !== 'open') {
                 return response()->json([
                     'message' => 'Only open reports can be edited.'
                 ], 400);
@@ -207,15 +238,36 @@ class CenterIssueReportController extends Controller
             'severity' => 'sometimes|in:low,medium,high,critical',
         ]);
 
-        $report->update($validated);
+        $updateData = [];
+
+        if (isset($validated['title'])) {
+            $updateData['title'] = $validated['title'];
+        }
+
+        if (isset($validated['description'])) {
+            $updateData['description'] = $validated['description'];
+        }
+
+        if (isset($validated['category'])) {
+            $updateData['category_id'] = CenterIssueCategory::where('category_key', $validated['category'])->value('category_id');
+        }
+
+        if (isset($validated['severity'])) {
+            $updateData['severity_id'] = SeverityLevel::where('severity_key', $validated['severity'])->value('severity_id');
+        }
+
+        $report->update($updateData);
 
         return response()->json([
             'message' => 'Center issue report updated successfully.',
-            'data' => $report->fresh([
+            'data' => $this->formatReport($report->fresh([
                 'center.address',
-                'reportedBy',
-                'handledBy',
-            ]),
+                'reporter',
+                'handler',
+                'category',
+                'severityLevel',
+                'status',
+            ])),
         ]);
     }
 
@@ -235,18 +287,23 @@ class CenterIssueReportController extends Controller
 
         $report = CenterIssueReport::where('report_id', $id)->firstOrFail();
 
+        $statusId = CenterIssueReportStatus::where('status_key', $validated['status'])->value('status_id');
+
         $report->update([
-            'status' => $validated['status'],
+            'status_id' => $statusId,
             'handled_by' => $user->user_id,
         ]);
 
         return response()->json([
             'message' => 'Center issue report status updated successfully.',
-            'data' => $report->fresh([
+            'data' => $this->formatReport($report->fresh([
                 'center.address',
-                'reportedBy',
-                'handledBy',
-            ]),
+                'reporter',
+                'handler',
+                'category',
+                'severityLevel',
+                'status',
+            ])),
         ]);
     }
 
@@ -254,7 +311,7 @@ class CenterIssueReportController extends Controller
     {
         $user = Auth::user();
 
-        $report = CenterIssueReport::where('report_id', $id)->firstOrFail();
+        $report = CenterIssueReport::with('status')->where('report_id', $id)->firstOrFail();
 
         if ($user->isEvacPersonnel()) {
             if ($report->reported_by !== $user->user_id) {
@@ -263,7 +320,7 @@ class CenterIssueReportController extends Controller
                 ], 403);
             }
 
-            if ($report->status !== 'open') {
+            if ($report->status && $report->status->status_key !== 'open') {
                 return response()->json([
                     'message' => 'Only open reports can be deleted.'
                 ], 400);
@@ -285,5 +342,31 @@ class CenterIssueReportController extends Controller
         return response()->json([
             'message' => 'Center issue report deleted successfully.'
         ]);
+    }
+
+    /**
+     * Format a report for API response.
+     * Flattens the lookup table relationships into simple string values
+     * so the frontend can consume them as before (e.g. report.status, report.category, report.severity).
+     */
+    private function formatReport($report)
+    {
+        $data = $report->toArray();
+
+        // Flatten lookup values to simple string keys for the frontend
+        $data['status'] = $report->status->status_key ?? null;
+        $data['category'] = $report->category->category_key ?? null;
+        $data['severity'] = $report->severityLevel->severity_key ?? null;
+
+        // Also provide the human-readable labels
+        $data['status_label'] = $report->status->status_label ?? null;
+        $data['category_label'] = $report->category->category_label ?? null;
+        $data['severity_label'] = $report->severityLevel->severity_label ?? null;
+
+        // Flatten reporter/handler names
+        $data['reported_by_user'] = $report->reporter ?? null;
+        $data['handled_by_user'] = $report->handler ?? null;
+
+        return $data;
     }
 }
