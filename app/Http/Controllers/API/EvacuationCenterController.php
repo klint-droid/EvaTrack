@@ -75,6 +75,30 @@ class EvacuationCenterController extends Controller
         );
     }
 
+    public function publicIndex()
+    {
+        $centers = $this->evacuationCenterService->getAllCentersWithOccuppancy();
+
+        $totalCenters = $centers->count();
+        $totalEvacuees = (int) $centers->sum('current_occupancy');
+        $totalCapacity = (int) $centers->sum('capacity');
+        $avgCapacity = $totalCapacity > 0 ? (int) round(($totalEvacuees / $totalCapacity) * 100) : 0;
+
+        $fullCenters = $centers->filter(function ($center) {
+            return $center->capacity > 0 && $center->current_occupancy >= $center->capacity;
+        })->count();
+
+        return response()->json([
+            'centers' => $centers,
+            'stats' => [
+                'total_centers' => $totalCenters,
+                'total_evacuees' => $totalEvacuees,
+                'avg_capacity' => $avgCapacity,
+                'full_centers' => $fullCenters,
+            ]
+        ]);
+    }
+
     private function isAuthorized(): bool
     {
         $user = Auth::user();
