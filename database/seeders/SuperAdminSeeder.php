@@ -16,7 +16,8 @@ class SuperAdminSeeder extends Seeder
 
             User::create([
                 'user_id' => $userId,
-                'name' => env('SUPER_ADMIN_NAME', 'Super Admin'),
+                'first_name' => 'System',
+                'last_name' => 'Admin',
                 'password' => Hash::make(env('SUPER_ADMIN_PASSWORD', 'StrongPassword123!')),
                 'role_id' => 1, 
                 'contact_number' => env('SUPER_ADMIN_CONTACT', null),

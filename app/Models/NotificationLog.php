@@ -27,12 +27,28 @@ class NotificationLog extends Model
 
     public function getChannelAttribute()
     {
-        return $this->channel?->channel_key;
+        $relation = $this->relationLoaded('channel')
+            ? $this->getRelation('channel')
+            : $this->channel()->first();
+
+        return $relation?->channel_key;
     }
 
     public function getStatusAttribute()
     {
-        return $this->status?->status_key;
+        $relation = $this->relationLoaded('status')
+            ? $this->getRelation('status')
+            : $this->status()->first();
+
+        return $relation?->status_key;
+    }
+
+    public function toArray()
+    {
+        $array = parent::toArray();
+        $array['channel'] = $this->getChannelAttribute();
+        $array['status'] = $this->getStatusAttribute();
+        return $array;
     }
 
     public function notification()

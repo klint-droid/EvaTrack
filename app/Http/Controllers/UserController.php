@@ -17,6 +17,8 @@ class UserController extends Controller
     {
         return [
             'user_id' => $user->user_id,
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
             'name' => $user->name,
             'role' => $user->role?->role_key,
             'role_label' => $user->role?->role_name,
@@ -34,7 +36,7 @@ class UserController extends Controller
 
         $query = User::with('role');
 
-        // 🔒 evac_admin cannot see super_admin
+        //  evac_admin cannot see super_admin
         if ($authUser->isEvacAdmin()) {
             $query->whereHas('role', function ($q) {
                 $q->where('role_key', '!=', 'super_admin');
@@ -56,7 +58,8 @@ class UserController extends Controller
     public function createUser(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
             'password' => 'required|string|min:8',
             'role' => 'nullable|in:evac_personnel,evac_admin,super_admin',
             'contact_number' => 'required|string|unique:users,contact_number'
@@ -78,7 +81,8 @@ class UserController extends Controller
         $role = Role::where('role_key', $roleKey)->firstOrFail();
 
         $user = User::create([
-            'name' => $request->name,
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
             'password' => Hash::make($request->password),
             'role_id' => $role->role_id,
             'contact_number' => $request->contact_number,
@@ -100,7 +104,7 @@ class UserController extends Controller
         $user = User::with('role')->findOrFail($id);
         $authUser = Auth::user();
 
-        // ❌ evac admin cannot modify super admin
+        // evac admin cannot modify super admin
         if ($authUser->isEvacAdmin() && $user->role?->role_key === 'super_admin') {
             return response()->json([
                 'message' => 'You cannot modify a super admin'
@@ -108,15 +112,20 @@ class UserController extends Controller
         }
 
         $request->validate([
-            'name' => 'sometimes|string|max:255',
+            'first_name' => 'sometimes|string|max:255',
+            'last_name' => 'sometimes|string|max:255',
             'role' => 'sometimes|in:evac_personnel,evac_admin,super_admin',
             'contact_number' => 'sometimes|string|unique:users,contact_number'
         ]);
 
         $data = [];
 
-        if ($request->has('name')) {
-            $data['name'] = $request->name;
+        if ($request->has('first_name')) {
+            $data['first_name'] = $request->first_name;
+        }
+
+        if ($request->has('last_name')) {
+            $data['last_name'] = $request->last_name;
         }
 
         //  SUPER ADMIN ROLE CHANGE
