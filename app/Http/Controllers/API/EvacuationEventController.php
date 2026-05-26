@@ -17,7 +17,7 @@ class EvacuationEventController extends Controller
     public function index()
     {
         return response()->json([
-            'data' => DisasterEvent::with(['primaryType', 'severity'])
+            'data' => DisasterEvent::with(['primaryType', 'severity', 'evacuationCenters'])
                 ->latest('started_at')
                 ->get()
         ]);
