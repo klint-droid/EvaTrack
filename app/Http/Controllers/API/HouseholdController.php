@@ -103,9 +103,12 @@ class HouseholdController extends Controller
                 return response()->json(['message' => 'No evacuation center assigned.'], 403);
             }
 
-            $evacuation = $household->currentEvacuation;
+            $evacuation = $household->evacuations()
+                ->where('center_id', $user->assigned_center_id)
+                ->where('household_status_id', 2)
+                ->first();
 
-            if (!$evacuation || $evacuation->center_id !== $user->assigned_center_id) {
+            if (!$evacuation) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
         }

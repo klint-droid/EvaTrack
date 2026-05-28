@@ -130,7 +130,8 @@ class EvacuationController extends Controller
                 $user->assigned_center_id,
                 $user->user_id,
                 'qr',
-                $request->event_id
+                $request->event_id,
+                $request->input('member_ids', [])
             );
 
             return response()->json([
@@ -161,6 +162,8 @@ class EvacuationController extends Controller
                     }
                 }
             ],
+            'member_ids'   => 'nullable|array',
+            'member_ids.*' => 'exists:household_members,member_id',
         ]);
 
         $user = Auth::user();
@@ -178,7 +181,8 @@ class EvacuationController extends Controller
                 $request->household_id,
                 $user->assigned_center_id,
                 $user->user_id,
-                $request->event_id
+                $request->event_id,
+                $request->input('member_ids', [])
             );
 
             return response()->json([
@@ -201,7 +205,7 @@ class EvacuationController extends Controller
                     }
                 }
             ],
-            'member_count' => 'required|integer|min:1',
+            'member_count' => 'required_without:member_ids|integer|min:1',
             'event_id'     => [
                 'nullable',
                 function ($attribute, $value, $fail) {
@@ -210,6 +214,8 @@ class EvacuationController extends Controller
                     }
                 }
             ],
+            'member_ids'   => 'nullable|array',
+            'member_ids.*' => 'exists:household_members,member_id',
         ]);
 
         $user = Auth::user();
@@ -232,13 +238,23 @@ class EvacuationController extends Controller
         }
 
         try {
-            $result = $service->handleManualWithCount(
-                $request->household_id,
-                $user->assigned_center_id,
-                $user->user_id,
-                $request->member_count,
-                $request->event_id
-            );
+            if ($request->has('member_ids') && !empty($request->input('member_ids'))) {
+                $result = $service->handleManual(
+                    $request->household_id,
+                    $user->assigned_center_id,
+                    $user->user_id,
+                    $request->event_id,
+                    $request->input('member_ids')
+                );
+            } else {
+                $result = $service->handleManualWithCount(
+                    $request->household_id,
+                    $user->assigned_center_id,
+                    $user->user_id,
+                    $request->member_count,
+                    $request->event_id
+                );
+            }
 
             return response()->json([
                 'message' => 'Admission complete',

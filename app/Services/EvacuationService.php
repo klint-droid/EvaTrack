@@ -25,10 +25,10 @@ class EvacuationService
         return $center->current_event_id;
     }
 
-    public function handleScan($householdId, $centerId, $userId, $method = 'qr', $eventId = null)
+    public function handleScan($householdId, $centerId, $userId, $method = 'qr', $eventId = null, array $memberIds = [])
     {
         return DB::connection('mysql_v2')->transaction(function () use (
-            $householdId, $centerId, $userId, $method, $eventId
+            $householdId, $centerId, $userId, $method, $eventId, $memberIds
         ) {
             EvacuationCenter::where('evacuation_center_id', $centerId)->firstOrFail();
 
@@ -42,16 +42,22 @@ class EvacuationService
                 throw new \Exception('This household has no registered members. Please add household members first.');
             }
 
+            $admitMemberIds = !empty($memberIds)
+                ? $memberIds
+                : $household->members->pluck('member_id')->toArray();
+
+            $this->ensureMembersNotEvacuatedElsewhere($admitMemberIds);
+
             $record = $this->createEvacuationRecord(
                 $householdId,
                 $centerId,
                 $userId,
-                $household->members->count(),
+                count($admitMemberIds),
                 $method,
                 $eventId
             );
 
-            $this->createEvacuatedMembersFromHousehold($record, $household);
+            $this->createEvacuatedMembersFromList($record, $admitMemberIds);
 
             return [
                 'record'    => $record->fresh($this->recordRelations()),
@@ -60,10 +66,10 @@ class EvacuationService
         });
     }
 
-    public function handleManual($householdId, $centerId, $userId, $eventId = null)
+    public function handleManual($householdId, $centerId, $userId, $eventId = null, array $memberIds = [])
     {
         return DB::connection('mysql_v2')->transaction(function () use (
-            $householdId, $centerId, $userId, $eventId
+            $householdId, $centerId, $userId, $eventId, $memberIds
         ) {
             EvacuationCenter::where('evacuation_center_id', $centerId)->firstOrFail();
 
@@ -73,14 +79,20 @@ class EvacuationService
                 ->where('household_id', $householdId)
                 ->firstOrFail();
 
-            $registeredMemberCount = $household->members->count();
+            $admitMemberIds = !empty($memberIds)
+                ? $memberIds
+                : $household->members->pluck('member_id')->toArray();
+
+            $registeredMemberCount = count($admitMemberIds);
 
             if ($registeredMemberCount > 0) {
+                $this->ensureMembersNotEvacuatedElsewhere($admitMemberIds);
+
                 $record = $this->createEvacuationRecord(
                     $householdId, $centerId, $userId,
                     $registeredMemberCount, 'manual', $eventId
                 );
-                $this->createEvacuatedMembersFromHousehold($record, $household);
+                $this->createEvacuatedMembersFromList($record, $admitMemberIds);
             } else {
                 $declaredCount = max(1, $household->members->count() ?: 1);
 
@@ -143,6 +155,49 @@ class EvacuationService
                 [
                     'evacuation_id' => $record->evacuation_id,
                     'member_id'     => $member->member_id,   // ✅ from HouseholdMember PK
+                ],
+                [
+                    'verified_at' => now(),
+                ]
+            );
+        }
+
+        $evacuatedCount = EvacuatedMember::where('evacuation_id', $record->evacuation_id)->count();
+
+        $record->update(['evacuated_count' => $evacuatedCount]);
+    }
+
+    private function ensureMembersNotEvacuatedElsewhere(array $memberIds): void
+    {
+        if (empty($memberIds)) {
+            return;
+        }
+
+        $activeEvacuatedMembers = EvacuatedMember::whereIn('member_id', $memberIds)
+            ->whereHas('evacuationRecord', function ($q) {
+                $q->where('household_status_id', 2);
+            })
+            ->with(['member', 'evacuationRecord.center'])
+            ->get();
+
+        if ($activeEvacuatedMembers->isNotEmpty()) {
+            $names = $activeEvacuatedMembers->map(function ($em) {
+                $name = $em->member ? ($em->member->first_name . ' ' . $em->member->last_name) : $em->member_id;
+                $centerName = $em->evacuationRecord && $em->evacuationRecord->center ? $em->evacuationRecord->center->center_name : 'another center';
+                return "{$name} (at {$centerName})";
+            })->join(', ');
+
+            throw new \Exception("The following member(s) are already actively evacuated: {$names}. Please check them out first.");
+        }
+    }
+
+    private function createEvacuatedMembersFromList(EvacuationRecord $record, array $memberIds): void
+    {
+        foreach ($memberIds as $memberId) {
+            EvacuatedMember::firstOrCreate(
+                [
+                    'evacuation_id' => $record->evacuation_id,
+                    'member_id'     => $memberId,
                 ],
                 [
                     'verified_at' => now(),

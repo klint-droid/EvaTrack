@@ -24,6 +24,8 @@ class StoreEvacuationRequest extends FormRequest
     {
         return [
             'household_id' => 'required|exists:households,household_id',
+            'member_ids'   => 'nullable|array',
+            'member_ids.*' => 'exists:household_members,member_id',
         ];
     }
 }
