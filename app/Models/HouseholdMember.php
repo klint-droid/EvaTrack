@@ -41,6 +41,9 @@ class HouseholdMember extends Model
                 $model->member_id = $id;
             }
         });
+
+        static::saved(fn () => \Illuminate\Support\Facades\Cache::tags(['households'])->flush());
+        static::deleted(fn () => \Illuminate\Support\Facades\Cache::tags(['households'])->flush());
     }
 
         public function household()

@@ -69,4 +69,11 @@ class EvacuationRecord extends Model
     {
         return $this->hasOne(UnitAllocation::class, 'evacuation_id', 'evacuation_id');
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+        static::saved(fn () => \Illuminate\Support\Facades\Cache::tags(['households'])->flush());
+        static::deleted(fn () => \Illuminate\Support\Facades\Cache::tags(['households'])->flush());
+    }
 }

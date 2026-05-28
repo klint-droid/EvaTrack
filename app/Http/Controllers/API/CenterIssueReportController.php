@@ -82,16 +82,23 @@ class CenterIssueReportController extends Controller
         $resolvedStatusId = CenterIssueReportStatus::where('status_key', 'resolved')->value('status_id');
         $criticalSeverityId = SeverityLevel::where('severity_key', 'critical')->value('severity_id');
 
+        $summary = [
+            'open' => $openStatusId ? (clone $query)->where('status_id', $openStatusId)->count() : 0,
+            'in_progress' => $inProgressStatusId ? (clone $query)->where('status_id', $inProgressStatusId)->count() : 0,
+            'resolved' => $resolvedStatusId ? (clone $query)->where('status_id', $resolvedStatusId)->count() : 0,
+            'critical' => $criticalSeverityId ? (clone $query)->where('severity_id', $criticalSeverityId)->count() : 0,
+        ];
+
+        $limit = (int)$request->query('limit', 0);
+        if ($limit > 0) {
+            $query->limit($limit);
+        }
+
         return response()->json([
             'data' => $query->latest('created_at')->get()->map(function ($report) {
                 return $this->formatReport($report);
             }),
-            'summary' => [
-                'open' => $openStatusId ? (clone $query)->where('status_id', $openStatusId)->count() : 0,
-                'in_progress' => $inProgressStatusId ? (clone $query)->where('status_id', $inProgressStatusId)->count() : 0,
-                'resolved' => $resolvedStatusId ? (clone $query)->where('status_id', $resolvedStatusId)->count() : 0,
-                'critical' => $criticalSeverityId ? (clone $query)->where('severity_id', $criticalSeverityId)->count() : 0,
-            ],
+            'summary' => $summary,
         ]);
     }
 

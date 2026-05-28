@@ -5,31 +5,35 @@ namespace App\Services;
 use App\Models\EvacuationCenter;
 use App\Models\EvacuationRecord;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class EvacuationCenterService
 {
     public function getAllCentersWithOccuppancy(): Collection
     {
-        return EvacuationCenter::selectRaw("
-                evacuation_centers.*,
-                (
-                    SELECT COUNT(*)
-                    FROM evacuation_records
-                    WHERE evacuation_records.center_id = evacuation_centers.evacuation_center_id
-                      AND evacuation_records.household_status_id = 2
-                ) as household_count,
-                (
-                    SELECT COALESCE(SUM(evacuation_records.evacuated_count), 0)
-                    FROM evacuation_records
-                    WHERE evacuation_records.center_id = evacuation_centers.evacuation_center_id
-                      AND evacuation_records.household_status_id = 2
-                ) as current_occupancy
-            ")
-            ->get();
+        return Cache::remember('all_centers_occupancy', 60, function () {
+            return EvacuationCenter::selectRaw("
+                    evacuation_centers.*,
+                    (
+                        SELECT COUNT(*)
+                        FROM evacuation_records
+                        WHERE evacuation_records.center_id = evacuation_centers.evacuation_center_id
+                          AND evacuation_records.household_status_id = 2
+                    ) as household_count,
+                    (
+                        SELECT COALESCE(SUM(evacuation_records.evacuated_count), 0)
+                        FROM evacuation_records
+                        WHERE evacuation_records.center_id = evacuation_centers.evacuation_center_id
+                          AND evacuation_records.household_status_id = 2
+                    ) as current_occupancy
+                ")
+                ->get();
+        });
     }
 
     public function create(array $data): EvacuationCenter
     {
+        Cache::forget('all_centers_occupancy');
         return EvacuationCenter::create([
             'name'        => $data['name'],
             'osm_address' => $data['osm_address'] ?? null,
@@ -41,6 +45,7 @@ class EvacuationCenterService
 
     public function update(EvacuationCenter $center, array $data): EvacuationCenter
     {
+        Cache::forget('all_centers_occupancy');
         $center->update([
             'name'        => $data['name'] ?? $center->name,
             'osm_address' => $data['osm_address'] ?? $center->osm_address,
@@ -54,6 +59,7 @@ class EvacuationCenterService
 
     public function delete(EvacuationCenter $center): void
     {
+        Cache::forget('all_centers_occupancy');
         $center->delete();
     }
 

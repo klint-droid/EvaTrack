@@ -30,7 +30,7 @@ class UserController extends Controller
     /**
      * LIST USERS
      */
-    public function index()
+    public function index(Request $request)
     {
         $authUser = Auth::user();
 
@@ -40,6 +40,22 @@ class UserController extends Controller
         if ($authUser->isEvacAdmin()) {
             $query->whereHas('role', function ($q) {
                 $q->where('role_key', '!=', 'super_admin');
+            });
+        }
+
+        if ($request->filled('q')) {
+            $q = $request->input('q');
+            $query->where(function($sub) use ($q) {
+                $sub->where('first_name', 'like', "%{$q}%")
+                    ->orWhere('last_name', 'like', "%{$q}%")
+                    ->orWhere('contact_number', 'like', "%{$q}%");
+            });
+        }
+
+        if ($request->filled('role')) {
+            $role = $request->input('role');
+            $query->whereHas('role', function($q) use ($role) {
+                $q->where('role_key', $role);
             });
         }
 

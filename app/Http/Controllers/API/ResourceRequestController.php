@@ -83,20 +83,27 @@ class ResourceRequestController extends Controller
             });
         }
 
+        $summary = [
+            'pending' => (clone $query)->where('status_id', $statusIds['pending'] ?? null)->count(),
+            'acknowledged' => (clone $query)->where('status_id', $statusIds['acknowledged'] ?? null)->count(),
+            'approved' => (clone $query)->where('status_id', $statusIds['approved'] ?? null)->count(),
+            'rejected' => (clone $query)->where('status_id', $statusIds['rejected'] ?? null)->count(),
+            'delivered_24h' => ResourceRequest::where('status_id', $statusIds['delivered'] ?? null)
+                ->where('updated_at', '>=', now()->subDay())
+                ->when($user->isEvacPersonnel(), function ($q) use ($user) {
+                    $q->where('evacuation_center_id', $user->assigned_center_id);
+                })
+                ->count(),
+        ];
+
+        $limit = (int)$request->query('limit', 0);
+        if ($limit > 0) {
+            $query->limit($limit);
+        }
+
         return response()->json([
             'data' => $query->latest('created_at')->get(),
-            'summary' => [
-                'pending' => (clone $query)->where('status_id', $statusIds['pending'] ?? null)->count(),
-                'acknowledged' => (clone $query)->where('status_id', $statusIds['acknowledged'] ?? null)->count(),
-                'approved' => (clone $query)->where('status_id', $statusIds['approved'] ?? null)->count(),
-                'rejected' => (clone $query)->where('status_id', $statusIds['rejected'] ?? null)->count(),
-                'delivered_24h' => ResourceRequest::where('status_id', $statusIds['delivered'] ?? null)
-                    ->where('updated_at', '>=', now()->subDay())
-                    ->when($user->isEvacPersonnel(), function ($q) use ($user) {
-                        $q->where('evacuation_center_id', $user->assigned_center_id);
-                    })
-                    ->count(),
-            ],
+            'summary' => $summary,
         ]);
     }
 
