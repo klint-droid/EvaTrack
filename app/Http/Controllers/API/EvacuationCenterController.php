@@ -14,17 +14,7 @@ class EvacuationCenterController extends Controller
     public function __construct(private readonly EvacuationCenterService $evacuationCenterService){}
 
     public function index(){
-        $user = Auth::user();
-
-        // Personnel only see their assigned center
-        if ($user && $user->isEvacPersonnel() && $user->assigned_center_id) {
-            return response()->json(
-                $this->evacuationCenterService->getAllCentersWithOccuppancy()
-                    ->where('evacuation_center_id', $user->assigned_center_id)
-                    ->values()
-            );
-        }
-
+        // Personnel can view all centers system-wide (same as admin) to allow global search and filtering
         return response()->json(
             $this->evacuationCenterService->getAllCentersWithOccuppancy()
         );
