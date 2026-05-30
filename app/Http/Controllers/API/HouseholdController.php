@@ -50,7 +50,7 @@ class HouseholdController extends Controller
 
         $cacheKey = "households_list_c{$assignedCenterId}_p{$page}_q" . md5($search) . "_s{$status}_ci{$centerId}";
 
-        $results = Cache::tags(['households'])->remember($cacheKey, 300, function () use ($user, $evacuatedStatusId, $request) {
+        $results = Cache::tags(['households'])->remember($cacheKey, 300, function () use ($user, $evacuatedStatusId, $search, $status, $centerId) {
             $query = Household::withCount('members')->with([
                 'address',
                 'currentEvacuation.center',
