@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Services\LiveAnalyticsService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AnalyticsController extends Controller
 {
@@ -24,8 +25,15 @@ class AnalyticsController extends Controller
     public function dashboard(Request $request)
     {
         $eventId = $request->query('event_id', 'all');
+        $user = Auth::user();
 
-        $data = $this->analyticsService->getDashboardAnalytics($eventId);
+        // Personnel are always scoped to their assigned center
+        $centerId = null;
+        if ($user->isEvacPersonnel() && $user->assigned_center_id) {
+            $centerId = $user->assigned_center_id;
+        }
+
+        $data = $this->analyticsService->getDashboardAnalytics($eventId, $centerId);
 
         return response()->json([
             'success'  => true,

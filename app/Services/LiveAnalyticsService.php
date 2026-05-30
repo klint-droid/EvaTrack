@@ -44,14 +44,14 @@ class LiveAnalyticsService
     |--------------------------------------------------------------------------
     */
 
-    public function getDashboardAnalytics($eventId)
+    public function getDashboardAnalytics($eventId, $centerId = null)
     {
         return [
-            'summary'             => $this->getSummaryKPIs($eventId),
-            'evacuation_trends'   => $this->getEvacuationTrends($eventId),
-            'status_distribution' => $this->getStatusDistribution($eventId),
-            'demographics'        => $this->getDemographics($eventId),
-            'center_performance'  => $this->getCenterPerformance($eventId),
+            'summary'             => $this->getSummaryKPIs($eventId, $centerId),
+            'evacuation_trends'   => $this->getEvacuationTrends($eventId, $centerId),
+            'status_distribution' => $this->getStatusDistribution($eventId, $centerId),
+            'demographics'        => $this->getDemographics($eventId, $centerId),
+            'center_performance'  => $this->getCenterPerformance($eventId, $centerId),
         ];
     }
 
@@ -61,12 +61,16 @@ class LiveAnalyticsService
     |--------------------------------------------------------------------------
     */
 
-    protected function getSummaryKPIs($eventId)
+    protected function getSummaryKPIs($eventId, $centerId = null)
     {
         $query = EvacuationRecord::query();
 
         if ($eventId !== 'all') {
             $query->where('event_id', $eventId);
+        }
+
+        if ($centerId) {
+            $query->where('center_id', $centerId);
         }
 
         $records = $query->get();
@@ -99,7 +103,7 @@ class LiveAnalyticsService
     |--------------------------------------------------------------------------
     */
 
-    protected function getEvacuationTrends($eventId)
+    protected function getEvacuationTrends($eventId, $centerId = null)
     {
         $query = EvacuationRecord::select(
             DB::raw('DATE(created_at) as date'),
@@ -109,6 +113,10 @@ class LiveAnalyticsService
 
         if ($eventId !== 'all') {
             $query->where('event_id', $eventId);
+        }
+
+        if ($centerId) {
+            $query->where('center_id', $centerId);
         }
 
         return $query
@@ -130,7 +138,7 @@ class LiveAnalyticsService
     |--------------------------------------------------------------------------
     */
 
-    protected function getStatusDistribution($eventId)
+    protected function getStatusDistribution($eventId, $centerId = null)
     {
         $query = EvacuationRecord::select(
             'household_status_id',
@@ -139,6 +147,10 @@ class LiveAnalyticsService
 
         if ($eventId !== 'all') {
             $query->where('event_id', $eventId);
+        }
+
+        if ($centerId) {
+            $query->where('center_id', $centerId);
         }
 
         $distribution = $query
@@ -164,10 +176,11 @@ class LiveAnalyticsService
     |--------------------------------------------------------------------------
     */
 
-    protected function getDemographics($eventId)
+    protected function getDemographics($eventId, $centerId = null)
     {
         $evacuationIds = EvacuationRecord::query()
             ->when($eventId !== 'all', fn($q) => $q->where('event_id', $eventId))
+            ->when($centerId, fn($q) => $q->where('center_id', $centerId))
             ->pluck('evacuation_id');
 
         $members = EvacuatedMember::with([
@@ -239,7 +252,7 @@ class LiveAnalyticsService
     |--------------------------------------------------------------------------
     */
 
-    protected function getCenterPerformance($eventId)
+    protected function getCenterPerformance($eventId, $centerId = null)
     {
         $query = EvacuationRecord::select(
             'center_id',
@@ -249,6 +262,10 @@ class LiveAnalyticsService
 
         if ($eventId !== 'all') {
             $query->where('event_id', $eventId);
+        }
+
+        if ($centerId) {
+            $query->where('center_id', $centerId);
         }
 
         $recordsByCenter = $query
