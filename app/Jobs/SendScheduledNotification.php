@@ -49,10 +49,12 @@ class SendScheduledNotification implements ShouldQueue
 
         // if recurring, schedule next run
         if ($notification->is_recurring) {
-            $nextRun = match($notification->recurrence_type) {
+            $recurrenceType = $notification->recurrence_type ?? 'daily';
+            $nextRun = match($recurrenceType) {
                 'hourly' => now()->addHour(),
                 'daily'  => now()->addDay(),
                 'weekly' => now()->addWeek(),
+                default  => now()->addDay(),
             };
 
             // only schedule next if before end date

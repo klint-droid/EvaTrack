@@ -83,11 +83,9 @@ class NotificationService
             return $notification;
         });
 
-        // if scheduled or recurring, dispatch job
-        if ($isScheduled || $isRecurring) {
-            $sendAt = !empty($payload['scheduled_at'])
-                ? now()->parse($payload['scheduled_at'])
-                : now();
+        // if scheduled, queue it for the future date
+        if ($isScheduled) {
+            $sendAt = now()->parse($payload['scheduled_at']);
 
             \App\Jobs\SendScheduledNotification::dispatch($notification->notif_id)
                 ->delay($sendAt);
@@ -97,6 +95,31 @@ class NotificationService
 
         // send immediately
         $this->sendToChannels($notification, $householdIds, $channels);
+
+        // if recurring, schedule the next run
+        if ($isRecurring) {
+            $notification->update(['last_sent_at' => now()]);
+
+            $recurrenceType = $payload['recurrence_type'] ?? 'daily';
+            $nextRun = match($recurrenceType) {
+                'hourly' => now()->addHour(),
+                'daily'  => now()->addDay(),
+                'weekly' => now()->addWeek(),
+                default  => now()->addDay(),
+            };
+
+            $recurrenceEndAt = !empty($payload['recurrence_end_at'])
+                ? now()->parse($payload['recurrence_end_at'])
+                : null;
+
+            // only schedule next if before end date
+            if (!$recurrenceEndAt || now()->parse($nextRun)->isBefore($recurrenceEndAt)) {
+                // reset status to scheduled for the next run (since sendToChannels sets it to 'sent')
+                $notification->update(['status' => 'scheduled']);
+
+                \App\Jobs\SendScheduledNotification::dispatch($notification->notif_id)->delay($nextRun);
+            }
+        }
 
         return $notification;
     }

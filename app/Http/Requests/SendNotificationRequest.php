@@ -23,7 +23,7 @@ class SendNotificationRequest extends FormRequest
             'scheduled_at'         => 'nullable|date|after:now',
             'is_recurring'         => 'boolean',
             'recurrence_type'      => 'required_if:is_recurring,true|nullable|in:hourly,daily,weekly',
-            'recurrence_end_at'    => 'required_if:is_recurring,true|nullable|date|after:scheduled_at',
+            'recurrence_end_at'    => 'required_if:is_recurring,true|nullable|date|after:' . ($this->input('scheduled_at') ?: 'now'),
         ];
     }
 }
