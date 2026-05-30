@@ -57,12 +57,7 @@ class HouseholdController extends Controller
                 'currentEvacuation.unitAllocation.unit',
             ]);
 
-            if ($user->isEvacPersonnel()) {
-                $query->whereHas('currentEvacuation', function ($q) use ($user, $evacuatedStatusId) {
-                    $q->where('center_id', $user->assigned_center_id)
-                        ->where('household_status_id', $evacuatedStatusId); 
-                });
-            }
+            // Removed personnel siliog so personnel can see all households system-wide
 
             if ($request->filled('q')) {
                 $search = $request->q;
@@ -102,26 +97,10 @@ class HouseholdController extends Controller
 
     public function show($id)
     {
-        $user = Auth::user();
-
+        // Removed personnel check so they can view household details globally
         $household = Household::with($this->householdRelations())
             ->where('household_id', $id)
             ->firstOrFail();
-
-        if ($user->isEvacPersonnel()) {
-            if (!$user->assigned_center_id) {
-                return response()->json(['message' => 'No evacuation center assigned.'], 403);
-            }
-
-            $evacuation = $household->evacuations()
-                ->where('center_id', $user->assigned_center_id)
-                ->where('household_status_id', 2)
-                ->first();
-
-            if (!$evacuation) {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
-        }
 
         return response()->json(['data' => $household]);
     }
@@ -181,6 +160,15 @@ class HouseholdController extends Controller
         $household = Household::with('address')
             ->where('household_id', $id)
             ->firstOrFail();
+
+        // Enforce personnel scoping guard - personnel can only edit if household belongs to their assigned center
+        if ($user->isEvacPersonnel()) {
+            $evacuation = $household->currentEvacuation()->first();
+            $centerId = $evacuation ? $evacuation->center_id : null;
+            if ($centerId !== $user->assigned_center_id) {
+                return response()->json(['message' => 'Unauthorized. You can only edit households evacuated to your assigned center.'], 403);
+            }
+        }
 
         return DB::connection('mysql_v2')->transaction(function () use ($request, $household) {
             $household->update([
