@@ -59,8 +59,7 @@ class HouseholdController extends Controller
 
             // Removed personnel siliog so personnel can see all households system-wide
 
-            if ($request->filled('q')) {
-                $search = $request->q;
+            if (!empty($search)) {
                 $query->where(function ($builder) use ($search) {
                     $builder->where('household_name', 'LIKE', "%{$search}%")
                         ->orWhere('household_id', 'LIKE', "%{$search}%")
@@ -68,21 +67,21 @@ class HouseholdController extends Controller
                 });
             }
 
-            if ($request->filled('status')) {
-                if ($request->status === 'evacuated') {
+            if (!empty($status)) {
+                if ($status === 'evacuated') {
                     $query->whereHas('currentEvacuation', function ($q) use ($evacuatedStatusId) {
                         $q->where('household_status_id', $evacuatedStatusId); 
                     });
                 }
 
-                if ($request->status === 'not_evacuated') {
+                if ($status === 'not_evacuated') {
                     $query->whereDoesntHave('currentEvacuation', function ($q) use ($evacuatedStatusId) {
                         $q->where('household_status_id', $evacuatedStatusId); 
                     });
                 }
             }
 
-            if ($request->filled('center_id')) {
+            if (!empty($centerId)) {
                 $query->whereHas('currentEvacuation', function ($q) use ($centerId, $evacuatedStatusId) {
                     $q->where('center_id', $centerId)
                         ->where('household_status_id', $evacuatedStatusId); 
