@@ -83,8 +83,8 @@ class HouseholdController extends Controller
             }
 
             if ($request->filled('center_id')) {
-                $query->whereHas('currentEvacuation', function ($q) use ($request, $evacuatedStatusId) {
-                    $q->where('center_id', $request->center_id)
+                $query->whereHas('currentEvacuation', function ($q) use ($centerId, $evacuatedStatusId) {
+                    $q->where('center_id', $centerId)
                         ->where('household_status_id', $evacuatedStatusId); 
                 });
             }
