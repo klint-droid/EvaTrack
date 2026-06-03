@@ -21,6 +21,8 @@ use App\Http\Controllers\API\DisasterTypeController;
 use App\Http\Controllers\API\SeverityLevelController;
 use App\Http\Controllers\API\LookupController;
 use App\Http\Controllers\API\AnalyticsController;
+use App\Http\Controllers\API\ExportController;
+use App\Http\Controllers\API\AnalyticsExportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -111,6 +113,7 @@ Route::prefix('evacuation-centers')
         Route::get('/', [EvacuationCenterController::class, 'index']);
         Route::get('/{center}', [EvacuationCenterController::class, 'show']);
         Route::get('/{center}/capacity', [EvacuationCenterController::class, 'capacity']);
+        Route::get('/{center}/export', [ExportController::class, 'exportCenterHouseholds']);
 
         Route::middleware('role:super_admin,evac_admin')->group(function () {
             Route::post('/', [EvacuationCenterController::class, 'store']);
@@ -230,4 +233,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/analytics/events-list', [AnalyticsController::class, 'eventsList']);
     Route::get('/analytics/event/{eventId}', [AnalyticsController::class, 'eventAnalytics']);
     Route::get('/analytics/event/{eventId}/center/{centerId}', [AnalyticsController::class, 'centerAnalytics']);
+
+    // Analytics export routes
+    Route::get('/analytics/export/dromic', [AnalyticsExportController::class, 'dromicMasterList']);
+    Route::get('/analytics/export/demographics', [AnalyticsExportController::class, 'demographicSummary']);
+    Route::get('/analytics/export/utilization', [AnalyticsExportController::class, 'centerUtilization']);
+    Route::get('/analytics/export/vulnerable', [AnalyticsExportController::class, 'vulnerableGroups']);
+    Route::get('/analytics/export/resources', [AnalyticsExportController::class, 'resourceRequests']);
+    Route::get('/analytics/export/issues', [AnalyticsExportController::class, 'centerIssues']);
+    Route::get('/analytics/export/daily-intake', [AnalyticsExportController::class, 'dailyIntake']);
 });

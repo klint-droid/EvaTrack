@@ -31,9 +31,17 @@ class AnalyticsController extends Controller
         $centerId = null;
         if ($user->isEvacPersonnel() && $user->assigned_center_id) {
             $centerId = $user->assigned_center_id;
+        } else {
+            $centerId = $request->query('center_id');
+            if ($centerId === 'all') {
+                $centerId = null;
+            }
         }
 
-        $data = $this->analyticsService->getDashboardAnalytics($eventId, $centerId);
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+
+        $data = $this->analyticsService->getDashboardAnalytics($eventId, $centerId, $startDate, $endDate);
 
         return response()->json([
             'success'  => true,

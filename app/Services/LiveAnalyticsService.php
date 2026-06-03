@@ -10,6 +10,13 @@ use App\Models\EvacuatedMember;
 use App\Models\EvacuationCenter;
 use App\Models\DisasterEvent;
 use App\Models\HouseholdStatus;
+use App\Models\ResourceRequest;
+use App\Models\ResourceRequestStatus;
+use App\Models\UrgencyLevel;
+use App\Models\CenterIssueReport;
+use App\Models\CenterIssueReportStatus;
+use App\Models\SeverityLevel;
+use App\Models\CenterIssueCategory;
 
 class LiveAnalyticsService
 {
@@ -44,14 +51,16 @@ class LiveAnalyticsService
     |--------------------------------------------------------------------------
     */
 
-    public function getDashboardAnalytics($eventId, $centerId = null)
+    public function getDashboardAnalytics($eventId, $centerId = null, $startDate = null, $endDate = null)
     {
         return [
-            'summary'             => $this->getSummaryKPIs($eventId, $centerId),
-            'evacuation_trends'   => $this->getEvacuationTrends($eventId, $centerId),
-            'status_distribution' => $this->getStatusDistribution($eventId, $centerId),
-            'demographics'        => $this->getDemographics($eventId, $centerId),
-            'center_performance'  => $this->getCenterPerformance($eventId, $centerId),
+            'summary'             => $this->getSummaryKPIs($eventId, $centerId, $startDate, $endDate),
+            'evacuation_trends'   => $this->getEvacuationTrends($eventId, $centerId, $startDate, $endDate),
+            'status_distribution' => $this->getStatusDistribution($eventId, $centerId, $startDate, $endDate),
+            'demographics'        => $this->getDemographics($eventId, $centerId, $startDate, $endDate),
+            'center_performance'  => $this->getCenterPerformance($eventId, $centerId, $startDate, $endDate),
+            'resource_requests'   => $this->getResourceRequestMetrics($eventId, $centerId, $startDate, $endDate),
+            'center_issues'       => $this->getCenterIssueMetrics($eventId, $centerId, $startDate, $endDate),
         ];
     }
 
@@ -61,7 +70,7 @@ class LiveAnalyticsService
     |--------------------------------------------------------------------------
     */
 
-    protected function getSummaryKPIs($eventId, $centerId = null)
+    protected function getSummaryKPIs($eventId, $centerId = null, $startDate = null, $endDate = null)
     {
         $query = EvacuationRecord::query();
 
@@ -71,6 +80,14 @@ class LiveAnalyticsService
 
         if ($centerId) {
             $query->where('center_id', $centerId);
+        }
+
+        if ($startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+
+        if ($endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
         }
 
         $records = $query->get();
@@ -103,7 +120,7 @@ class LiveAnalyticsService
     |--------------------------------------------------------------------------
     */
 
-    protected function getEvacuationTrends($eventId, $centerId = null)
+    protected function getEvacuationTrends($eventId, $centerId = null, $startDate = null, $endDate = null)
     {
         $query = EvacuationRecord::select(
             DB::raw('DATE(created_at) as date'),
@@ -117,6 +134,14 @@ class LiveAnalyticsService
 
         if ($centerId) {
             $query->where('center_id', $centerId);
+        }
+
+        if ($startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+
+        if ($endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
         }
 
         return $query
@@ -138,7 +163,7 @@ class LiveAnalyticsService
     |--------------------------------------------------------------------------
     */
 
-    protected function getStatusDistribution($eventId, $centerId = null)
+    protected function getStatusDistribution($eventId, $centerId = null, $startDate = null, $endDate = null)
     {
         $query = EvacuationRecord::select(
             'household_status_id',
@@ -151,6 +176,14 @@ class LiveAnalyticsService
 
         if ($centerId) {
             $query->where('center_id', $centerId);
+        }
+
+        if ($startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+
+        if ($endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
         }
 
         $distribution = $query
@@ -176,11 +209,13 @@ class LiveAnalyticsService
     |--------------------------------------------------------------------------
     */
 
-    protected function getDemographics($eventId, $centerId = null)
+    protected function getDemographics($eventId, $centerId = null, $startDate = null, $endDate = null)
     {
         $evacuationIds = EvacuationRecord::query()
             ->when($eventId !== 'all', fn($q) => $q->where('event_id', $eventId))
             ->when($centerId, fn($q) => $q->where('center_id', $centerId))
+            ->when($startDate, fn($q) => $q->whereDate('created_at', '>=', $startDate))
+            ->when($endDate, fn($q) => $q->whereDate('created_at', '<=', $endDate))
             ->pluck('evacuation_id');
 
         $members = EvacuatedMember::with([
@@ -192,6 +227,7 @@ class LiveAnalyticsService
 
         // Age groups
         $children = 0;
+        $youth    = 0;
         $adults   = 0;
         $elderly  = 0;
 
@@ -210,12 +246,14 @@ class LiveAnalyticsService
             if ($member->birth_date) {
                 $age = Carbon::parse($member->birth_date)->age;
                 if ($age <= 12) $children++;
+                elseif ($age >= 13 && $age <= 17) $youth++;
                 elseif ($age >= 18 && $age <= 59) $adults++;
                 elseif ($age >= 60) $elderly++;
             }
 
             // Gender
-            $genderKey = $member->gender?->gender_key;
+            $genderModel = $member->getRelation('gender');
+            $genderKey = $genderModel?->gender_key;
             if ($genderKey === 'male') $male++;
             elseif ($genderKey === 'female') $female++;
 
@@ -235,6 +273,7 @@ class LiveAnalyticsService
         return [
             'age_groups' => [
                 ['group' => 'Children (0-12)', 'count' => $children],
+                ['group' => 'Youth (13-17)',   'count' => $youth],
                 ['group' => 'Adults (18-59)',  'count' => $adults],
                 ['group' => 'Elderly (60+)',   'count' => $elderly],
             ],
@@ -252,7 +291,7 @@ class LiveAnalyticsService
     |--------------------------------------------------------------------------
     */
 
-    protected function getCenterPerformance($eventId, $centerId = null)
+    protected function getCenterPerformance($eventId, $centerId = null, $startDate = null, $endDate = null)
     {
         $query = EvacuationRecord::select(
             'center_id',
@@ -266,6 +305,14 @@ class LiveAnalyticsService
 
         if ($centerId) {
             $query->where('center_id', $centerId);
+        }
+
+        if ($startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+
+        if ($endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
         }
 
         $recordsByCenter = $query
@@ -379,9 +426,10 @@ class LiveAnalyticsService
 
                 $members->filter(function ($m) {
 
-                    return optional(
-                        optional($m->member)->gender
-                    )->gender_key === 'male';
+                    $member = $m->member;
+                    if(!$member) return false;
+                    $genderModel = $member->getRelation('gender');
+                    return $genderModel?->gender_key === 'male';
 
                 })->count(),
 
@@ -389,9 +437,10 @@ class LiveAnalyticsService
 
                 $members->filter(function ($m) {
 
-                    return optional(
-                        optional($m->member)->gender
-                    )->gender_key === 'female';
+                    $member = $m->member;
+                    if(!$member) return false;
+                    $genderModel = $member->getRelation('gender');
+                    return $genderModel?->gender_key === 'female';
 
                 })->count(),
 
@@ -478,6 +527,144 @@ class LiveAnalyticsService
                         );
 
                 })->count(),
+        ];
+    }
+
+    protected function getScopedQuery($modelClass, $eventId, $centerId = null, $startDate = null, $endDate = null)
+    {
+        $query = $modelClass::query();
+
+        if ($centerId) {
+            $query->where('evacuation_center_id', $centerId);
+        } elseif ($eventId !== 'all') {
+            $centerIds = EvacuationRecord::where('event_id', $eventId)->pluck('center_id')->unique()->filter();
+            $query->whereIn('evacuation_center_id', $centerIds);
+        }
+
+        if ($startDate) {
+            $query->whereDate('created_at', '>=', $startDate);
+        }
+        if ($endDate) {
+            $query->whereDate('created_at', '<=', $endDate);
+        }
+
+        return $query;
+    }
+
+    protected function getResourceRequestMetrics($eventId, $centerId = null, $startDate = null, $endDate = null)
+    {
+        $query = $this->getScopedQuery(ResourceRequest::class, $eventId, $centerId, $startDate, $endDate);
+
+        // Status counts
+        $statusCounts = $query->clone()
+            ->select('status_id', DB::raw('COUNT(*) as count'))
+            ->groupBy('status_id')
+            ->get();
+
+        $statuses = ResourceRequestStatus::all()->keyBy('status_id');
+        $statusData = $statusCounts->map(function ($row) use ($statuses) {
+            $s = $statuses->get($row->status_id);
+            return [
+                'status_key'   => $s?->status_key ?? 'unknown',
+                'status_label' => $s?->status_label ?? 'Unknown',
+                'count'        => (int) $row->count,
+            ];
+        })->values();
+
+        // Urgency counts
+        $urgencyCounts = $query->clone()
+            ->select('urgency_id', DB::raw('COUNT(*) as count'))
+            ->groupBy('urgency_id')
+            ->get();
+
+        $urgencies = UrgencyLevel::all()->keyBy('urgency_id');
+        $urgencyData = $urgencyCounts->map(function ($row) use ($urgencies) {
+            $u = $urgencies->get($row->urgency_id);
+            return [
+                'urgency_key'   => $u?->urgency_key ?? 'unknown',
+                'urgency_label' => $u?->urgency_label ?? 'Unknown',
+                'count'        => (int) $row->count,
+            ];
+        })->values();
+
+        // Top requested types
+        $typeCounts = $query->clone()
+            ->select('resource_type', DB::raw('COUNT(*) as count'), DB::raw('SUM(quantity) as total_qty'))
+            ->groupBy('resource_type')
+            ->orderByDesc('count')
+            ->limit(5)
+            ->get()
+            ->map(function ($row) {
+                return [
+                    'type'           => $row->resource_type,
+                    'count'          => (int) $row->count,
+                    'total_quantity' => (int) $row->total_qty,
+                ];
+            });
+
+        return [
+            'status_distribution'  => $statusData,
+            'urgency_distribution' => $urgencyData,
+            'top_types'            => $typeCounts,
+        ];
+    }
+
+    protected function getCenterIssueMetrics($eventId, $centerId = null, $startDate = null, $endDate = null)
+    {
+        $query = $this->getScopedQuery(CenterIssueReport::class, $eventId, $centerId, $startDate, $endDate);
+
+        // Status counts
+        $statusCounts = $query->clone()
+            ->select('status_id', DB::raw('COUNT(*) as count'))
+            ->groupBy('status_id')
+            ->get();
+
+        $statuses = CenterIssueReportStatus::all()->keyBy('status_id');
+        $statusData = $statusCounts->map(function ($row) use ($statuses) {
+            $s = $statuses->get($row->status_id);
+            return [
+                'status_key'   => $s?->status_key ?? 'unknown',
+                'status_label' => $s?->status_label ?? 'Unknown',
+                'count'        => (int) $row->count,
+            ];
+        })->values();
+
+        // Severity counts
+        $severityCounts = $query->clone()
+            ->select('severity_id', DB::raw('COUNT(*) as count'))
+            ->groupBy('severity_id')
+            ->get();
+
+        $severities = SeverityLevel::all()->keyBy('severity_id');
+        $severityData = $severityCounts->map(function ($row) use ($severities) {
+            $s = $severities->get($row->severity_id);
+            return [
+                'severity_key'   => $s?->severity_key ?? 'unknown',
+                'severity_label' => $s?->severity_label ?? 'Unknown',
+                'count'        => (int) $row->count,
+            ];
+        })->values();
+
+        // Category counts
+        $categoryCounts = $query->clone()
+            ->select('category_id', DB::raw('COUNT(*) as count'))
+            ->groupBy('category_id')
+            ->get();
+
+        $categories = CenterIssueCategory::all()->keyBy('category_id');
+        $categoryData = $categoryCounts->map(function ($row) use ($categories) {
+            $c = $categories->get($row->category_id);
+            return [
+                'category_key'   => $c?->category_key ?? 'unknown',
+                'category_label' => $c?->category_label ?? 'Unknown',
+                'count'        => (int) $row->count,
+            ];
+        })->values();
+
+        return [
+            'status_distribution'   => $statusData,
+            'severity_distribution' => $severityData,
+            'category_distribution' => $categoryData,
         ];
     }
 }
