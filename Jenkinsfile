@@ -2,8 +2,6 @@ pipeline {
     agent any
 
     environment {
-        DB_CONNECTION = 'sqlite'
-        DB_DATABASE   = ':memory:'
         APP_ENV       = 'testing'
     }
 
@@ -27,7 +25,7 @@ pipeline {
                 bat 'composer install --no-interaction --prefer-dist --optimize-autoloader'
 
                 echo 'Preparing test configuration...'
-                bat 'if not exist .env copy .env.example .env'
+                bat 'if exist c:\\CAPSTONE\\EvaTrack\\.env (copy c:\\CAPSTONE\\EvaTrack\\.env .env) else (copy .env.example .env)'
                 bat 'php artisan key:generate --env=testing'
 
                 echo 'Running PHPUnit tests...'
