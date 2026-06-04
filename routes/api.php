@@ -93,6 +93,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('evacuations/process-scan', [EvacuationController::class, 'scan']);
     Route::post('evacuations/verify-manual', [EvacuationController::class, 'verifyManual']);
     Route::post('evacuations/admit', [EvacuationController::class, 'admit']);
+    Route::post('evacuations/{evacuationId}/checkout', [EvacuationController::class, 'checkout']);
     Route::patch(
         'evacuations/{evacuationId}/members/{memberId}/status',
         [EvacuationController::class, 'updateMemberStatus']

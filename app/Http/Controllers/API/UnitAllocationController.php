@@ -10,10 +10,20 @@ use App\Models\HouseholdStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use OpenApi\Attributes as OA;
 
 class UnitAllocationController extends Controller
 {
-    // Get all allocations for a unit
+    #[OA\Get(
+        path: '/units/{unitId}/allocations',
+        summary: 'Get all allocations for a unit',
+        security: [['bearerAuth' => []]],
+        tags: ['Accommodation Units']
+    )]
+    #[OA\Parameter(name: 'unitId', in: 'path', description: 'Unit ID', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 404, description: 'Unit not found')]
     public function index($unitId)
     {
         $allocations = UnitAllocation::with([
@@ -26,7 +36,26 @@ class UnitAllocationController extends Controller
         return response()->json(['data' => $allocations]);
     }
 
-    // Assign a household to a unit
+    #[OA\Post(
+        path: '/units/{unitId}/allocations',
+        summary: 'Assign a household to a unit',
+        security: [['bearerAuth' => []]],
+        tags: ['Accommodation Units']
+    )]
+    #[OA\Parameter(name: 'unitId', in: 'path', description: 'Unit ID', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['evacuation_id'],
+            properties: [
+                new OA\Property(property: 'evacuation_id', type: 'integer'),
+            ]
+        )
+    )]
+    #[OA\Response(response: 201, description: 'Assigned successfully')]
+    #[OA\Response(response: 400, description: 'Invalid request, unit full, or already assigned')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 404, description: 'Unit or Evacuation record not found')]
     public function assign(Request $request, $unitId)
     {
         $request->validate([
@@ -79,16 +108,18 @@ class UnitAllocationController extends Controller
 
             // Check unit capacity
             $currentOccupancy = UnitAllocation::where('unit_id', $unitId)
-                ->join('evacuation_records', 'unit_allocations.evacuation_id', '=', 'evacuations.evacuation_id')
-                ->sum('evacuations.evacuated_count');
+                ->join('evacuation_records', 'unit_allocations.evacuation_id', '=', 'evacuation_records.evacuation_id')
+                ->sum('evacuation_records.evacuated_count');
 
-            if ($currentOccupancy <= 0) {
+            $availableCapacity = $unit->max_capacity - $currentOccupancy;
+
+            if ($availableCapacity <= 0) {
                 return response()->json(['message' => 'This unit is already full.'], 400);
             }
 
-            if ($evacuation->evacuated_count > $currentOccupancy) {
+            if ($evacuation->evacuated_count > $availableCapacity) {
                 return response()->json([
-                    'message' => "Not enough space. This household has {$evacuation->evacuated_count} members but only {$currentOccupancy} slots are available."
+                    'message' => "Not enough space. This household has {$evacuation->evacuated_count} members but only {$availableCapacity} slots are available."
                 ], 400);
             }
 
@@ -106,7 +137,17 @@ class UnitAllocationController extends Controller
         });
     }
 
-    // Unassign a household from a unit
+    #[OA\Delete(
+        path: '/units/{unitId}/allocations/{allocationId}',
+        summary: 'Unassign a household from a unit',
+        security: [['bearerAuth' => []]],
+        tags: ['Accommodation Units']
+    )]
+    #[OA\Parameter(name: 'unitId', in: 'path', description: 'Unit ID', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Parameter(name: 'allocationId', in: 'path', description: 'Allocation ID', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 404, description: 'Allocation or Unit not found')]
     public function unassign($unitId, $allocationId)
     {
         return DB::transaction(function () use ($unitId, $allocationId) {
@@ -126,7 +167,16 @@ class UnitAllocationController extends Controller
         });
     }
 
-    // Get unassigned evacuations for a center
+    #[OA\Get(
+        path: '/centers/{centerId}/unassigned',
+        summary: 'Get unassigned evacuations for a center',
+        security: [['bearerAuth' => []]],
+        tags: ['Accommodation Units']
+    )]
+    #[OA\Parameter(name: 'centerId', in: 'path', description: 'Center ID', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 404, description: 'Center not found')]
     public function unassigned($centerId)
     {
 

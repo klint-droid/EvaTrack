@@ -9,6 +9,7 @@ use App\Models\EvacuatedMember;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use OpenApi\Attributes as OA;
 
 class HouseholdMemberController extends Controller
 {
@@ -20,6 +21,16 @@ class HouseholdMemberController extends Controller
             ->toArray();
     }
 
+    #[OA\Get(
+        path: '/households/{householdId}/members',
+        summary: 'List household members',
+        security: [['bearerAuth' => []]],
+        tags: ['Households']
+    )]
+    #[OA\Parameter(name: 'householdId', in: 'path', description: 'Household ID', required: true, schema: new OA\Schema(type: 'string'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 404, description: 'Household not found')]
     public function index($householdId)
     {
         $household = Household::with('members')
@@ -31,6 +42,32 @@ class HouseholdMemberController extends Controller
         ]);
     }
 
+    #[OA\Post(
+        path: '/households/{householdId}/members',
+        summary: 'Add member to household',
+        security: [['bearerAuth' => []]],
+        tags: ['Households']
+    )]
+    #[OA\Parameter(name: 'householdId', in: 'path', description: 'Household ID', required: true, schema: new OA\Schema(type: 'string'))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['first_name', 'last_name', 'birth_date'],
+            properties: [
+                new OA\Property(property: 'first_name', type: 'string'),
+                new OA\Property(property: 'middle_name', type: 'string', nullable: true),
+                new OA\Property(property: 'last_name', type: 'string'),
+                new OA\Property(property: 'birth_date', type: 'string', format: 'date'),
+                new OA\Property(property: 'gender_id', type: 'integer', nullable: true),
+                new OA\Property(property: 'relationship_id', type: 'integer', nullable: true),
+                new OA\Property(property: 'civil_status_id', type: 'integer', nullable: true),
+                new OA\Property(property: 'vulnerable_group_ids', type: 'array', items: new OA\Items(type: 'integer'), nullable: true),
+            ]
+        )
+    )]
+    #[OA\Response(response: 201, description: 'Created successfully')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 404, description: 'Household not found')]
     public function store(Request $request, $householdId)
     {
         $request->validate([
@@ -71,6 +108,33 @@ class HouseholdMemberController extends Controller
         });
     }
 
+    #[OA\Patch(
+        path: '/households/{householdId}/members/{memberId}',
+        summary: 'Update household member',
+        security: [['bearerAuth' => []]],
+        tags: ['Households']
+    )]
+    #[OA\Parameter(name: 'householdId', in: 'path', description: 'Household ID', required: true, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'memberId', in: 'path', description: 'Member ID', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['first_name', 'last_name', 'birth_date'],
+            properties: [
+                new OA\Property(property: 'first_name', type: 'string'),
+                new OA\Property(property: 'middle_name', type: 'string', nullable: true),
+                new OA\Property(property: 'last_name', type: 'string'),
+                new OA\Property(property: 'birth_date', type: 'string', format: 'date'),
+                new OA\Property(property: 'gender_id', type: 'integer', nullable: true),
+                new OA\Property(property: 'relationship_id', type: 'integer', nullable: true),
+                new OA\Property(property: 'civil_status_id', type: 'integer', nullable: true),
+                new OA\Property(property: 'vulnerable_group_ids', type: 'array', items: new OA\Items(type: 'integer'), nullable: true),
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: 'Updated successfully')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 404, description: 'Member or Household not found')]
     public function update(Request $request, $householdId, $memberId)
     {
         $request->validate([
@@ -111,6 +175,19 @@ class HouseholdMemberController extends Controller
         });
     }
 
+    #[OA\Delete(
+        path: '/households/{householdId}/members/{memberId}',
+        summary: 'Delete household member',
+        security: [['bearerAuth' => []]],
+        tags: ['Households']
+    )]
+    #[OA\Parameter(name: 'householdId', in: 'path', description: 'Household ID', required: true, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'memberId', in: 'path', description: 'Member ID', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Response(response: 200, description: 'Deleted successfully')]
+    #[OA\Response(response: 400, description: 'Member is currently evacuated')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 404, description: 'Member or Household not found')]
     public function destroy($householdId, $memberId)
     {
         $user = Auth::user();
@@ -142,5 +219,4 @@ class HouseholdMemberController extends Controller
             ]);
         });
     }
-
 }

@@ -175,7 +175,10 @@ class EvacuationService
 
         $activeEvacuatedMembers = EvacuatedMember::whereIn('member_id', $memberIds)
             ->whereHas('evacuationRecord', function ($q) {
-                $q->where('household_status_id', 2);
+                $q->where('household_status_id', 2)
+                  ->whereHas('event', function ($eq) {
+                      $eq->whereNull('ended_at');
+                  });
             })
             ->with(['member', 'evacuationRecord.center'])
             ->get();
@@ -215,6 +218,9 @@ class EvacuationService
         $exists = EvacuationRecord::where('household_id', $householdId)
             ->where('center_id', $centerId)
             ->where('household_status_id', 2)
+            ->whereHas('event', function ($q) {
+                $q->whereNull('ended_at');
+            })
             ->exists();
 
         if ($exists) {

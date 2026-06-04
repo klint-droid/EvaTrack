@@ -5,9 +5,18 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use OpenApi\Attributes as OA;
 
 class AuthController extends Controller
 {
+    #[OA\Get(
+        path: '/user',
+        summary: 'Get current logged in user',
+        security: [['bearerAuth' => []]],
+        tags: ['Authentication']
+    )]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function currentUser(Request $request)
     {
         return response()->json(
@@ -15,6 +24,23 @@ class AuthController extends Controller
         );
     }
 
+    #[OA\Post(
+        path: '/login',
+        summary: 'Log in user',
+        tags: ['Authentication']
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['user_id', 'password'],
+            properties: [
+                new OA\Property(property: 'user_id', type: 'string', example: 'admin'),
+                new OA\Property(property: 'password', type: 'string', format: 'password', example: 'password')
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: 'Login successful')]
+    #[OA\Response(response: 401, description: 'Invalid user ID or password')]
     public function apiLogin(Request $request)
     {
         $request->validate([
@@ -52,6 +78,14 @@ class AuthController extends Controller
         ]);
     }
 
+    #[OA\Post(
+        path: '/logout',
+        summary: 'Log out user',
+        security: [['bearerAuth' => []]],
+        tags: ['Authentication']
+    )]
+    #[OA\Response(response: 200, description: 'Logged out successfully')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function apiLogout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();

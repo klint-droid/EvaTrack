@@ -14,6 +14,7 @@ use App\Models\EvacuatedMember;
 use App\Models\HouseholdMember;
 use App\Models\HouseholdStatus;
 use Illuminate\Support\Facades\DB;
+use OpenApi\Attributes as OA;
 
 class EvacuationController extends Controller
 {
@@ -34,6 +35,17 @@ class EvacuationController extends Controller
         ];
     }
 
+    #[OA\Get(
+        path: '/evacuations',
+        summary: 'List evacuation records',
+        security: [['bearerAuth' => []]],
+        tags: ['Evacuations']
+    )]
+    #[OA\Parameter(name: 'household_status_id', in: 'query', description: 'Filter by household status ID', required: false, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Parameter(name: 'center_id', in: 'query', description: 'Filter by evacuation center ID', required: false, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -80,6 +92,16 @@ class EvacuationController extends Controller
         return response()->json(['message' => 'Unauthorized'], 403);
     }
 
+    #[OA\Get(
+        path: '/evacuations/{id}',
+        summary: 'Get evacuation record details',
+        security: [['bearerAuth' => []]],
+        tags: ['Evacuations']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', description: 'Evacuation record ID', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 404, description: 'Evacuation not found')]
     public function show($id)
     {
         $user = Auth::user();
@@ -103,6 +125,27 @@ class EvacuationController extends Controller
         return response()->json(['data' => $evacuation]);
     }
 
+    #[OA\Post(
+        path: '/evacuations/process-scan',
+        summary: 'Verify admission using QR code scan',
+        security: [['bearerAuth' => []]],
+        tags: ['Evacuations']
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['household_id'],
+            properties: [
+                new OA\Property(property: 'household_id', type: 'string'),
+                new OA\Property(property: 'event_id', type: 'integer', nullable: true),
+                new OA\Property(property: 'member_ids', type: 'array', items: new OA\Items(type: 'integer'), nullable: true),
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: 'Household verified successfully')]
+    #[OA\Response(response: 400, description: 'Invalid request or already evacuated')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
     public function scan(StoreEvacuationRequest $request, EvacuationService $service)
     {
         $user = Auth::user();
@@ -143,6 +186,27 @@ class EvacuationController extends Controller
         }
     }
 
+    #[OA\Post(
+        path: '/evacuations/verify-manual',
+        summary: 'Manually verify household for admission',
+        security: [['bearerAuth' => []]],
+        tags: ['Evacuations']
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['household_id'],
+            properties: [
+                new OA\Property(property: 'household_id', type: 'string'),
+                new OA\Property(property: 'event_id', type: 'integer', nullable: true),
+                new OA\Property(property: 'member_ids', type: 'array', items: new OA\Items(type: 'integer'), nullable: true),
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: 'Household verified successfully')]
+    #[OA\Response(response: 400, description: 'Invalid request or already evacuated')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
     public function verifyManual(Request $request, EvacuationService $service)
     {
         $request->validate([
@@ -194,6 +258,28 @@ class EvacuationController extends Controller
         }
     }
 
+    #[OA\Post(
+        path: '/evacuations/admit',
+        summary: 'Admit household to center',
+        security: [['bearerAuth' => []]],
+        tags: ['Evacuations']
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['household_id'],
+            properties: [
+                new OA\Property(property: 'household_id', type: 'string'),
+                new OA\Property(property: 'member_count', type: 'integer', minimum: 1),
+                new OA\Property(property: 'event_id', type: 'integer', nullable: true),
+                new OA\Property(property: 'member_ids', type: 'array', items: new OA\Items(type: 'integer'), nullable: true),
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: 'Admission complete')]
+    #[OA\Response(response: 400, description: 'Invalid request or already evacuated')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
     public function admit(Request $request, EvacuationService $service)
     {
         $request->validate([
@@ -265,6 +351,16 @@ class EvacuationController extends Controller
         }
     }
 
+    #[OA\Get(
+        path: '/evacuations/active',
+        summary: 'Get active evacuation center record',
+        security: [['bearerAuth' => []]],
+        tags: ['Evacuations']
+    )]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 404, description: 'No active evacuation found')]
     public function active()
     {
         $user = Auth::user();
@@ -286,6 +382,17 @@ class EvacuationController extends Controller
         return response()->json(['data' => $evacuation]);
     }
 
+    #[OA\Delete(
+        path: '/evacuations/{evacuationId}',
+        summary: 'Delete evacuation record',
+        security: [['bearerAuth' => []]],
+        tags: ['Evacuations']
+    )]
+    #[OA\Parameter(name: 'evacuationId', in: 'path', description: 'Evacuation ID', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Response(response: 200, description: 'Deleted successfully')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 404, description: 'Record not found')]
     public function deleteRecord($evacuationId)
     {
         $user = Auth::user();
@@ -311,6 +418,74 @@ class EvacuationController extends Controller
         });
     }
 
+    #[OA\Post(
+        path: '/evacuations/{evacuationId}/checkout',
+        summary: 'Checkout household from evacuation center',
+        security: [['bearerAuth' => []]],
+        tags: ['Evacuations']
+    )]
+    #[OA\Parameter(name: 'evacuationId', in: 'path', description: 'Evacuation ID', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Response(response: 200, description: 'Checked out successfully')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 404, description: 'Record not found')]
+    public function checkout($evacuationId)
+    {
+        $user = Auth::user();
+
+        if (!$user->isSuperAdmin() && !$user->isEvacAdmin() && !$user->isEvacPersonnel()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        return DB::connection('mysql_v2')->transaction(function () use ($evacuationId, $user) {
+            $record = EvacuationRecord::with([
+                'unitAllocation.unit'
+            ])->where('evacuation_id', $evacuationId)
+                ->where('household_status_id', 2)
+                ->firstOrFail();
+
+            if ($user->isEvacPersonnel() && $user->assigned_center_id !== $record->center_id) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            $record->update([
+                'household_status_id' => 6,
+                'updated_at' => now(),
+            ]);
+
+            if ($record->unitAllocation) {
+                $record->unitAllocation->delete();
+            }
+
+            return response()->json([
+                'message' => 'Household checked out successfully.',
+                'data' => $record->fresh($this->recordRelations())
+            ]);
+        });
+    }
+
+    #[OA\Patch(
+        path: '/evacuations/{evacuationId}/members/{memberId}/status',
+        summary: 'Update status of individual household member',
+        security: [['bearerAuth' => []]],
+        tags: ['Evacuations']
+    )]
+    #[OA\Parameter(name: 'evacuationId', in: 'path', description: 'Evacuation ID', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Parameter(name: 'memberId', in: 'path', description: 'Member ID', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'household_status_id', type: 'integer'),
+                new OA\Property(property: 'status', type: 'string', enum: ['evacuated', 'not_verified', 'not_evacuated']),
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: 'Updated successfully')]
+    #[OA\Response(response: 400, description: 'Invalid request or unit full')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 404, description: 'Record or member not found')]
     public function updateMemberStatus(Request $request, $evacuationId, $memberId)
     {
         if ($request->has('status') && !$request->has('household_status_id')) {

@@ -9,6 +9,7 @@ use App\Models\EvacuationCenter;
 use App\Models\UrgencyLevel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use OpenApi\Attributes as OA;
 
 class ResourceRequestController extends Controller
 {
@@ -29,6 +30,21 @@ class ResourceRequestController extends Controller
             'status',
         ];
     }
+
+    #[OA\Get(
+        path: '/resource-requests',
+        summary: 'List resource requests',
+        security: [['bearerAuth' => []]],
+        tags: ['Support Requests']
+    )]
+    #[OA\Parameter(name: 'center_id', in: 'query', description: 'Filter by evacuation center ID', required: false, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Parameter(name: 'status', in: 'query', description: 'Filter by status key (pending, acknowledged, approved, rejected, delivered)', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'urgency_id', in: 'query', description: 'Filter by urgency key (low, medium, high, critical)', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'q', in: 'query', description: 'Search query', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'limit', in: 'query', description: 'Limit number of results', required: false, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -107,6 +123,29 @@ class ResourceRequestController extends Controller
         ]);
     }
 
+    #[OA\Post(
+        path: '/resource-requests',
+        summary: 'Submit a new resource request',
+        security: [['bearerAuth' => []]],
+        tags: ['Support Requests']
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['resource_type', 'quantity', 'urgency_id'],
+            properties: [
+                new OA\Property(property: 'evacuation_center_id', type: 'integer', nullable: true),
+                new OA\Property(property: 'resource_type', type: 'string'),
+                new OA\Property(property: 'quantity', type: 'integer'),
+                new OA\Property(property: 'description', type: 'string', nullable: true),
+                new OA\Property(property: 'urgency_id', type: 'integer'),
+            ]
+        )
+    )]
+    #[OA\Response(response: 201, description: 'Created successfully')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 422, description: 'Validation errors')]
     public function store(Request $request)
     {
         $user = Auth::user();
@@ -180,6 +219,17 @@ class ResourceRequestController extends Controller
         ], 201);
     }
 
+    #[OA\Get(
+        path: '/resource-requests/{id}',
+        summary: 'Get resource request details',
+        security: [['bearerAuth' => []]],
+        tags: ['Support Requests']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', description: 'Request ID', required: true, schema: new OA\Schema(type: 'string'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 404, description: 'Request not found')]
     public function show($id)
     {
         $user = Auth::user();
@@ -209,6 +259,27 @@ class ResourceRequestController extends Controller
         ]);
     }
 
+    #[OA\Patch(
+        path: '/resource-requests/{id}/status',
+        summary: 'Update resource request status',
+        security: [['bearerAuth' => []]],
+        tags: ['Support Requests']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', description: 'Request ID', required: true, schema: new OA\Schema(type: 'string'))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['status'],
+            properties: [
+                new OA\Property(property: 'status', type: 'string', enum: ['pending', 'acknowledged', 'approved', 'rejected', 'delivered']),
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: 'Updated successfully')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 404, description: 'Request not found')]
+    #[OA\Response(response: 422, description: 'Invalid status')]
     public function updateStatus(Request $request, $id)
     {
         $user = Auth::user();
@@ -244,6 +315,18 @@ class ResourceRequestController extends Controller
         ]);
     }
 
+    #[OA\Delete(
+        path: '/resource-requests/{id}',
+        summary: 'Delete resource request',
+        security: [['bearerAuth' => []]],
+        tags: ['Support Requests']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', description: 'Request ID', required: true, schema: new OA\Schema(type: 'string'))]
+    #[OA\Response(response: 200, description: 'Deleted successfully')]
+    #[OA\Response(response: 400, description: 'Only pending requests can be deleted')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 404, description: 'Request not found')]
     public function destroy($id)
     {
         $user = Auth::user();
@@ -279,6 +362,14 @@ class ResourceRequestController extends Controller
         ]);
     }
 
+    #[OA\Get(
+        path: '/urgency-levels',
+        summary: 'Get all urgency levels',
+        security: [['bearerAuth' => []]],
+        tags: ['Support Requests']
+    )]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function urgencyLevels()
     {
         return response()->json([

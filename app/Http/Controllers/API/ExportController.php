@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Carbon\Carbon;
+use OpenApi\Attributes as OA;
 
 class ExportController extends Controller
 {
@@ -18,6 +19,24 @@ class ExportController extends Controller
      * Query params:
      *   - type: 'household' | 'member' (default: 'member')
      */
+    #[OA\Get(
+        path: '/evacuation-centers/{center}/export',
+        summary: 'Export evacuated household data for a given center as CSV',
+        security: [['bearerAuth' => []]],
+        tags: ['Evacuation Centers']
+    )]
+    #[OA\Parameter(name: 'center', in: 'path', description: 'Center ID', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Parameter(name: 'type', in: 'query', description: 'Export granularity type', required: false, schema: new OA\Schema(type: 'string', enum: ['household', 'member'], default: 'member'))]
+    #[OA\Response(
+        response: 200, 
+        description: 'CSV file download response',
+        content: new OA\MediaType(
+            mediaType: 'text/csv'
+        )
+    )]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 404, description: 'Center not found')]
     public function exportCenterHouseholds(Request $request, $centerId)
     {
         $user = Auth::user();
@@ -288,3 +307,4 @@ class ExportController extends Controller
         return preg_replace('/[^A-Za-z0-9_\-]/', '_', str_replace(' ', '_', $name));
     }
 }
+

@@ -12,6 +12,7 @@ use App\Services\EvacuationService;
 use App\Models\EvacuationRecord;
 use App\Models\Address;
 use Illuminate\Support\Facades\DB;
+use OpenApi\Attributes as OA;
 
 class HouseholdController extends Controller
 {
@@ -32,6 +33,19 @@ class HouseholdController extends Controller
         ];
     }
 
+    #[OA\Get(
+        path: '/households',
+        summary: 'List households',
+        security: [['bearerAuth' => []]],
+        tags: ['Households']
+    )]
+    #[OA\Parameter(name: 'page', in: 'query', description: 'Page number', required: false, schema: new OA\Schema(type: 'integer', default: 1))]
+    #[OA\Parameter(name: 'q', in: 'query', description: 'Search query', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'status', in: 'query', description: 'Filter by status (evacuated, not_evacuated)', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'center_id', in: 'query', description: 'Filter by evacuation center ID', required: false, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -94,6 +108,16 @@ class HouseholdController extends Controller
         return response()->json($results);
     }
 
+    #[OA\Get(
+        path: '/households/{id}',
+        summary: 'Get household details',
+        security: [['bearerAuth' => []]],
+        tags: ['Households']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', description: 'Household ID', required: true, schema: new OA\Schema(type: 'string'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 404, description: 'Household not found')]
     public function show($id)
     {
         // Removed personnel check so they can view household details globally
@@ -104,6 +128,26 @@ class HouseholdController extends Controller
         return response()->json(['data' => $household]);
     }
 
+    #[OA\Post(
+        path: '/households',
+        summary: 'Create household',
+        security: [['bearerAuth' => []]],
+        tags: ['Households']
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['household_name'],
+            properties: [
+                new OA\Property(property: 'household_name', type: 'string'),
+                new OA\Property(property: 'contact_number', type: 'string', nullable: true),
+                new OA\Property(property: 'address_id', type: 'integer', nullable: true),
+            ]
+        )
+    )]
+    #[OA\Response(response: 201, description: 'Created successfully')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
     public function store(Request $request, EvacuationService $service)
     {
         $user = Auth::user();
@@ -137,6 +181,32 @@ class HouseholdController extends Controller
         ], 201);
     }
 
+    #[OA\Patch(
+        path: '/households/{id}',
+        summary: 'Update household and address',
+        security: [['bearerAuth' => []]],
+        tags: ['Households']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', description: 'Household ID', required: true, schema: new OA\Schema(type: 'string'))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'household_name', type: 'string'),
+                new OA\Property(property: 'contact_number', type: 'string', nullable: true),
+                new OA\Property(property: 'barangay', type: 'string', nullable: true),
+                new OA\Property(property: 'street', type: 'string', nullable: true),
+                new OA\Property(property: 'purok', type: 'string', nullable: true),
+                new OA\Property(property: 'city', type: 'string', nullable: true),
+                new OA\Property(property: 'province', type: 'string', nullable: true),
+                new OA\Property(property: 'full_address', type: 'string', nullable: true),
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: 'Updated successfully')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 404, description: 'Household not found')]
     public function update(Request $request, $id)
     {
         $user = Auth::user();
@@ -193,6 +263,16 @@ class HouseholdController extends Controller
         });
     }
 
+    #[OA\Get(
+        path: '/households/search',
+        summary: 'Search households',
+        security: [['bearerAuth' => []]],
+        tags: ['Households']
+    )]
+    #[OA\Parameter(name: 'q', in: 'query', description: 'Search query', required: true, schema: new OA\Schema(type: 'string'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 400, description: 'Query required')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function search(Request $request)
     {
         $queryText = $request->input('q');
@@ -212,6 +292,18 @@ class HouseholdController extends Controller
         return response()->json($results);
     }
 
+    #[OA\Delete(
+        path: '/households/{id}',
+        summary: 'Delete household',
+        security: [['bearerAuth' => []]],
+        tags: ['Households']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', description: 'Household ID', required: true, schema: new OA\Schema(type: 'string'))]
+    #[OA\Response(response: 200, description: 'Deleted successfully')]
+    #[OA\Response(response: 400, description: 'Household is currently evacuated')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 404, description: 'Household not found')]
     public function destroy($id)
     {
         $user = Auth::user();

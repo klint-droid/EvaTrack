@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use OpenApi\Attributes as OA;
 
 class AnalyticsExportController extends Controller
 {
@@ -168,6 +169,19 @@ class AnalyticsExportController extends Controller
 
     // ─── 1. DROMIC MASTER LIST ───
 
+    #[OA\Get(
+        path: '/analytics/export/dromic',
+        summary: 'Export DROMIC Master List',
+        security: [['bearerAuth' => []]],
+        tags: ['Analytics']
+    )]
+    #[OA\Parameter(name: 'event_id', in: 'query', description: 'Filter by event ID', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'center_id', in: 'query', description: 'Filter by center ID', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'start_date', in: 'query', description: 'Start date filter', required: false, schema: new OA\Schema(type: 'string', format: 'date'))]
+    #[OA\Parameter(name: 'end_date', in: 'query', description: 'End date filter', required: false, schema: new OA\Schema(type: 'string', format: 'date'))]
+    #[OA\Parameter(name: 'format', in: 'query', description: 'Export format (csv, pdf)', required: false, schema: new OA\Schema(type: 'string', enum: ['csv', 'pdf'], default: 'csv'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function dromicMasterList(Request $request)
     {
         $this->authorize();
@@ -243,6 +257,19 @@ class AnalyticsExportController extends Controller
 
     // ─── 2. DEMOGRAPHIC SUMMARY ───
 
+    #[OA\Get(
+        path: '/analytics/export/demographics',
+        summary: 'Export Demographic Summary',
+        security: [['bearerAuth' => []]],
+        tags: ['Analytics']
+    )]
+    #[OA\Parameter(name: 'event_id', in: 'query', description: 'Filter by event ID', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'center_id', in: 'query', description: 'Filter by center ID', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'start_date', in: 'query', description: 'Start date filter', required: false, schema: new OA\Schema(type: 'string', format: 'date'))]
+    #[OA\Parameter(name: 'end_date', in: 'query', description: 'End date filter', required: false, schema: new OA\Schema(type: 'string', format: 'date'))]
+    #[OA\Parameter(name: 'format', in: 'query', description: 'Export format (csv, pdf)', required: false, schema: new OA\Schema(type: 'string', enum: ['csv', 'pdf'], default: 'csv'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function demographicSummary(Request $request)
     {
         $this->authorize();
@@ -308,6 +335,19 @@ class AnalyticsExportController extends Controller
 
     // ─── 3. CENTER UTILIZATION ───
 
+    #[OA\Get(
+        path: '/analytics/export/utilization',
+        summary: 'Export Center Utilization Summary',
+        security: [['bearerAuth' => []]],
+        tags: ['Analytics']
+    )]
+    #[OA\Parameter(name: 'event_id', in: 'query', description: 'Filter by event ID', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'center_id', in: 'query', description: 'Filter by center ID', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'start_date', in: 'query', description: 'Start date filter', required: false, schema: new OA\Schema(type: 'string', format: 'date'))]
+    #[OA\Parameter(name: 'end_date', in: 'query', description: 'End date filter', required: false, schema: new OA\Schema(type: 'string', format: 'date'))]
+    #[OA\Parameter(name: 'format', in: 'query', description: 'Export format (csv, pdf)', required: false, schema: new OA\Schema(type: 'string', enum: ['csv', 'pdf'], default: 'csv'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function centerUtilization(Request $request)
     {
         $this->authorize();
@@ -351,6 +391,19 @@ class AnalyticsExportController extends Controller
 
     // ─── 4. VULNERABLE GROUPS CARE LIST ───
 
+    #[OA\Get(
+        path: '/analytics/export/vulnerable',
+        summary: 'Export Vulnerable Groups Care List',
+        security: [['bearerAuth' => []]],
+        tags: ['Analytics']
+    )]
+    #[OA\Parameter(name: 'event_id', in: 'query', description: 'Filter by event ID', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'center_id', in: 'query', description: 'Filter by center ID', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'start_date', in: 'query', description: 'Start date filter', required: false, schema: new OA\Schema(type: 'string', format: 'date'))]
+    #[OA\Parameter(name: 'end_date', in: 'query', description: 'End date filter', required: false, schema: new OA\Schema(type: 'string', format: 'date'))]
+    #[OA\Parameter(name: 'format', in: 'query', description: 'Export format (csv, pdf)', required: false, schema: new OA\Schema(type: 'string', enum: ['csv', 'pdf'], default: 'csv'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function vulnerableGroups(Request $request)
     {
         $this->authorize();
@@ -405,6 +458,18 @@ class AnalyticsExportController extends Controller
 
     // ─── 5. RESOURCE REQUESTS ───
 
+    #[OA\Get(
+        path: '/analytics/export/resources',
+        summary: 'Export Resource Requests Summary',
+        security: [['bearerAuth' => []]],
+        tags: ['Analytics']
+    )]
+    #[OA\Parameter(name: 'center_id', in: 'query', description: 'Filter by center ID', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'start_date', in: 'query', description: 'Start date filter', required: false, schema: new OA\Schema(type: 'string', format: 'date'))]
+    #[OA\Parameter(name: 'end_date', in: 'query', description: 'End date filter', required: false, schema: new OA\Schema(type: 'string', format: 'date'))]
+    #[OA\Parameter(name: 'format', in: 'query', description: 'Export format (csv, pdf)', required: false, schema: new OA\Schema(type: 'string', enum: ['csv', 'pdf'], default: 'csv'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function resourceRequests(Request $request)
     {
         $this->authorize();
@@ -452,6 +517,18 @@ class AnalyticsExportController extends Controller
 
     // ─── 6. CENTER ISSUES ───
 
+    #[OA\Get(
+        path: '/analytics/export/issues',
+        summary: 'Export Center Issues Summary',
+        security: [['bearerAuth' => []]],
+        tags: ['Analytics']
+    )]
+    #[OA\Parameter(name: 'center_id', in: 'query', description: 'Filter by center ID', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'start_date', in: 'query', description: 'Start date filter', required: false, schema: new OA\Schema(type: 'string', format: 'date'))]
+    #[OA\Parameter(name: 'end_date', in: 'query', description: 'End date filter', required: false, schema: new OA\Schema(type: 'string', format: 'date'))]
+    #[OA\Parameter(name: 'format', in: 'query', description: 'Export format (csv, pdf)', required: false, schema: new OA\Schema(type: 'string', enum: ['csv', 'pdf'], default: 'csv'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function centerIssues(Request $request)
     {
         $this->authorize();
@@ -499,6 +576,24 @@ class AnalyticsExportController extends Controller
 
     // ─── 7. DAILY INTAKE TRENDS (CSV only) ───
 
+    #[OA\Get(
+        path: '/analytics/export/daily-intake',
+        summary: 'Export Daily Intake Trends (CSV only)',
+        security: [['bearerAuth' => []]],
+        tags: ['Analytics']
+    )]
+    #[OA\Parameter(name: 'event_id', in: 'query', description: 'Filter by event ID', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'center_id', in: 'query', description: 'Filter by center ID', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'start_date', in: 'query', description: 'Start date filter', required: false, schema: new OA\Schema(type: 'string', format: 'date'))]
+    #[OA\Parameter(name: 'end_date', in: 'query', description: 'End date filter', required: false, schema: new OA\Schema(type: 'string', format: 'date'))]
+    #[OA\Response(
+        response: 200, 
+        description: 'CSV file download response',
+        content: new OA\MediaType(
+            mediaType: 'text/csv'
+        )
+    )]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function dailyIntake(Request $request)
     {
         $this->authorize();
@@ -529,3 +624,4 @@ class AnalyticsExportController extends Controller
         return $this->streamCsv($fileName, $headers, $rows);
     }
 }
+

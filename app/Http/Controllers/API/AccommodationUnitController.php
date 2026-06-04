@@ -10,10 +10,20 @@ use App\Models\UnitAllocation;
 use App\Http\Requests\StoreAccommodationUnitRequest;
 use App\Http\Requests\UpdateAccommodationUnitRequest;
 use Illuminate\Support\Facades\Auth;
+use OpenApi\Attributes as OA;
 
 class AccommodationUnitController extends Controller
 {
-    // Get all units for a center
+    #[OA\Get(
+        path: '/centers/{centerId}/units',
+        summary: 'Get all accommodation units for a center',
+        security: [['bearerAuth' => []]],
+        tags: ['Accommodation Units']
+    )]
+    #[OA\Parameter(name: 'centerId', in: 'path', description: 'Center ID', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 404, description: 'Center not found')]
     public function index($centerId)
     {
         $units = AccommodationUnit::where('center_id', $centerId)
@@ -31,7 +41,14 @@ class AccommodationUnitController extends Controller
         return response()->json(['data' => $units]);
     }
 
-    // Get all accommodation types
+    #[OA\Get(
+        path: '/accommodation-types',
+        summary: 'Get all accommodation types',
+        security: [['bearerAuth' => []]],
+        tags: ['Accommodation Units']
+    )]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function types()
     {
         return response()->json([
@@ -39,7 +56,28 @@ class AccommodationUnitController extends Controller
         ]);
     }
 
-    // Create a unit for a center
+    #[OA\Post(
+        path: '/centers/{centerId}/units',
+        summary: 'Create accommodation unit for center',
+        security: [['bearerAuth' => []]],
+        tags: ['Accommodation Units']
+    )]
+    #[OA\Parameter(name: 'centerId', in: 'path', description: 'Center ID', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['name', 'type_id', 'max_capacity'],
+            properties: [
+                new OA\Property(property: 'name', type: 'string'),
+                new OA\Property(property: 'type_id', type: 'integer'),
+                new OA\Property(property: 'max_capacity', type: 'integer'),
+            ]
+        )
+    )]
+    #[OA\Response(response: 201, description: 'Created successfully')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 422, description: 'Capacity limit exceeded')]
     public function store(StoreAccommodationUnitRequest $request, $centerId)
     {
         $user = Auth::user();
@@ -81,6 +119,29 @@ class AccommodationUnitController extends Controller
         ], 201);
     }
 
+    #[OA\Patch(
+        path: '/centers/{centerId}/units/{unitId}',
+        summary: 'Update accommodation unit details',
+        security: [['bearerAuth' => []]],
+        tags: ['Accommodation Units']
+    )]
+    #[OA\Parameter(name: 'centerId', in: 'path', description: 'Center ID', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Parameter(name: 'unitId', in: 'path', description: 'Unit ID', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'name', type: 'string'),
+                new OA\Property(property: 'type_id', type: 'integer'),
+                new OA\Property(property: 'max_capacity', type: 'integer'),
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: 'Updated successfully')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 404, description: 'Unit or Center not found')]
+    #[OA\Response(response: 422, description: 'Capacity limit exceeded')]
     public function update(UpdateAccommodationUnitRequest $request, $centerId, $unitId)
     {
         $user = Auth::user();
@@ -122,6 +183,19 @@ class AccommodationUnitController extends Controller
         ]);
     }
 
+    #[OA\Delete(
+        path: '/centers/{centerId}/units/{unitId}',
+        summary: 'Delete accommodation unit',
+        security: [['bearerAuth' => []]],
+        tags: ['Accommodation Units']
+    )]
+    #[OA\Parameter(name: 'centerId', in: 'path', description: 'Center ID', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Parameter(name: 'unitId', in: 'path', description: 'Unit ID', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Response(response: 200, description: 'Deleted successfully')]
+    #[OA\Response(response: 400, description: 'Unit has current occupants')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 404, description: 'Unit not found')]
     public function destroy($centerId, $unitId)
     {
         $user = Auth::user();

@@ -8,9 +8,19 @@ use App\Models\Gender;
 use App\Models\Relationship;
 use App\Models\CivilStatus;
 use App\Models\VulnerableGroup;
+use OpenApi\Attributes as OA;
 
 class LookupController extends Controller
 {
+    #[OA\Get(
+        path: '/lookups',
+        summary: 'Get system lookups',
+        description: 'Returns list of genders, relationships, civil statuses, and vulnerable groups.',
+        security: [['bearerAuth' => []]],
+        tags: ['Lookups']
+    )]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function index()
     {
         return response()->json([
@@ -24,3 +34,4 @@ class LookupController extends Controller
         ]);
     }
 }
+

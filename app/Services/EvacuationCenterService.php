@@ -17,14 +17,18 @@ class EvacuationCenterService
                     (
                         SELECT COUNT(*)
                         FROM evacuation_records
+                        JOIN disaster_events ON evacuation_records.event_id = disaster_events.event_id
                         WHERE evacuation_records.center_id = evacuation_centers.evacuation_center_id
                           AND evacuation_records.household_status_id = 2
+                          AND disaster_events.ended_at IS NULL
                     ) as household_count,
                     (
                         SELECT COALESCE(SUM(evacuation_records.evacuated_count), 0)
                         FROM evacuation_records
+                        JOIN disaster_events ON evacuation_records.event_id = disaster_events.event_id
                         WHERE evacuation_records.center_id = evacuation_centers.evacuation_center_id
                           AND evacuation_records.household_status_id = 2
+                          AND disaster_events.ended_at IS NULL
                     ) as current_occupancy
                 ")
                 ->get();
@@ -67,6 +71,9 @@ class EvacuationCenterService
     {
         $current = EvacuationRecord::where('center_id', $center->evacuation_center_id)
             ->where('household_status_id', 2)
+            ->whereHas('event', function ($q) {
+                $q->whereNull('ended_at');
+            })
             ->count();
 
         return [

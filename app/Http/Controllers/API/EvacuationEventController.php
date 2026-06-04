@@ -10,10 +10,20 @@ use App\Models\EvacuationCenter;
 use App\Models\DisasterEvent;
 use App\Models\DisasterType;
 use App\Models\SeverityLevel;
+use App\Models\EvacuationRecord;
+use Illuminate\Support\Facades\DB;
+use OpenApi\Attributes as OA;
 
 class EvacuationEventController extends Controller
 {
-    // List all events
+    #[OA\Get(
+        path: '/events',
+        summary: 'List all disaster events',
+        security: [['bearerAuth' => []]],
+        tags: ['Disaster Events']
+    )]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function index()
     {
         return response()->json([
@@ -23,7 +33,15 @@ class EvacuationEventController extends Controller
         ]);
     }
 
-    // Get active event (no ended_at yet)
+    #[OA\Get(
+        path: '/events/active',
+        summary: 'Get active disaster event',
+        security: [['bearerAuth' => []]],
+        tags: ['Disaster Events']
+    )]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 404, description: 'No active event')]
     public function active()
     {
         $event = DisasterEvent::with(['primaryType', 'types', 'evacuationCenters'])
@@ -38,7 +56,25 @@ class EvacuationEventController extends Controller
         return response()->json(['data' => $event]);
     }
 
-    // Create a new event
+    #[OA\Post(
+        path: '/events',
+        summary: 'Create a new disaster event',
+        security: [['bearerAuth' => []]],
+        tags: ['Disaster Events']
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['name', 'type_id', 'severity_id'],
+            properties: [
+                new OA\Property(property: 'name', type: 'string'),
+                new OA\Property(property: 'type_id', type: 'integer'),
+                new OA\Property(property: 'severity_id', type: 'integer'),
+            ]
+        )
+    )]
+    #[OA\Response(response: 201, description: 'Created successfully')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function store(Request $request)
     {
         $request->validate([
@@ -78,7 +114,18 @@ class EvacuationEventController extends Controller
         ], 201);
     }
 
-    // End/close an event
+    #[OA\Patch(
+        path: '/events/{id}/end',
+        summary: 'End a disaster event',
+        description: 'Marks event as ended, unassigns centers, and checkouts active evacuations.',
+        security: [['bearerAuth' => []]],
+        tags: ['Disaster Events']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', description: 'Event ID', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 400, description: 'Event already ended')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 404, description: 'Event not found')]
     public function end($id)
     {
         $event = DisasterEvent::where('event_id', $id)->firstOrFail();
@@ -87,16 +134,45 @@ class EvacuationEventController extends Controller
             return response()->json(['message' => 'Event already ended'], 400);
         }
 
-        EvacuationCenter::where('current_event_id', $id)->update(['current_event_id' => null]);
+        return DB::connection('mysql_v2')->transaction(function () use ($event, $id) {
+            EvacuationCenter::where('current_event_id', $id)->update(['current_event_id' => null]);
 
-        $event->update(['ended_at' => now()]);
+            EvacuationRecord::where('event_id', $id)
+                ->where('household_status_id', 2)
+                ->update([
+                    'household_status_id' => 6,
+                    'updated_at' => now()
+                ]);
 
-        return response()->json([
-            'message' => 'Event ended successfully',
-            'data'    => $event
-        ]);
+            $event->update(['ended_at' => now()]);
+
+            return response()->json([
+                'message' => 'Event ended and associated active evacuations checked out successfully.',
+                'data'    => $event
+            ]);
+        });
     }
 
+    #[OA\Patch(
+        path: '/events/{id}/assign-centers',
+        summary: 'Assign evacuation centers to a disaster event',
+        security: [['bearerAuth' => []]],
+        tags: ['Disaster Events']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', description: 'Event ID', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['center_id'],
+            properties: [
+                new OA\Property(property: 'center_id', type: 'array', items: new OA\Items(type: 'integer')),
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 400, description: 'Event already ended')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 404, description: 'Event not found')]
     public function assignCenters(Request $request, $id){
         $request->validate([
             'center_id' => 'required|array',
@@ -120,7 +196,17 @@ class EvacuationEventController extends Controller
         ]);
     }
 
-    public function unassignCenters($centerId){
+    #[OA\Patch(
+        path: '/centers/{centerId}/unassign',
+        summary: 'Unassign center from event',
+        security: [['bearerAuth' => []]],
+        tags: ['Disaster Events']
+    )]
+    #[OA\Parameter(name: 'centerId', in: 'path', description: 'Center ID', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 404, description: 'Center not found')]
+    public function unassignCenter($centerId){
         $center = EvacuationCenter::where('evacuation_center_id', $centerId)->firstOrFail();
 
         $center->update([

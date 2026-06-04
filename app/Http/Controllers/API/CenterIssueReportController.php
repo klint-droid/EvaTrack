@@ -9,9 +9,25 @@ use App\Models\CenterIssueCategory;
 use App\Models\SeverityLevel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use OpenApi\Attributes as OA;
 
 class CenterIssueReportController extends Controller
 {
+    #[OA\Get(
+        path: '/center-issue-reports',
+        summary: 'List center issue reports',
+        security: [['bearerAuth' => []]],
+        tags: ['Support Requests']
+    )]
+    #[OA\Parameter(name: 'center_id', in: 'query', description: 'Filter by evacuation center ID', required: false, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Parameter(name: 'category', in: 'query', description: 'Filter by category key (incident, facility_issue, health_issue, safety_issue, other)', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'severity', in: 'query', description: 'Filter by severity key (low, medium, high, critical)', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'status', in: 'query', description: 'Filter by status key (open, in_progress, resolved, closed)', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'q', in: 'query', description: 'Search query', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'limit', in: 'query', description: 'Limit number of results', required: false, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -102,6 +118,29 @@ class CenterIssueReportController extends Controller
         ]);
     }
 
+    #[OA\Post(
+        path: '/center-issue-reports',
+        summary: 'Submit a new center issue report',
+        security: [['bearerAuth' => []]],
+        tags: ['Support Requests']
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['category', 'title', 'description', 'severity'],
+            properties: [
+                new OA\Property(property: 'evacuation_center_id', type: 'integer', nullable: true),
+                new OA\Property(property: 'category', type: 'string', enum: ['incident', 'facility_issue', 'health_issue', 'safety_issue', 'other']),
+                new OA\Property(property: 'title', type: 'string'),
+                new OA\Property(property: 'description', type: 'string'),
+                new OA\Property(property: 'severity', type: 'string', enum: ['low', 'medium', 'high', 'critical']),
+            ]
+        )
+    )]
+    #[OA\Response(response: 201, description: 'Created successfully')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 422, description: 'Validation errors')]
     public function store(Request $request)
     {
         $user = Auth::user();
@@ -171,6 +210,17 @@ class CenterIssueReportController extends Controller
         ], 201);
     }
 
+    #[OA\Get(
+        path: '/center-issue-reports/{id}',
+        summary: 'Get center issue report details',
+        security: [['bearerAuth' => []]],
+        tags: ['Support Requests']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', description: 'Report ID', required: true, schema: new OA\Schema(type: 'string'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 404, description: 'Report not found')]
     public function show($id)
     {
         $user = Auth::user();
@@ -207,6 +257,29 @@ class CenterIssueReportController extends Controller
         ]);
     }
 
+    #[OA\Patch(
+        path: '/center-issue-reports/{id}',
+        summary: 'Update center issue report details',
+        security: [['bearerAuth' => []]],
+        tags: ['Support Requests']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', description: 'Report ID', required: true, schema: new OA\Schema(type: 'string'))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'category', type: 'string', enum: ['incident', 'facility_issue', 'health_issue', 'safety_issue', 'other']),
+                new OA\Property(property: 'title', type: 'string'),
+                new OA\Property(property: 'description', type: 'string'),
+                new OA\Property(property: 'severity', type: 'string', enum: ['low', 'medium', 'high', 'critical']),
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: 'Updated successfully')]
+    #[OA\Response(response: 400, description: 'Only open reports can be edited')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 404, description: 'Report not found')]
     public function update(Request $request, $id)
     {
         $user = Auth::user();
@@ -278,6 +351,26 @@ class CenterIssueReportController extends Controller
         ]);
     }
 
+    #[OA\Patch(
+        path: '/center-issue-reports/{id}/status',
+        summary: 'Update status of center issue report',
+        security: [['bearerAuth' => []]],
+        tags: ['Support Requests']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', description: 'Report ID', required: true, schema: new OA\Schema(type: 'string'))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['status'],
+            properties: [
+                new OA\Property(property: 'status', type: 'string', enum: ['open', 'in_progress', 'resolved', 'closed']),
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: 'Updated successfully')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 404, description: 'Report not found')]
     public function updateStatus(Request $request, $id)
     {
         $user = Auth::user();
@@ -314,6 +407,18 @@ class CenterIssueReportController extends Controller
         ]);
     }
 
+    #[OA\Delete(
+        path: '/center-issue-reports/{id}',
+        summary: 'Delete center issue report',
+        security: [['bearerAuth' => []]],
+        tags: ['Support Requests']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', description: 'Report ID', required: true, schema: new OA\Schema(type: 'string'))]
+    #[OA\Response(response: 200, description: 'Deleted successfully')]
+    #[OA\Response(response: 400, description: 'Only open reports can be deleted')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
+    #[OA\Response(response: 404, description: 'Report not found')]
     public function destroy($id)
     {
         $user = Auth::user();

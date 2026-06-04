@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use OpenApi\Attributes as OA;
 
 class UserController extends Controller
 {
@@ -30,6 +31,17 @@ class UserController extends Controller
     /**
      * LIST USERS
      */
+    #[OA\Get(
+        path: '/users',
+        summary: 'List users',
+        security: [['bearerAuth' => []]],
+        tags: ['Users']
+    )]
+    #[OA\Parameter(name: 'q', in: 'query', description: 'Search term for name/contact', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Parameter(name: 'role', in: 'query', description: 'Filter by role', required: false, schema: new OA\Schema(type: 'string'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
     public function index(Request $request)
     {
         $authUser = Auth::user();
@@ -71,6 +83,28 @@ class UserController extends Controller
     /**
      * CREATE USER
      */
+    #[OA\Post(
+        path: '/users',
+        summary: 'Create user',
+        security: [['bearerAuth' => []]],
+        tags: ['Users']
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['first_name', 'last_name', 'password', 'contact_number'],
+            properties: [
+                new OA\Property(property: 'first_name', type: 'string'),
+                new OA\Property(property: 'last_name', type: 'string'),
+                new OA\Property(property: 'password', type: 'string', format: 'password'),
+                new OA\Property(property: 'role', type: 'string', enum: ['evac_personnel', 'evac_admin', 'super_admin']),
+                new OA\Property(property: 'contact_number', type: 'string')
+            ]
+        )
+    )]
+    #[OA\Response(response: 201, description: 'Created successfully')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
     public function createUser(Request $request)
     {
         $request->validate([
@@ -115,6 +149,27 @@ class UserController extends Controller
     /**
      * UPDATE USER
      */
+    #[OA\Put(
+        path: '/users/{id}',
+        summary: 'Update user',
+        security: [['bearerAuth' => []]],
+        tags: ['Users']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'first_name', type: 'string'),
+                new OA\Property(property: 'last_name', type: 'string'),
+                new OA\Property(property: 'role', type: 'string', enum: ['evac_personnel', 'evac_admin', 'super_admin']),
+                new OA\Property(property: 'contact_number', type: 'string')
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: 'Updated successfully')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
     public function updateUser(Request $request, $id)
     {
         $user = User::with('role')->findOrFail($id);
@@ -182,6 +237,16 @@ class UserController extends Controller
     /**
      * DELETE USER
      */
+    #[OA\Delete(
+        path: '/users/{id}',
+        summary: 'Delete user',
+        security: [['bearerAuth' => []]],
+        tags: ['Users']
+    )]
+    #[OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Response(response: 200, description: 'Deleted successfully')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
     public function deleteUser($id)
     {
         $user = User::with('role')->findOrFail($id);
@@ -222,6 +287,24 @@ class UserController extends Controller
     /**
      * ASSIGN CENTER
      */
+    #[OA\Post(
+        path: '/users/{user}/assign-center',
+        summary: 'Assign evacuation center to user',
+        security: [['bearerAuth' => []]],
+        tags: ['Users']
+    )]
+    #[OA\Parameter(name: 'user', in: 'path', description: 'User ID', required: true, schema: new OA\Schema(type: 'integer'))]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'assigned_center_id', type: 'integer', nullable: true)
+            ]
+        )
+    )]
+    #[OA\Response(response: 200, description: 'Assigned successfully')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    #[OA\Response(response: 403, description: 'Forbidden')]
     public function assignCenter(Request $request, $user_id)
     {
         $request->validate([
