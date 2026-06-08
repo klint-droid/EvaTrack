@@ -31,6 +31,7 @@ class EvacuationCenterService
                           AND disaster_events.ended_at IS NULL
                     ) as current_occupancy
                 ")
+                ->with('currentEvent')
                 ->get();
         });
     }

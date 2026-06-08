@@ -63,6 +63,10 @@ class EvacuationController extends Controller
             $query->where('household_status_id', $request->household_status_id);
         }
 
+        if ($request->filled('event_id')) {
+            $query->where('event_id', $request->event_id);
+        }
+
         if ($user->isSuperAdmin() || $user->isEvacAdmin()) {
             if ($request->filled('center_id')) {
                 $query->where('center_id', $request->center_id);

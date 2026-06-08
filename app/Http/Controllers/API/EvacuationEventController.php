@@ -136,6 +136,7 @@ class EvacuationEventController extends Controller
 
         return DB::connection('mysql_v2')->transaction(function () use ($event, $id) {
             EvacuationCenter::where('current_event_id', $id)->update(['current_event_id' => null]);
+            \Illuminate\Support\Facades\Cache::forget('all_centers_occupancy');
 
             EvacuationRecord::where('event_id', $id)
                 ->where('household_status_id', 2)
@@ -189,6 +190,7 @@ class EvacuationEventController extends Controller
             ->update([
                 'current_event_id' => $id
             ]);
+        \Illuminate\Support\Facades\Cache::forget('all_centers_occupancy');
 
         return response()->json([
             'message' => 'Centers assigned successfully',
@@ -212,6 +214,7 @@ class EvacuationEventController extends Controller
         $center->update([
             'current_event_id' => null
         ]);
+        \Illuminate\Support\Facades\Cache::forget('all_centers_occupancy');
 
         return response()->json([
             'message' => 'Center unassigned successfully',

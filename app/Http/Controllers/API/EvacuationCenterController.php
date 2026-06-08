@@ -80,7 +80,7 @@ class EvacuationCenterController extends Controller
     public function show(EvacuationCenter $center)
     {
         return response()->json([
-            'data' => $center
+            'data' => $center->load('currentEvent')
         ]);
     }
 
