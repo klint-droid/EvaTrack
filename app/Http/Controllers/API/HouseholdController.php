@@ -60,11 +60,12 @@ class HouseholdController extends Controller
         $search = $request->query('q', '');
         $status = $request->query('status', '');
         $centerId = $request->query('center_id', '');
+        $eventId = $request->query('event_id', '');
         $assignedCenterId = $user->isEvacPersonnel() ? $user->assigned_center_id : 'all';
 
-        $cacheKey = "households_list_c{$assignedCenterId}_p{$page}_q" . md5($search) . "_s{$status}_ci{$centerId}";
+        $cacheKey = "households_list_c{$assignedCenterId}_p{$page}_q" . md5($search) . "_s{$status}_ci{$centerId}_ev{$eventId}";
 
-        $results = Cache::tags(['households'])->remember($cacheKey, 300, function () use ($user, $evacuatedStatusId, $search, $status, $centerId) {
+        $results = Cache::tags(['households'])->remember($cacheKey, 300, function () use ($user, $evacuatedStatusId, $search, $status, $centerId, $eventId) {
             $query = Household::withCount('members')->with([
                 'address',
                 'currentEvacuation.center',
@@ -81,25 +82,55 @@ class HouseholdController extends Controller
                 });
             }
 
-            if (!empty($status)) {
+            if (!empty($eventId)) {
                 if ($status === 'evacuated') {
-                    $query->whereHas('currentEvacuation', function ($q) use ($evacuatedStatusId) {
-                        $q->where('household_status_id', $evacuatedStatusId); 
+                    $query->whereHas('evacuations', function ($q) use ($eventId, $evacuatedStatusId) {
+                        $q->where('event_id', $eventId)->where('household_status_id', $evacuatedStatusId);
+                    });
+                } elseif ($status === 'not_evacuated') {
+                    $query->whereDoesntHave('evacuations', function ($q) use ($eventId, $evacuatedStatusId) {
+                        $q->where('event_id', $eventId)->where('household_status_id', $evacuatedStatusId);
+                    });
+                } else {
+                    $query->whereHas('evacuations', function ($q) use ($eventId) {
+                        $q->where('event_id', $eventId);
                     });
                 }
 
-                if ($status === 'not_evacuated') {
-                    $query->whereDoesntHave('currentEvacuation', function ($q) use ($evacuatedStatusId) {
-                        $q->where('household_status_id', $evacuatedStatusId); 
+                if (!empty($centerId)) {
+                    $query->whereHas('evacuations', function ($q) use ($centerId, $eventId) {
+                        $q->where('center_id', $centerId)->where('event_id', $eventId);
                     });
                 }
-            }
 
-            if (!empty($centerId)) {
-                $query->whereHas('currentEvacuation', function ($q) use ($centerId, $evacuatedStatusId) {
-                    $q->where('center_id', $centerId)
-                        ->where('household_status_id', $evacuatedStatusId); 
-                });
+                $query->with([
+                    'currentEvacuation' => function ($q) use ($eventId) {
+                        $q->where('event_id', $eventId);
+                    },
+                    'currentEvacuation.center',
+                    'currentEvacuation.unitAllocation.unit',
+                ]);
+            } else {
+                if (!empty($status)) {
+                    if ($status === 'evacuated') {
+                        $query->whereHas('currentEvacuation', function ($q) use ($evacuatedStatusId) {
+                            $q->where('household_status_id', $evacuatedStatusId); 
+                        });
+                    }
+
+                    if ($status === 'not_evacuated') {
+                        $query->whereDoesntHave('currentEvacuation', function ($q) use ($evacuatedStatusId) {
+                            $q->where('household_status_id', $evacuatedStatusId); 
+                        });
+                    }
+                }
+
+                if (!empty($centerId)) {
+                    $query->whereHas('currentEvacuation', function ($q) use ($centerId, $evacuatedStatusId) {
+                        $q->where('center_id', $centerId)
+                            ->where('household_status_id', $evacuatedStatusId); 
+                    });
+                }
             }
 
             return $query->paginate(15);
