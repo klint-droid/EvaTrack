@@ -48,12 +48,17 @@ class UserController extends Controller
 
         $query = User::with('role');
 
-        //  evac_admin cannot see super_admin
+        // Since the database is shared, limit queries to only the app's relevant roles
+        $allowedRoles = ['evac_personnel', 'evac_admin', 'super_admin'];
+
         if ($authUser->isEvacAdmin()) {
-            $query->whereHas('role', function ($q) {
-                $q->where('role_key', '!=', 'super_admin');
-            });
+            // evac_admin cannot see super_admin
+            $allowedRoles = ['evac_personnel', 'evac_admin'];
         }
+
+        $query->whereHas('role', function ($q) use ($allowedRoles) {
+            $q->whereIn('role_key', $allowedRoles);
+        });
 
         if ($request->filled('q')) {
             $q = $request->input('q');
