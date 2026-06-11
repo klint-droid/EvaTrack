@@ -340,4 +340,56 @@ class UserController extends Controller
             'data' => $this->formatUser($user)
         ]);
     }
+
+    /**
+     * UPDATE SELF PROFILE
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'contact_number' => 'required|string|unique:users,contact_number,' . $user->user_id . ',user_id',
+        ]);
+
+        $user->update([
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'contact_number' => $request->contact_number,
+        ]);
+
+        return response()->json([
+            'message' => 'Profile updated successfully',
+            'user' => $this->formatUser($user)
+        ]);
+    }
+
+    /**
+     * UPDATE SELF PASSWORD
+     */
+    public function updatePassword(Request $request)
+    {
+        $user = Auth::user();
+
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json([
+                'message' => 'The provided current password does not match your record.'
+            ], 422);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->new_password)
+        ]);
+
+        return response()->json([
+            'message' => 'Password updated successfully'
+        ]);
+    }
 }

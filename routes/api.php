@@ -35,6 +35,8 @@ Route::post('/login', [AuthController::class, 'apiLogin']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'apiLogout']);
     Route::get('/user', [AuthController::class, 'currentUser']);
+    Route::put('/user/profile', [UserController::class, 'updateProfile']);
+    Route::put('/user/password', [UserController::class, 'updatePassword']);
 });
 
 /*

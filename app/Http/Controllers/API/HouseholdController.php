@@ -72,8 +72,6 @@ class HouseholdController extends Controller
                 'currentEvacuation.unitAllocation.unit',
             ]);
 
-            // Removed personnel siliog so personnel can see all households system-wide
-
             if (!empty($search)) {
                 $query->where(function ($builder) use ($search) {
                     $builder->where('household_name', 'LIKE', "%{$search}%")
@@ -90,10 +88,6 @@ class HouseholdController extends Controller
                 } elseif ($status === 'not_evacuated') {
                     $query->whereDoesntHave('evacuations', function ($q) use ($eventId, $evacuatedStatusId) {
                         $q->where('event_id', $eventId)->where('household_status_id', $evacuatedStatusId);
-                    });
-                } else {
-                    $query->whereHas('evacuations', function ($q) use ($eventId) {
-                        $q->where('event_id', $eventId);
                     });
                 }
 
