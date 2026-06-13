@@ -72,12 +72,17 @@ class NotificationController extends Controller
     )]
     #[OA\Response(response: 200, description: 'Success')]
     #[OA\Response(response: 401, description: 'Unauthenticated')]
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $notifications = Notification::with(['sender', 'urgencyLevel'])
+        $query = Notification::with(['sender', 'urgencyLevel', 'event'])
             ->withCount('recipients')
-            ->orderByDesc('created_at')
-            ->paginate(20);
+            ->orderByDesc('created_at');
+
+        if ($request->filled('event_id')) {
+            $query->where('evacuation_event_id', $request->input('event_id'));
+        }
+
+        $notifications = $query->paginate(20);
 
         return response()->json($notifications);
     }
