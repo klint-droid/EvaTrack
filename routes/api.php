@@ -230,6 +230,7 @@ Route::get('/disaster-types', [DisasterTypeController::class, 'index']);
 Route::get('/severity-levels', [SeverityLevelController::class, 'index']);
 
 Route::get('/public/evacuation-centers', [EvacuationCenterController::class, 'publicIndex']);
+Route::get('/public/events/active', [EvacuationEventController::class, 'activePublic']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/analytics/dashboard', [AnalyticsController::class, 'dashboard']);

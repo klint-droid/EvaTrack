@@ -56,6 +56,16 @@ class EvacuationEventController extends Controller
         return response()->json(['data' => $event]);
     }
 
+    public function activePublic()
+    {
+        $events = DisasterEvent::with(['primaryType', 'severity', 'types', 'evacuationCenters'])
+            ->whereNull('ended_at')
+            ->latest('started_at')
+            ->get();
+
+        return response()->json(['data' => $events]);
+    }
+
     #[OA\Post(
         path: '/events',
         summary: 'Create a new disaster event',
