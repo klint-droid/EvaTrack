@@ -76,6 +76,9 @@ class Household extends Model
     public function currentEvacuation(){
         return $this->hasOne(EvacuationRecord::class, 'household_id')
             ->where('household_status_id', 2)
+            ->whereHas('event', function ($query) {
+                $query->whereNull('ended_at');
+            })
             ->latest();
     }
 

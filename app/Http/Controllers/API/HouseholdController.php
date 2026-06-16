@@ -20,6 +20,8 @@ class HouseholdController extends Controller
     {
         return [
             'members',
+            'members.evacuatedMembers.evacuationRecord.center',
+            'members.evacuatedMembers.evacuationRecord.event',
             'members.gender',
             'members.relationship',
             'members.civilStatus',
@@ -69,6 +71,7 @@ class HouseholdController extends Controller
             $query = Household::withCount('members')->with([
                 'address',
                 'currentEvacuation.center',
+                'currentEvacuation.event',
                 'currentEvacuation.unitAllocation.unit',
             ]);
 
