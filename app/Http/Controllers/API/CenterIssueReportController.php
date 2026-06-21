@@ -397,7 +397,7 @@ class CenterIssueReportController extends Controller
         return response()->json([
             'message' => 'Center issue report status updated successfully.',
             'data' => $this->formatReport($report->fresh([
-                'center.address',
+                'center',
                 'reporter',
                 'handler',
                 'category',
