@@ -27,10 +27,44 @@ class EvacuationEventController extends Controller
     public function index()
     {
         return response()->json([
-            'data' => DisasterEvent::with(['primaryType', 'severity', 'evacuationCenters'])
+            'data' => DisasterEvent::with(['primaryType', 'severity', 'evacuationCenters', 'historicalCenters'])
                 ->latest('started_at')
                 ->get()
         ]);
+    }
+
+    #[OA\Get(
+        path: '/events/history',
+        summary: 'Get historical disaster events with filters and pagination',
+        security: [['bearerAuth' => []]],
+        tags: ['Disaster Events']
+    )]
+    #[OA\Parameter(name: 'type_id', in: 'query', description: 'Filter by disaster type ID', required: false, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Parameter(name: 'start_date', in: 'query', description: 'Start date (Y-m-d)', required: false, schema: new OA\Schema(type: 'string', format: 'date'))]
+    #[OA\Parameter(name: 'end_date', in: 'query', description: 'End date (Y-m-d)', required: false, schema: new OA\Schema(type: 'string', format: 'date'))]
+    #[OA\Parameter(name: 'page', in: 'query', description: 'Page number', required: false, schema: new OA\Schema(type: 'integer'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    #[OA\Response(response: 401, description: 'Unauthenticated')]
+    public function history(Request $request)
+    {
+        $query = DisasterEvent::with(['primaryType', 'severity', 'evacuationCenters', 'historicalCenters'])
+            ->whereNotNull('ended_at');
+
+        if ($request->has('type_id') && $request->type_id != '') {
+            $query->where('type_id', $request->type_id);
+        }
+
+        if ($request->has('start_date') && $request->start_date != '') {
+            $query->whereDate('started_at', '>=', $request->start_date);
+        }
+
+        if ($request->has('end_date') && $request->end_date != '') {
+            $query->whereDate('ended_at', '<=', $request->end_date);
+        }
+
+        $events = $query->latest('started_at')->paginate(10);
+
+        return response()->json($events);
     }
 
     #[OA\Get(
@@ -58,7 +92,7 @@ class EvacuationEventController extends Controller
 
     public function activePublic()
     {
-        $events = DisasterEvent::with(['primaryType', 'severity', 'types', 'evacuationCenters'])
+        $events = DisasterEvent::with(['primaryType', 'severity', 'types', 'evacuationCenters', 'historicalCenters'])
             ->whereNull('ended_at')
             ->latest('started_at')
             ->get();
@@ -200,11 +234,14 @@ class EvacuationEventController extends Controller
             ->update([
                 'current_event_id' => $id
             ]);
+            
+        $event->historicalCenters()->syncWithoutDetaching($request->center_id);
+        
         \Illuminate\Support\Facades\Cache::forget('all_centers_occupancy');
 
         return response()->json([
             'message' => 'Centers assigned successfully',
-            'data'    => $event->load('evacuationCenters')
+            'data'    => $event->load(['evacuationCenters', 'historicalCenters'])
         ]);
     }
 
@@ -220,10 +257,19 @@ class EvacuationEventController extends Controller
     #[OA\Response(response: 404, description: 'Center not found')]
     public function unassignCenter($centerId){
         $center = EvacuationCenter::where('evacuation_center_id', $centerId)->firstOrFail();
+        $event_id = $center->current_event_id;
 
         $center->update([
             'current_event_id' => null
         ]);
+        
+        if ($event_id) {
+            $event = DisasterEvent::find($event_id);
+            if ($event && !$event->ended_at) {
+                $event->historicalCenters()->detach($centerId);
+            }
+        }
+        
         \Illuminate\Support\Facades\Cache::forget('all_centers_occupancy');
 
         return response()->json([

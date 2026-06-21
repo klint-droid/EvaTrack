@@ -69,6 +69,16 @@ class DisasterEvent extends Model
         return $this->hasMany(EvacuationCenter::class, 'current_event_id', 'event_id');
     }
 
+    public function historicalCenters()
+    {
+        return $this->belongsToMany(
+            EvacuationCenter::class,
+            'event_center_history',
+            'event_id',
+            'evacuation_center_id'
+        )->withTimestamps();
+    }
+
     public function evacuationRecords()
     {
         return $this->hasMany(EvacuationRecord::class, 'event_id', 'event_id');
