@@ -82,6 +82,18 @@ class Household extends Model
             ->latest();
     }
 
+    /**
+     * All active evacuation records across ALL centers for this household.
+     * Supports scattered families where members are split across multiple centers.
+     */
+    public function currentEvacuations(){
+        return $this->hasMany(EvacuationRecord::class, 'household_id')
+            ->where('household_status_id', 2)
+            ->whereHas('event', function ($query) {
+                $query->whereNull('ended_at');
+            });
+    }
+
     public function currentAllocation(){
         return $this->hasOneThrough(
             UnitAllocation::class,

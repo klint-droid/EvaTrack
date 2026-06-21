@@ -32,6 +32,12 @@ class HouseholdController extends Controller
             'currentEvacuation.unitAllocation.unit.type', 
             'currentEvacuation.verifier',                 
             'currentEvacuation.evacuatedMembers.member',
+            // All active evacuations across all centers (scattered family support)
+            'currentEvacuations.center',
+            'currentEvacuations.event',
+            'currentEvacuations.unitAllocation.unit.type',
+            'currentEvacuations.verifier',
+            'currentEvacuations.evacuatedMembers.member',
         ];
     }
 
@@ -79,7 +85,12 @@ class HouseholdController extends Controller
                 $query->where(function ($builder) use ($search) {
                     $builder->where('household_name', 'LIKE', "%{$search}%")
                         ->orWhere('household_id', 'LIKE', "%{$search}%")
-                        ->orWhere('contact_number', 'LIKE', "%{$search}%");
+                        ->orWhere('contact_number', 'LIKE', "%{$search}%")
+                        ->orWhereHas('members', function ($q) use ($search) {
+                            $q->where('first_name', 'LIKE', "%{$search}%")
+                                ->orWhere('last_name', 'LIKE', "%{$search}%")
+                                ->orWhere(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "%{$search}%");
+                        });
                 });
             }
 
@@ -312,7 +323,12 @@ class HouseholdController extends Controller
         $results = Household::where(function ($q) use ($queryText) {
             $q->where('household_name', 'LIKE', "%{$queryText}%")
                 ->orWhere('household_id', 'LIKE', "%{$queryText}%")
-                ->orWhere('contact_number', 'LIKE', "%{$queryText}%");
+                ->orWhere('contact_number', 'LIKE', "%{$queryText}%")
+                ->orWhereHas('members', function ($q) use ($queryText) {
+                    $q->where('first_name', 'LIKE', "%{$queryText}%")
+                        ->orWhere('last_name', 'LIKE', "%{$queryText}%")
+                        ->orWhere(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "%{$queryText}%");
+                });
         })
             ->with($this->householdRelations())
             ->paginate(10);
