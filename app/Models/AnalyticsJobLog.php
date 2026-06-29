@@ -43,12 +43,12 @@ class AnalyticsJobLog extends Model
 
     public function isRunning()
     {
-        return $this->status?->status_key === 'running';
+        return $this->status?->status_key === 'processing';
     }
 
     public function isSuccess()
     {
-        return $this->status?->status_key === 'success';
+        return $this->status?->status_key === 'completed';
     }
 
     public function isFailed()

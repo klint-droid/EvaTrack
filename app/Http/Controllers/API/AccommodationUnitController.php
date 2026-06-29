@@ -26,19 +26,22 @@ class AccommodationUnitController extends Controller
     #[OA\Response(response: 404, description: 'Center not found')]
     public function index($centerId)
     {
-        $units = AccommodationUnit::where('center_id', $centerId)
-            ->get()
-            ->map(function ($unit){
-                $occupancy = UnitAllocation::where('unit_id', $unit->unit_id)
-                    ->join('evacuation_records', 'unit_allocations.evacuation_id', '=', 'evacuation_records.evacuation_id')
-                    ->sum('evacuation_records.evacuated_count');
-                
-                $unit->current_occupancy = $occupancy;
+        $perPage = request('limit', 15);
+        $units = AccommodationUnit::with('type')
+            ->where('center_id', $centerId)
+            ->paginate($perPage);
 
-                return $unit;
-            });
+        $units->getCollection()->transform(function ($unit) {
+            $occupancy = UnitAllocation::where('unit_id', $unit->unit_id)
+                ->join('evacuation_records', 'unit_allocations.evacuation_id', '=', 'evacuation_records.evacuation_id')
+                ->sum('evacuation_records.evacuated_count');
+            
+            $unit->current_occupancy = $occupancy;
 
-        return response()->json(['data' => $units]);
+            return $unit;
+        });
+
+        return response()->json($units);
     }
 
     #[OA\Get(

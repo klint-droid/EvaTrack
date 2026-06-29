@@ -139,4 +139,33 @@ class AnalyticsController extends Controller
         ]);
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | LAST UPDATED (Job Log)
+    |--------------------------------------------------------------------------
+    */
+
+    #[OA\Get(
+        path: '/analytics/last-updated',
+        summary: 'Get the timestamp of the last successful analytics job run',
+        security: [['bearerAuth' => []]],
+        tags: ['Analytics']
+    )]
+    #[OA\Response(response: 200, description: 'Success')]
+    public function lastUpdated()
+    {
+        $latestRecord = \App\Models\EvacuationRecord::max('updated_at');
+        $latestEvent = \App\Models\DisasterEvent::max('updated_at');
+        $latestRequest = \App\Models\ResourceRequest::max('updated_at');
+        $latestIssue = \App\Models\CenterIssueReport::max('updated_at');
+
+        $dates = array_filter([$latestRecord, $latestEvent, $latestRequest, $latestIssue]);
+        
+        $lastUpdated = empty($dates) ? null : max($dates);
+
+        return response()->json([
+            'success' => true,
+            'last_updated' => $lastUpdated
+        ]);
+    }
 }

@@ -236,6 +236,7 @@ Route::get('/public/events/active', [EvacuationEventController::class, 'activePu
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/analytics/dashboard', [AnalyticsController::class, 'dashboard']);
     Route::get('/analytics/events-list', [AnalyticsController::class, 'eventsList']);
+    Route::get('/analytics/last-updated', [AnalyticsController::class, 'lastUpdated']);
     Route::get('/analytics/event/{eventId}', [AnalyticsController::class, 'eventAnalytics']);
     Route::get('/analytics/event/{eventId}/center/{centerId}', [AnalyticsController::class, 'centerAnalytics']);
 
