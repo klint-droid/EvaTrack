@@ -25,6 +25,7 @@ class UserController extends Controller
             'role_label' => $user->role?->role_name,
             'assigned_center_id' => $user->assigned_center_id,
             'contact_number' => $user->contact_number,
+            'profile_photo_url' => $user->profile_photo_url,
         ];
     }
 
@@ -357,13 +358,24 @@ class UserController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'contact_number' => 'required|string|unique:users,contact_number,' . $user->user_id . ',user_id',
+            'profile_photo' => 'nullable|image|max:5120',
         ]);
 
-        $user->update([
+        $data = [
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'contact_number' => $request->contact_number,
-        ]);
+        ];
+
+        if ($request->hasFile('profile_photo')) {
+            if ($user->profile_photo) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->profile_photo);
+            }
+            $path = $request->file('profile_photo')->store('profile_photos', 'public');
+            $data['profile_photo'] = $path;
+        }
+
+        $user->update($data);
 
         return response()->json([
             'message' => 'Profile updated successfully',

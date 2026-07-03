@@ -35,13 +35,22 @@ class User extends Authenticatable
         'assigned_center_id',
         'is_active',
         'household_id',
+        'profile_photo',
     ];
 
-    protected $appends = ['name'];
+    protected $appends = ['name', 'profile_photo_url'];
 
     public function getNameAttribute()
     {
         return trim(($this->first_name ?? '') . ' ' . ($this->last_name ?? ''));
+    }
+
+    public function getProfilePhotoUrlAttribute()
+    {
+        if ($this->profile_photo) {
+            return asset('storage/' . $this->profile_photo);
+        }
+        return null;
     }
 
     protected $hidden = [
