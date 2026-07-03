@@ -9,6 +9,7 @@ use App\Models\CenterIssueCategory;
 use App\Models\SeverityLevel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use OpenApi\Attributes as OA;
 
 class CenterIssueReportController extends Controller
@@ -161,6 +162,7 @@ class CenterIssueReportController extends Controller
             'title' => 'required|string|max:150',
             'description' => 'required|string',
             'severity' => 'required|in:low,medium,high,critical',
+            'attachment' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:5120',
         ]);
 
         if ($user->isEvacPersonnel()) {
@@ -181,10 +183,14 @@ class CenterIssueReportController extends Controller
             $centerId = $validated['evacuation_center_id'];
         }
 
-        // Resolve string keys to foreign key IDs
         $categoryId = CenterIssueCategory::where('category_key', $validated['category'])->value('category_id');
         $severityId = SeverityLevel::where('severity_key', $validated['severity'])->value('severity_id');
         $statusId = CenterIssueReportStatus::where('status_key', 'open')->value('status_id');
+
+        $attachmentPath = null;
+        if ($request->hasFile('attachment')) {
+            $attachmentPath = $request->file('attachment')->store('center_issues', 'public');
+        }
 
         $report = CenterIssueReport::create([
             'evacuation_center_id' => $centerId,
@@ -195,6 +201,7 @@ class CenterIssueReportController extends Controller
             'description' => $validated['description'],
             'severity_id' => $severityId,
             'status_id' => $statusId,
+            'attachment_path' => $attachmentPath,
         ]);
 
         return response()->json([
@@ -316,6 +323,7 @@ class CenterIssueReportController extends Controller
             'title' => 'sometimes|string|max:150',
             'description' => 'sometimes|string',
             'severity' => 'sometimes|in:low,medium,high,critical',
+            'attachment' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:5120',
         ]);
 
         $updateData = [];
@@ -334,6 +342,13 @@ class CenterIssueReportController extends Controller
 
         if (isset($validated['severity'])) {
             $updateData['severity_id'] = SeverityLevel::where('severity_key', $validated['severity'])->value('severity_id');
+        }
+
+        if ($request->hasFile('attachment')) {
+            if ($report->attachment_path) {
+                Storage::disk('public')->delete($report->attachment_path);
+            }
+            $updateData['attachment_path'] = $request->file('attachment')->store('center_issues', 'public');
         }
 
         $report->update($updateData);
@@ -478,6 +493,10 @@ class CenterIssueReportController extends Controller
         // Flatten reporter/handler names
         $data['reported_by_user'] = $report->reporter ?? null;
         $data['handled_by_user'] = $report->handler ?? null;
+        
+        $data['attachment_url'] = !empty($report->attachment_path) 
+            ? url(Storage::url($report->attachment_path)) 
+            : null;
 
         return $data;
     }

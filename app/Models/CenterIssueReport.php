@@ -22,6 +22,7 @@ class CenterIssueReport extends Model
         'description',
         'severity_id',
         'status_id',
+        'attachment_path',
     ];
 
     protected $casts = [

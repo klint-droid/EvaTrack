@@ -158,12 +158,16 @@ class EvacuationController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        if (!$user->assigned_center_id) {
-            return response()->json(['message' => 'No evacuation center assigned'], 403);
+        $centerId = ($user->isSuperAdmin() || $user->isEvacAdmin()) && $request->has('center_id')
+            ? $request->center_id
+            : $user->assigned_center_id;
+
+        if (!$centerId) {
+            return response()->json(['message' => 'No evacuation center specified or assigned'], 403);
         }
 
         $alreadyEvacuated = EvacuationRecord::where('household_id', $request->household_id)
-            ->where('center_id', $user->assigned_center_id)
+            ->where('center_id', $centerId)
             ->where('household_status_id', 2)
             ->exists();
 
@@ -174,7 +178,7 @@ class EvacuationController extends Controller
         try {
             $result = $service->handleScan(
                 $request->household_id,
-                $user->assigned_center_id,
+                $centerId,
                 $user->user_id,
                 'qr',
                 $request->event_id,
@@ -240,14 +244,18 @@ class EvacuationController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        if (!$user->assigned_center_id) {
-            return response()->json(['message' => 'No evacuation center assigned'], 403);
+        $centerId = ($user->isSuperAdmin() || $user->isEvacAdmin()) && $request->has('center_id')
+            ? $request->center_id
+            : $user->assigned_center_id;
+
+        if (!$centerId) {
+            return response()->json(['message' => 'No evacuation center specified or assigned'], 403);
         }
 
         try {
             $result = $service->handleManual(
                 $request->household_id,
-                $user->assigned_center_id,
+                $centerId,
                 $user->user_id,
                 $request->event_id,
                 $request->input('member_ids', [])
@@ -314,12 +322,16 @@ class EvacuationController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        if (!$user->assigned_center_id) {
-            return response()->json(['message' => 'No evacuation center assigned'], 403);
+        $centerId = ($user->isSuperAdmin() || $user->isEvacAdmin()) && $request->has('center_id')
+            ? $request->center_id
+            : $user->assigned_center_id;
+
+        if (!$centerId) {
+            return response()->json(['message' => 'No evacuation center specified or assigned'], 403);
         }
 
         $alreadyEvacuated = EvacuationRecord::where('household_id', $request->household_id)
-            ->where('center_id', $user->assigned_center_id)
+            ->where('center_id', $centerId)
             ->where('household_status_id', 2)
             ->exists();
 
@@ -331,7 +343,7 @@ class EvacuationController extends Controller
             if ($request->has('member_ids') && !empty($request->input('member_ids'))) {
                 $result = $service->handleManual(
                     $request->household_id,
-                    $user->assigned_center_id,
+                    $centerId,
                     $user->user_id,
                     $request->event_id,
                     $request->input('member_ids')
@@ -339,7 +351,7 @@ class EvacuationController extends Controller
             } else {
                 $result = $service->handleManualWithCount(
                     $request->household_id,
-                    $user->assigned_center_id,
+                    $centerId,
                     $user->user_id,
                     $request->member_count,
                     $request->event_id
