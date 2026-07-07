@@ -2,19 +2,20 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use App\Models\Household;
 use App\Models\HouseholdStatus;
 use App\Services\EvacuationService;
 use App\Models\EvacuationRecord;
 use App\Models\Address;
+use App\Http\Requests\StoreHouseholdRequest;
+use App\Http\Requests\UpdateHouseholdRequest;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use OpenApi\Attributes as OA;
 
-class HouseholdController extends Controller
+class HouseholdController extends BaseApiController
 {
     private function householdRelations(): array
     {
@@ -62,7 +63,7 @@ class HouseholdController extends Controller
             return response()->json(['message' => 'No center assigned.'], 403);
         }
 
-        $evacuatedStatusId = HouseholdStatus::where('status_key', 'evacuated')->value('status_id');
+        $evacuatedStatusId = HouseholdStatus::EVACUATED;
 
         $page = $request->query('page', 1);
         $search = $request->query('q', '');
@@ -187,31 +188,16 @@ class HouseholdController extends Controller
     #[OA\Response(response: 201, description: 'Created successfully')]
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     #[OA\Response(response: 403, description: 'Forbidden')]
-    public function store(Request $request, EvacuationService $service)
+    public function store(StoreHouseholdRequest $request, EvacuationService $service)
     {
-        $user = Auth::user();
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
 
-        if (!$user->isEvacPersonnel() && !$user->isEvacAdmin()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        $request->validate([
-            'household_name' => 'required|string|max:255',
-            'contact_number' => 'nullable|string|max:50',
-            'address_id'     => [
-                'nullable',
-                function ($attribute, $value, $fail) {
-                    if ($value && !Address::where('address_id', $value)->exists()) {
-                        $fail('The selected address is invalid.');
-                    }
-                }
-            ],
-        ]);
+        $validated = $request->validated();
 
         $household = Household::create([
-            'household_name' => $request->household_name,
-            'contact_number' => $request->contact_number,
-            'address_id'     => $request->address_id,
+            'household_name' => $validated['household_name'],
+            'contact_number' => $validated['contact_number'] ?? null,
+            'address_id'     => $validated['address_id'] ?? null,
         ]);
 
         return response()->json([
@@ -246,24 +232,12 @@ class HouseholdController extends Controller
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     #[OA\Response(response: 403, description: 'Forbidden')]
     #[OA\Response(response: 404, description: 'Household not found')]
-    public function update(Request $request, $id)
+    public function update(UpdateHouseholdRequest $request, $id)
     {
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
         $user = Auth::user();
 
-        if (!$user->isEvacPersonnel() && !$user->isEvacAdmin()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        $request->validate([
-            'household_name' => 'sometimes|string|max:255',
-            'contact_number' => 'nullable|string|max:50',
-            'barangay'       => 'nullable|string|max:255',
-            'street'         => 'nullable|string|max:255',
-            'purok'          => 'nullable|string|max:255',
-            'city'           => 'nullable|string|max:255',
-            'province'       => 'nullable|string|max:255',
-            'full_address'   => 'nullable|string|max:500',
-        ]);
+        $validated = $request->validated();
 
         $household = Household::with('address')
             ->where('household_id', $id)
@@ -278,20 +252,20 @@ class HouseholdController extends Controller
             }
         }
 
-        return DB::connection('mysql_v2')->transaction(function () use ($request, $household) {
+        return DB::connection('mysql_v2')->transaction(function () use ($validated, $household) {
             $household->update([
-                'household_name' => $request->household_name ?? $household->household_name,
-                'contact_number' => $request->contact_number ?? $household->contact_number,
+                'household_name' => $validated['household_name'] ?? $household->household_name,
+                'contact_number' => $validated['contact_number'] ?? $household->contact_number,
             ]);
 
             if ($household->address) {
                 $household->address->update([
-                    'barangay'     => $request->barangay     ?? $household->address->barangay,
-                    'street'       => $request->street       ?? $household->address->street,
-                    'purok'        => $request->purok        ?? $household->address->purok,
-                    'city'         => $request->city         ?? $household->address->city,
-                    'province'     => $request->province     ?? $household->address->province,
-                    'full_address' => $request->full_address ?? $household->address->full_address,
+                    'barangay'     => $validated['barangay']     ?? $household->address->barangay,
+                    'street'       => $validated['street']       ?? $household->address->street,
+                    'purok'        => $validated['purok']        ?? $household->address->purok,
+                    'city'         => $validated['city']         ?? $household->address->city,
+                    'province'     => $validated['province']     ?? $household->address->province,
+                    'full_address' => $validated['full_address'] ?? $household->address->full_address,
                 ]);
             }
 
@@ -350,15 +324,11 @@ class HouseholdController extends Controller
     #[OA\Response(response: 404, description: 'Household not found')]
     public function destroy($id)
     {
-        $user = Auth::user();
-
-        if (!$user->isSuperAdmin() && !$user->isEvacAdmin()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        $this->authorizeRole('super_admin', 'evac_admin');
 
         $household = Household::where('household_id', $id)->firstOrFail();
 
-        $evacuatedStatusId = HouseholdStatus::where('status_key', 'evacuated')->value('status_id');
+        $evacuatedStatusId = HouseholdStatus::EVACUATED;
 
         $isEvacuated = EvacuationRecord::where('household_id', $id)
             ->where('household_status_id', $evacuatedStatusId)

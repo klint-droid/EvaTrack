@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
 use App\Models\ResourceRequest;
 use App\Models\ResourceRequestStatus;
 use App\Models\EvacuationCenter;
 use App\Models\UrgencyLevel;
+use App\Http\Requests\StoreResourceRequestRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use OpenApi\Attributes as OA;
 
-class ResourceRequestController extends Controller
+class ResourceRequestController extends BaseApiController
 {
     private function getStatusIds(): array{
         return ResourceRequestStatus::pluck('status_id', 'status_key')->toArray();
@@ -47,31 +47,15 @@ class ResourceRequestController extends Controller
     #[OA\Response(response: 403, description: 'Forbidden')]
     public function index(Request $request)
     {
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
+        
         $user = Auth::user();
         $statusIds = $this->getStatusIds();
         $urgencyLevelIds = $this->getUrgencyLevelIds();
 
         $query = ResourceRequest::with($this->requestRelations());
 
-        if ($user->isEvacPersonnel()) {
-            if (!$user->assigned_center_id) {
-                return response()->json([
-                    'message' => 'No evacuation center assigned.'
-                ], 403);
-            }
-
-            $query->where('evacuation_center_id', $user->assigned_center_id);
-        }
-
-        if ($request->filled('center_id')) {
-            if ($user->isEvacPersonnel() && $request->center_id !== $user->assigned_center_id) {
-                return response()->json([
-                    'message' => 'You are not assigned to this evacuation center.'
-                ], 403);
-            }
-
-            $query->where('evacuation_center_id', $request->center_id);
-        }
+        $query = $this->applyCenterFilter($query, $request);
 
         if ($request->filled('status')) {
             $statusId = $statusIds[$request->status] ?? null;
@@ -100,11 +84,11 @@ class ResourceRequestController extends Controller
         }
 
         $summary = [
-            'pending' => (clone $query)->where('status_id', $statusIds['pending'] ?? null)->count(),
-            'acknowledged' => (clone $query)->where('status_id', $statusIds['acknowledged'] ?? null)->count(),
-            'approved' => (clone $query)->where('status_id', $statusIds['approved'] ?? null)->count(),
-            'rejected' => (clone $query)->where('status_id', $statusIds['rejected'] ?? null)->count(),
-            'delivered_24h' => ResourceRequest::where('status_id', $statusIds['delivered'] ?? null)
+            'pending' => (clone $query)->where('status_id', $statusIds[ResourceRequestStatus::PENDING] ?? null)->count(),
+            'acknowledged' => (clone $query)->where('status_id', $statusIds[ResourceRequestStatus::ACKNOWLEDGED] ?? null)->count(),
+            'approved' => (clone $query)->where('status_id', $statusIds[ResourceRequestStatus::APPROVED] ?? null)->count(),
+            'rejected' => (clone $query)->where('status_id', $statusIds[ResourceRequestStatus::REJECTED] ?? null)->count(),
+            'delivered_24h' => ResourceRequest::where('status_id', $statusIds[ResourceRequestStatus::DELIVERED] ?? null)
                 ->where('updated_at', '>=', now()->subDay())
                 ->when($user->isEvacPersonnel(), function ($q) use ($user) {
                     $q->where('evacuation_center_id', $user->assigned_center_id);
@@ -146,65 +130,18 @@ class ResourceRequestController extends Controller
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     #[OA\Response(response: 403, description: 'Forbidden')]
     #[OA\Response(response: 422, description: 'Validation errors')]
-    public function store(Request $request)
+    public function store(StoreResourceRequestRequest $request)
     {
-        $user = Auth::user();
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
 
-        if (
-            !$user->isSuperAdmin() &&
-            !$user->isEvacAdmin() &&
-            !$user->isEvacPersonnel()
-        ) {
-            return response()->json([
-                'message' => 'Unauthorized'
-            ], 403);
-        }
+        $validated = $request->validated();
+        $centerId = $this->resolveUserCenterId($request);
 
-        $validated = $request->validate([
-            'evacuation_center_id' => [
-                'nullable',
-                function($attribute, $value, $fail) {
-                    if($value && !EvacuationCenter::where('evacuation_center_id', $value)->exists()) {
-                        $fail('Evacuation center does not exist.');
-                    }
-                }
-            ],
-            'resource_type' => 'required|string|max:100',
-            'quantity' => 'required|integer|min:1',
-            'description' => 'nullable|string',
-            'urgency_id' => [
-                'required',
-                function ($attribute, $value, $fail) {
-                    if(!UrgencyLevel::where('urgency_id', $value)->exists()) {
-                        $fail('The selected urgency level is invalid.');
-                    }
-                }
-            ],
-        ]);
-
-        if ($user->isEvacPersonnel()) {
-            if (!$user->assigned_center_id) {
-                return response()->json([
-                    'message' => 'No evacuation center assigned.'
-                ], 403);
-            }
-
-            $centerId = $user->assigned_center_id;
-        } else {
-            if (!$request->filled('evacuation_center_id')) {
-                return response()->json([
-                    'message' => 'Evacuation center is required.'
-                ], 422);
-            }
-
-            $centerId = $validated['evacuation_center_id'];
-        }
-
-        $pendingStatusId = ResourceRequestStatus::where('status_key', 'pending')->value('status_id');
+        $pendingStatusId = ResourceRequestStatus::where('status_key', ResourceRequestStatus::PENDING)->value('status_id');
 
         $requestRecord = ResourceRequest::create([
             'evacuation_center_id' => $centerId,
-            'requested_by' => $user->user_id,
+            'requested_by' => Auth::id(),
             'handled_by' => null,
             'resource_type' => $validated['resource_type'],
             'quantity' => $validated['quantity'],
@@ -232,19 +169,11 @@ class ResourceRequestController extends Controller
     #[OA\Response(response: 404, description: 'Request not found')]
     public function show($id)
     {
-        $user = Auth::user();
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
 
         $query = ResourceRequest::with($this->requestRelations())->where('request_id', $id);
 
-        if ($user->isEvacPersonnel()) {
-            if (!$user->assigned_center_id) {
-                return response()->json([
-                    'message' => 'No evacuation center assigned.'
-                ], 403);
-            }
-
-            $query->where('evacuation_center_id', $user->assigned_center_id);
-        }
+        $query = $this->applyCenterFilter($query);
 
         $requestRecord = $query->first();
 
@@ -282,13 +211,7 @@ class ResourceRequestController extends Controller
     #[OA\Response(response: 422, description: 'Invalid status')]
     public function updateStatus(Request $request, $id)
     {
-        $user = Auth::user();
-
-        if (!$user->isSuperAdmin() && !$user->isEvacAdmin()) {
-            return response()->json([
-                'message' => 'Only admin users can update request status.'
-            ], 403);
-        }
+        $this->authorizeRole('super_admin', 'evac_admin');
 
         $validated = $request->validate([
             'status' => 'required|in:pending,acknowledged,approved,rejected,delivered',
@@ -306,7 +229,7 @@ class ResourceRequestController extends Controller
 
         $requestRecord->update([
             'status_id' => $statusId, 
-            'handled_by' => $user->user_id,
+            'handled_by' => Auth::id(),
         ]);
 
         return response()->json([
@@ -329,11 +252,14 @@ class ResourceRequestController extends Controller
     #[OA\Response(response: 404, description: 'Request not found')]
     public function destroy($id)
     {
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
+        
         $user = Auth::user();
-
         $requestRecord = ResourceRequest::where('request_id', $id)->firstOrFail();
 
-        $pendingStatusId = ResourceRequestStatus::where('status_key', 'pending')->value('status_id');
+        $this->checkCenterOwnership($requestRecord->evacuation_center_id);
+
+        $pendingStatusId = ResourceRequestStatus::where('status_key', ResourceRequestStatus::PENDING)->value('status_id');
 
         if ($user->isEvacPersonnel()) {
             if ($requestRecord->requested_by !== $user->user_id) {
@@ -347,12 +273,6 @@ class ResourceRequestController extends Controller
                     'message' => 'Only pending requests can be deleted.'
                 ], 400);
             }
-        }
-
-        if (!$user->isSuperAdmin() && !$user->isEvacAdmin() && !$user->isEvacPersonnel()) {
-            return response()->json([
-                'message' => 'Unauthorized'
-            ], 403);
         }
 
         $requestRecord->delete();

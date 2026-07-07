@@ -2,37 +2,30 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
 use App\Models\EvacuationRecord;
-use App\Models\DisasterEvent;
 use App\Models\Household;
+use App\Models\EvacuationCenter;
+use App\Models\HouseholdStatus;
 use App\Services\EvacuationService;
 use App\Http\Requests\StoreEvacuationRequest;
-use App\Models\EvacuatedMember;
-use App\Models\HouseholdMember;
-use App\Models\HouseholdStatus;
+use App\Http\Requests\VerifyManualEvacuationRequest;
+use App\Exceptions\HouseholdAlreadyEvacuatedException;
+use App\Exceptions\MembersAlreadyEvacuatedException;
+use App\Exceptions\NoCenterAssignedException;
+use App\Exceptions\NoAvailableSlotsException;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use OpenApi\Attributes as OA;
 
-class EvacuationController extends Controller
+class EvacuationController extends BaseApiController
 {
-    private function recordRelations(): array
+    protected $evacuationService;
+
+    public function __construct(EvacuationService $evacuationService)
     {
-        return [
-            'household.address',
-            'household.members',
-            'household.members.gender',
-            'household.members.relationship',
-            'household.members.civilStatus',
-            'household.members.vulnerableGroupDetails',
-            'evacuatedMembers.member',
-            'unitAllocation.unit.type',  
-            'center',
-            'event',
-            'verifier',                   
-        ];
+        $this->evacuationService = $evacuationService;
     }
 
     #[OA\Get(
@@ -48,16 +41,9 @@ class EvacuationController extends Controller
     #[OA\Response(response: 403, description: 'Forbidden')]
     public function index(Request $request)
     {
-        $user = Auth::user();
-
-        $query = EvacuationRecord::with([
-            'household.address',
-            'evacuatedMembers.member',
-            'unitAllocations.unit.type', 
-            'center',
-            'event',
-            'verifier',                  
-        ]);
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
+        
+        $query = EvacuationRecord::with($this->evacuationService->recordRelations());
 
         if ($request->filled('household_status_id')) {
             $query->where('household_status_id', $request->household_status_id);
@@ -67,33 +53,11 @@ class EvacuationController extends Controller
             $query->where('event_id', $request->event_id);
         }
 
-        if ($user->isSuperAdmin() || $user->isEvacAdmin()) {
-            if ($request->filled('center_id')) {
-                $query->where('center_id', $request->center_id);
-            }
+        $query = $this->applyCenterFilter($query, $request);
 
-            return response()->json([
-                'data' => $query->latest('verified_at')->get()
-            ]);
-        }
-
-        if ($user->isEvacPersonnel()) {
-            if (!$user->assigned_center_id) {
-                return response()->json(['message' => 'No evacuation center assigned'], 403);
-            }
-
-            if ($request->filled('center_id') && $request->center_id !== $user->assigned_center_id) {
-                return response()->json(['message' => 'You are not assigned to this evacuation center'], 403);
-            }
-
-            $query->where('center_id', $user->assigned_center_id);
-
-            return response()->json([
-                'data' => $query->latest('verified_at')->get()
-            ]);
-        }
-
-        return response()->json(['message' => 'Unauthorized'], 403);
+        return response()->json([
+            'data' => $query->latest('verified_at')->get()
+        ]);
     }
 
     #[OA\Get(
@@ -108,17 +72,10 @@ class EvacuationController extends Controller
     #[OA\Response(response: 404, description: 'Evacuation not found')]
     public function show($id)
     {
-        $user = Auth::user();
-
-        $query = EvacuationRecord::with($this->recordRelations())
+        $query = EvacuationRecord::with($this->evacuationService->recordRelations())
             ->where('evacuation_id', $id);
 
-        if ($user->isEvacPersonnel()) {
-            if (!$user->assigned_center_id) {
-                return response()->json(['message' => 'No evacuation center assigned'], 403);
-            }
-            $query->where('center_id', $user->assigned_center_id);
-        }
+        $query = $this->applyCenterFilter($query);
 
         $evacuation = $query->first();
 
@@ -150,36 +107,26 @@ class EvacuationController extends Controller
     #[OA\Response(response: 400, description: 'Invalid request or already evacuated')]
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     #[OA\Response(response: 403, description: 'Forbidden')]
-    public function scan(StoreEvacuationRequest $request, EvacuationService $service)
+    public function scan(StoreEvacuationRequest $request)
     {
-        $user = Auth::user();
-
-        if (!$user->isSuperAdmin() && !$user->isEvacAdmin() && !$user->isEvacPersonnel()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        $centerId = ($user->isSuperAdmin() || $user->isEvacAdmin()) && $request->has('center_id')
-            ? $request->center_id
-            : $user->assigned_center_id;
-
-        if (!$centerId) {
-            return response()->json(['message' => 'No evacuation center specified or assigned'], 403);
-        }
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
+        
+        $centerId = $this->resolveUserCenterId($request);
 
         $alreadyEvacuated = EvacuationRecord::where('household_id', $request->household_id)
             ->where('center_id', $centerId)
-            ->where('household_status_id', 2)
+            ->where('household_status_id', HouseholdStatus::EVACUATED)
             ->exists();
 
         if ($alreadyEvacuated) {
-            return response()->json(['message' => 'Household already evacuated in this center'], 400);
+            throw new HouseholdAlreadyEvacuatedException();
         }
 
         try {
-            $result = $service->handleScan(
+            $result = $this->evacuationService->handleScan(
                 $request->household_id,
                 $centerId,
-                $user->user_id,
+                Auth::id(),
                 'qr',
                 $request->event_id,
                 $request->input('member_ids', [])
@@ -215,48 +162,17 @@ class EvacuationController extends Controller
     #[OA\Response(response: 400, description: 'Invalid request or already evacuated')]
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     #[OA\Response(response: 403, description: 'Forbidden')]
-    public function verifyManual(Request $request, EvacuationService $service)
+    public function verifyManual(VerifyManualEvacuationRequest $request)
     {
-        $request->validate([
-            'household_id' => [
-                'required',
-                function ($attribute, $value, $fail) {
-                    if (!Household::where('household_id', $value)->exists()) {
-                        $fail('The selected household is invalid.');
-                    }
-                }
-            ],
-            'event_id' => [
-                'nullable',
-                function ($attribute, $value, $fail) {
-                    if ($value && !DisasterEvent::where('event_id', $value)->exists()) {
-                        $fail('The selected event is invalid.');
-                    }
-                }
-            ],
-            'member_ids'   => 'nullable|array',
-            'member_ids.*' => 'exists:household_members,member_id',
-        ]);
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
 
-        $user = Auth::user();
-
-        if (!$user->isSuperAdmin() && !$user->isEvacAdmin() && !$user->isEvacPersonnel()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        $centerId = ($user->isSuperAdmin() || $user->isEvacAdmin()) && $request->has('center_id')
-            ? $request->center_id
-            : $user->assigned_center_id;
-
-        if (!$centerId) {
-            return response()->json(['message' => 'No evacuation center specified or assigned'], 403);
-        }
+        $centerId = $this->resolveUserCenterId($request);
 
         try {
-            $result = $service->handleManual(
+            $result = $this->evacuationService->handleManual(
                 $request->household_id,
                 $centerId,
-                $user->user_id,
+                Auth::id(),
                 $request->event_id,
                 $request->input('member_ids', [])
             );
@@ -292,67 +208,35 @@ class EvacuationController extends Controller
     #[OA\Response(response: 400, description: 'Invalid request or already evacuated')]
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     #[OA\Response(response: 403, description: 'Forbidden')]
-    public function admit(Request $request, EvacuationService $service)
+    public function admit(Request $request)
     {
-        $request->validate([
-            'household_id' => [
-                'required',
-                function ($attribute, $value, $fail) {
-                    if (!Household::where('household_id', $value)->exists()) {
-                        $fail('The selected household is invalid.');
-                    }
-                }
-            ],
-            'member_count' => 'required_without:member_ids|integer|min:1',
-            'event_id'     => [
-                'nullable',
-                function ($attribute, $value, $fail) {
-                    if ($value && !DisasterEvent::where('event_id', $value)->exists()) {
-                        $fail('The selected event is invalid.');
-                    }
-                }
-            ],
-            'member_ids'   => 'nullable|array',
-            'member_ids.*' => 'exists:household_members,member_id',
-        ]);
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
 
-        $user = Auth::user();
-
-        if (!$user->isSuperAdmin() && !$user->isEvacAdmin() && !$user->isEvacPersonnel()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        $centerId = ($user->isSuperAdmin() || $user->isEvacAdmin()) && $request->has('center_id')
-            ? $request->center_id
-            : $user->assigned_center_id;
-
-        if (!$centerId) {
-            return response()->json(['message' => 'No evacuation center specified or assigned'], 403);
-        }
+        $centerId = $this->resolveUserCenterId($request);
 
         $alreadyEvacuated = EvacuationRecord::where('household_id', $request->household_id)
             ->where('center_id', $centerId)
-            ->where('household_status_id', 2)
+            ->where('household_status_id', HouseholdStatus::EVACUATED)
             ->exists();
 
         if ($alreadyEvacuated) {
-            return response()->json(['message' => 'Household already evacuated'], 400);
+            throw new HouseholdAlreadyEvacuatedException();
         }
 
         try {
             if ($request->has('member_ids') && !empty($request->input('member_ids'))) {
-                $result = $service->handleManual(
+                $result = $this->evacuationService->handleManual(
                     $request->household_id,
                     $centerId,
-                    $user->user_id,
+                    Auth::id(),
                     $request->event_id,
                     $request->input('member_ids')
                 );
             } else {
-                $result = $service->handleManualWithCount(
+                $result = $this->evacuationService->handleManualWithCount(
                     $request->household_id,
                     $centerId,
-                    $user->user_id,
+                    Auth::id(),
                     $request->member_count,
                     $request->event_id
                 );
@@ -379,15 +263,11 @@ class EvacuationController extends Controller
     #[OA\Response(response: 404, description: 'No active evacuation found')]
     public function active()
     {
-        $user = Auth::user();
+        $centerId = $this->resolveUserCenterId();
 
-        if (!$user->assigned_center_id) {
-            return response()->json(['message' => 'No evacuation center assigned'], 403);
-        }
-
-        $evacuation = EvacuationRecord::with($this->recordRelations())
-            ->where('center_id', $user->assigned_center_id)
-            ->where('household_status_id', 2)
+        $evacuation = EvacuationRecord::with($this->evacuationService->recordRelations())
+            ->where('center_id', $centerId)
+            ->where('household_status_id', HouseholdStatus::EVACUATED)
             ->latest('verified_at')
             ->first();
 
@@ -411,17 +291,15 @@ class EvacuationController extends Controller
     #[OA\Response(response: 404, description: 'Record not found')]
     public function deleteRecord($evacuationId)
     {
-        $user = Auth::user();
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
 
-        return DB::connection('mysql_v2')->transaction(function () use ($evacuationId, $user) {
+        return DB::connection('mysql_v2')->transaction(function () use ($evacuationId) {
             $record = EvacuationRecord::with([
                 'unitAllocation.unit', 
                 'evacuatedMembers'
             ])->where('evacuation_id', $evacuationId)->firstOrFail();
 
-            if ($user->isEvacPersonnel() && $user->assigned_center_id !== $record->center_id) {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
+            $this->checkCenterOwnership($record->center_id);
 
             if ($record->unitAllocation && $record->unitAllocation->unit) {
                 $record->unitAllocation->delete();
@@ -447,25 +325,19 @@ class EvacuationController extends Controller
     #[OA\Response(response: 404, description: 'Record not found')]
     public function checkout($evacuationId)
     {
-        $user = Auth::user();
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
 
-        if (!$user->isSuperAdmin() && !$user->isEvacAdmin() && !$user->isEvacPersonnel()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        return DB::connection('mysql_v2')->transaction(function () use ($evacuationId, $user) {
+        return DB::connection('mysql_v2')->transaction(function () use ($evacuationId) {
             $record = EvacuationRecord::with([
                 'unitAllocation.unit'
             ])->where('evacuation_id', $evacuationId)
-                ->where('household_status_id', 2)
+                ->where('household_status_id', HouseholdStatus::EVACUATED)
                 ->firstOrFail();
 
-            if ($user->isEvacPersonnel() && $user->assigned_center_id !== $record->center_id) {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
+            $this->checkCenterOwnership($record->center_id);
 
             $record->update([
-                'household_status_id' => 6,
+                'household_status_id' => HouseholdStatus::CHECKED_OUT,
                 'updated_at' => now(),
             ]);
 
@@ -475,7 +347,7 @@ class EvacuationController extends Controller
 
             return response()->json([
                 'message' => 'Household checked out successfully.',
-                'data' => $record->fresh($this->recordRelations())
+                'data' => $record->fresh($this->evacuationService->recordRelations())
             ]);
         });
     }
@@ -506,76 +378,62 @@ class EvacuationController extends Controller
     {
         if ($request->has('status') && !$request->has('household_status_id')) {
             $statusStr = $request->input('status');
-            $statusId = 1; // Default to Active/Not Verified
+            $statusId = HouseholdStatus::NOT_VERIFIED;
             if ($statusStr === 'evacuated') {
-                $statusId = 2;
+                $statusId = HouseholdStatus::EVACUATED;
             } elseif ($statusStr === 'not_verified' || $statusStr === 'not_evacuated') {
-                $statusId = 1;
+                $statusId = HouseholdStatus::NOT_VERIFIED;
             }
             $request->merge(['household_status_id' => $statusId]);
         }
 
         $request->validate([
-            'household_status_id' => [
-                'required',
-                function ($attribute, $value, $fail) {
-                    if (!HouseholdStatus::where('status_id', $value)->exists()) {
-                        $fail('The selected status is invalid.');
-                    }
-                }
-            ],
+            'household_status_id' => 'required|exists:household_statuses,status_id',
         ]);
 
-        $user = Auth::user();
-
-        return DB::connection('mysql_v2')->transaction(function () use ($request, $evacuationId, $memberId, $user) {
+        return DB::connection('mysql_v2')->transaction(function () use ($request, $evacuationId, $memberId) {
             $record = EvacuationRecord::with([
                 'unitAllocation.unit', 
                 'evacuatedMembers'
             ])->where('evacuation_id', $evacuationId)
-                ->where('household_status_id', 2)
+                ->where('household_status_id', HouseholdStatus::EVACUATED)
                 ->firstOrFail();
 
-            if ($user->isEvacPersonnel() && $user->assigned_center_id !== $record->center_id) {
-                return response()->json(['message' => 'Unauthorized'], 403);
-            }
+            $this->checkCenterOwnership($record->center_id);
 
-            $member = HouseholdMember::where('member_id', $memberId)
+            $member = \App\Models\HouseholdMember::where('member_id', $memberId)
                 ->where('household_id', $record->household_id)
                 ->firstOrFail();
 
             $oldCount = (int) $record->evacuated_count;
 
-            if ($request->household_status_id == 2) {
-                EvacuatedMember::firstOrCreate(
+            if ($request->household_status_id == HouseholdStatus::EVACUATED) {
+                \App\Models\EvacuatedMember::firstOrCreate(
                     ['evacuation_id' => $record->evacuation_id, 'member_id' => $member->member_id],
                     ['verified_at' => now()]
                 );
             } else {
-                EvacuatedMember::where('evacuation_id', $record->evacuation_id)
+                \App\Models\EvacuatedMember::where('evacuation_id', $record->evacuation_id)
                     ->where('member_id', $member->member_id)
                     ->delete();
             }
 
-            $newCount = EvacuatedMember::where('evacuation_id', $record->evacuation_id)->count();
+            $newCount = \App\Models\EvacuatedMember::where('evacuation_id', $record->evacuation_id)->count();
             $record->update(['evacuated_count' => $newCount]);
 
             $difference = $newCount - $oldCount;
 
-            if ($difference !== 0 && $record->unitAllocation && $record->unitAllocation->unit) {
+            if ($difference > 0 && $record->unitAllocation && $record->unitAllocation->unit) {
                 $unit = $record->unitAllocation->unit;
-
-                if ($difference > 0) {
-                    $availableSlots = $unit->max_capacity - $unit->current_occupancy;
-                    if ($difference > $availableSlots) {
-                        throw new \Exception('Unit does not have enough available slots.');
-                    }
+                $availableSlots = $unit->max_capacity - $unit->current_occupancy;
+                if ($difference > $availableSlots) {
+                    throw new NoAvailableSlotsException();
                 }
             }
 
             return response()->json([
                 'message' => 'Member evacuation status updated successfully.',
-                'data'    => $record->fresh($this->recordRelations()),
+                'data'    => $record->fresh($this->evacuationService->recordRelations()),
             ]);
         });
     }

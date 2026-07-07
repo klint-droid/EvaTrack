@@ -5,11 +5,36 @@ namespace App\Services;
 use App\Models\EvacuationRecord;
 use App\Models\EvacuationCenter;
 use App\Models\Household;
+use App\Models\HouseholdStatus;
 use App\Models\EvacuatedMember;
+use App\Exceptions\HouseholdAlreadyEvacuatedException;
+use App\Exceptions\MembersAlreadyEvacuatedException;
+use App\Exceptions\NoCenterAssignedException;
 use Illuminate\Support\Facades\DB;
 
 class EvacuationService
 {
+    /**
+     * Canonical set of relations for a fully-loaded evacuation record.
+     * Controllers should reference this instead of maintaining their own copy.
+     */
+    public function recordRelations(): array
+    {
+        return [
+            'household.members',
+            'household.members.gender',
+            'household.members.relationship',
+            'household.members.civilStatus',
+            'household.members.vulnerableGroupDetails',
+            'household.address',
+            'evacuatedMembers.member',
+            'unitAllocation.unit.type',
+            'center',
+            'event',
+            'verifier',
+        ];
+    }
+
     private function resolveEventId(?string $eventId, string $centerId): string
     {
         if ($eventId) {
@@ -19,7 +44,9 @@ class EvacuationService
         $center = EvacuationCenter::where('evacuation_center_id', $centerId)->firstOrFail();
 
         if (!$center->current_event_id) {
-            throw new \Exception('This evacuation center has no active event assigned. Please contact your admin.');
+            throw new NoCenterAssignedException(
+                'This evacuation center has no active event assigned. Please contact your admin.'
+            );
         }
 
         return $center->current_event_id;
@@ -137,34 +164,15 @@ class EvacuationService
     private function createEvacuationRecord($householdId, $centerId, $userId, $count, $method, $eventId = null)
     {
         return EvacuationRecord::create([
-            'household_id'       => $householdId,
-            'center_id'          => $centerId,
-            'event_id'           => $this->resolveEventId($eventId, $centerId),
-            'household_status_id' => 2,
-            'evacuated_count'    => $count,
-            'method'             => $method,
-            'verified_by'        => $userId,
-            'verified_at'        => now(),
+            'household_id'        => $householdId,
+            'center_id'           => $centerId,
+            'event_id'            => $this->resolveEventId($eventId, $centerId),
+            'household_status_id' => HouseholdStatus::EVACUATED,
+            'evacuated_count'     => $count,
+            'method'              => $method,
+            'verified_by'         => $userId,
+            'verified_at'         => now(),
         ]);
-    }
-
-    private function createEvacuatedMembersFromHousehold(EvacuationRecord $record, Household $household): void
-    {
-        foreach ($household->members as $member) {
-            EvacuatedMember::firstOrCreate(
-                [
-                    'evacuation_id' => $record->evacuation_id,
-                    'member_id'     => $member->member_id,   // ✅ from HouseholdMember PK
-                ],
-                [
-                    'verified_at' => now(),
-                ]
-            );
-        }
-
-        $evacuatedCount = EvacuatedMember::where('evacuation_id', $record->evacuation_id)->count();
-
-        $record->update(['evacuated_count' => $evacuatedCount]);
     }
 
     private function ensureMembersNotEvacuatedElsewhere(array $memberIds): void
@@ -175,7 +183,7 @@ class EvacuationService
 
         $activeEvacuatedMembers = EvacuatedMember::whereIn('member_id', $memberIds)
             ->whereHas('evacuationRecord', function ($q) {
-                $q->where('household_status_id', 2)
+                $q->where('household_status_id', HouseholdStatus::EVACUATED)
                   ->whereHas('event', function ($eq) {
                       $eq->whereNull('ended_at');
                   });
@@ -190,7 +198,7 @@ class EvacuationService
                 return "{$name} (at {$centerName})";
             })->join(', ');
 
-            throw new \Exception("The following member(s) are already actively evacuated: {$names}. Please check them out first.");
+            throw new MembersAlreadyEvacuatedException($names);
         }
     }
 
@@ -217,28 +225,14 @@ class EvacuationService
     {
         $exists = EvacuationRecord::where('household_id', $householdId)
             ->where('center_id', $centerId)
-            ->where('household_status_id', 2)
+            ->where('household_status_id', HouseholdStatus::EVACUATED)
             ->whereHas('event', function ($q) {
                 $q->whereNull('ended_at');
             })
             ->exists();
 
         if ($exists) {
-            throw new \Exception('Household already evacuated in this center.');
+            throw new HouseholdAlreadyEvacuatedException();
         }
-    }
-
-
-    private function recordRelations(): array
-    {
-        return [
-            'household.members',
-            'household.address',    
-            'evacuatedMembers.member',
-            'unitAllocation.unit.type', 
-            'center',
-            'event',
-            'verifier',            
-        ];
     }
 }

@@ -57,15 +57,13 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
-    protected $casts = [
-        'is_active' => 'boolean',
-        'created_at' => 'datetime',
-        'deleted_at' => 'datetime',
-    ];
     protected function casts(): array
     {
         return [
-            'password' => 'hashed',
+            'is_active'  => 'boolean',
+            'created_at' => 'datetime',
+            'deleted_at' => 'datetime',
+            'password'   => 'hashed',
         ];
     }
 
@@ -159,7 +157,7 @@ class User extends Authenticatable
         return $this->hasMany(CenterIssueReport::class, 'reported_by', 'user_id');
     }
 
-        public function resourceRequests()
+    public function resourceRequests()
     {
         return $this->hasMany(ResourceRequest::class, 'requested_by', 'user_id');
     }

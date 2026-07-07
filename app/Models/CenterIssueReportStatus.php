@@ -6,6 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class CenterIssueReportStatus extends Model
 {
+    /*
+    |--------------------------------------------------------------------------
+    | Status Key Constants
+    |--------------------------------------------------------------------------
+    */
+    const OPEN        = 'open';
+    const IN_PROGRESS = 'in_progress';
+    const RESOLVED    = 'resolved';
+    const CLOSED      = 'closed';
+
     protected $connection = 'mysql_v2';
     protected $table = 'center_issue_report_statuses';
     protected $primaryKey = 'status_id';

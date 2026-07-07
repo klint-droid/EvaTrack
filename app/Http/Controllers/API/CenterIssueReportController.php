@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
 use App\Models\CenterIssueReport;
 use App\Models\CenterIssueReportStatus;
 use App\Models\CenterIssueCategory;
 use App\Models\SeverityLevel;
+use App\Http\Requests\StoreCenterIssueReportRequest;
+use App\Http\Requests\UpdateCenterIssueReportRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use OpenApi\Attributes as OA;
 
-class CenterIssueReportController extends Controller
+class CenterIssueReportController extends BaseApiController
 {
     #[OA\Get(
         path: '/center-issue-reports',
@@ -31,7 +32,7 @@ class CenterIssueReportController extends Controller
     #[OA\Response(response: 403, description: 'Forbidden')]
     public function index(Request $request)
     {
-        $user = Auth::user();
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
 
         $query = CenterIssueReport::with([
             'center',
@@ -42,28 +43,7 @@ class CenterIssueReportController extends Controller
             'status',
         ]);
 
-        if ($user->isEvacPersonnel()) {
-            if (!$user->assigned_center_id) {
-                return response()->json([
-                    'message' => 'No evacuation center assigned.'
-                ], 403);
-            }
-
-            $query->where('evacuation_center_id', $user->assigned_center_id);
-        }
-
-        if ($request->filled('center_id')) {
-            if (
-                $user->isEvacPersonnel() &&
-                $request->center_id !== $user->assigned_center_id
-            ) {
-                return response()->json([
-                    'message' => 'You are not assigned to this evacuation center.'
-                ], 403);
-            }
-
-            $query->where('evacuation_center_id', $request->center_id);
-        }
+        $query = $this->applyCenterFilter($query, $request);
 
         if ($request->filled('category')) {
             $query->whereHas('category', function ($q) use ($request) {
@@ -142,46 +122,12 @@ class CenterIssueReportController extends Controller
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     #[OA\Response(response: 403, description: 'Forbidden')]
     #[OA\Response(response: 422, description: 'Validation errors')]
-    public function store(Request $request)
+    public function store(StoreCenterIssueReportRequest $request)
     {
-        $user = Auth::user();
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
 
-        if (
-            !$user->isSuperAdmin() &&
-            !$user->isEvacAdmin() &&
-            !$user->isEvacPersonnel()
-        ) {
-            return response()->json([
-                'message' => 'Unauthorized'
-            ], 403);
-        }
-
-        $validated = $request->validate([
-            'evacuation_center_id' => 'nullable|exists:evacuation_centers,evacuation_center_id',
-            'category' => 'required|in:incident,facility_issue,health_issue,safety_issue,other',
-            'title' => 'required|string|max:150',
-            'description' => 'required|string',
-            'severity' => 'required|in:low,medium,high,critical',
-            'attachment' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:5120',
-        ]);
-
-        if ($user->isEvacPersonnel()) {
-            if (!$user->assigned_center_id) {
-                return response()->json([
-                    'message' => 'No evacuation center assigned.'
-                ], 403);
-            }
-
-            $centerId = $user->assigned_center_id;
-        } else {
-            if (!$request->filled('evacuation_center_id')) {
-                return response()->json([
-                    'message' => 'Evacuation center is required.'
-                ], 422);
-            }
-
-            $centerId = $validated['evacuation_center_id'];
-        }
+        $validated = $request->validated();
+        $centerId = $this->resolveUserCenterId($request);
 
         $categoryId = CenterIssueCategory::where('category_key', $validated['category'])->value('category_id');
         $severityId = SeverityLevel::where('severity_key', $validated['severity'])->value('severity_id');
@@ -194,7 +140,7 @@ class CenterIssueReportController extends Controller
 
         $report = CenterIssueReport::create([
             'evacuation_center_id' => $centerId,
-            'reported_by' => $user->user_id,
+            'reported_by' => Auth::id(),
             'handled_by' => null,
             'category_id' => $categoryId,
             'title' => $validated['title'],
@@ -230,7 +176,7 @@ class CenterIssueReportController extends Controller
     #[OA\Response(response: 404, description: 'Report not found')]
     public function show($id)
     {
-        $user = Auth::user();
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
 
         $query = CenterIssueReport::with([
             'center',
@@ -241,15 +187,7 @@ class CenterIssueReportController extends Controller
             'status',
         ])->where('report_id', $id);
 
-        if ($user->isEvacPersonnel()) {
-            if (!$user->assigned_center_id) {
-                return response()->json([
-                    'message' => 'No evacuation center assigned.'
-                ], 403);
-            }
-
-            $query->where('evacuation_center_id', $user->assigned_center_id);
-        }
+        $query = $this->applyCenterFilter($query);
 
         $report = $query->first();
 
@@ -287,11 +225,14 @@ class CenterIssueReportController extends Controller
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     #[OA\Response(response: 403, description: 'Forbidden')]
     #[OA\Response(response: 404, description: 'Report not found')]
-    public function update(Request $request, $id)
+    public function update(UpdateCenterIssueReportRequest $request, $id)
     {
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
+        
         $user = Auth::user();
-
         $report = CenterIssueReport::with('status')->where('report_id', $id)->firstOrFail();
+        
+        $this->checkCenterOwnership($report->evacuation_center_id);
 
         if ($user->isEvacPersonnel()) {
             if ($report->reported_by !== $user->user_id) {
@@ -300,7 +241,6 @@ class CenterIssueReportController extends Controller
                 ], 403);
             }
 
-            // Check if report status is 'open' via the relationship
             if ($report->status && $report->status->status_key !== 'open') {
                 return response()->json([
                     'message' => 'Only open reports can be edited.'
@@ -308,23 +248,7 @@ class CenterIssueReportController extends Controller
             }
         }
 
-        if (
-            !$user->isSuperAdmin() &&
-            !$user->isEvacAdmin() &&
-            !$user->isEvacPersonnel()
-        ) {
-            return response()->json([
-                'message' => 'Unauthorized'
-            ], 403);
-        }
-
-        $validated = $request->validate([
-            'category' => 'sometimes|in:incident,facility_issue,health_issue,safety_issue,other',
-            'title' => 'sometimes|string|max:150',
-            'description' => 'sometimes|string',
-            'severity' => 'sometimes|in:low,medium,high,critical',
-            'attachment' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:5120',
-        ]);
+        $validated = $request->validated();
 
         $updateData = [];
 
@@ -388,13 +312,7 @@ class CenterIssueReportController extends Controller
     #[OA\Response(response: 404, description: 'Report not found')]
     public function updateStatus(Request $request, $id)
     {
-        $user = Auth::user();
-
-        if (!$user->isSuperAdmin() && !$user->isEvacAdmin()) {
-            return response()->json([
-                'message' => 'Only admin users can update report status.'
-            ], 403);
-        }
+        $this->authorizeRole('super_admin', 'evac_admin');
 
         $validated = $request->validate([
             'status' => 'required|in:open,in_progress,resolved,closed',
@@ -406,7 +324,7 @@ class CenterIssueReportController extends Controller
 
         $report->update([
             'status_id' => $statusId,
-            'handled_by' => $user->user_id,
+            'handled_by' => Auth::id(),
         ]);
 
         return response()->json([
@@ -436,9 +354,12 @@ class CenterIssueReportController extends Controller
     #[OA\Response(response: 404, description: 'Report not found')]
     public function destroy($id)
     {
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
+        
         $user = Auth::user();
-
         $report = CenterIssueReport::with('status')->where('report_id', $id)->firstOrFail();
+        
+        $this->checkCenterOwnership($report->evacuation_center_id);
 
         if ($user->isEvacPersonnel()) {
             if ($report->reported_by !== $user->user_id) {
@@ -452,16 +373,6 @@ class CenterIssueReportController extends Controller
                     'message' => 'Only open reports can be deleted.'
                 ], 400);
             }
-        }
-
-        if (
-            !$user->isSuperAdmin() &&
-            !$user->isEvacAdmin() &&
-            !$user->isEvacPersonnel()
-        ) {
-            return response()->json([
-                'message' => 'Unauthorized'
-            ], 403);
         }
 
         $report->delete();

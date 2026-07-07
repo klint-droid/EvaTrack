@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\EvacuationCenter;
 use App\Models\EvacuationRecord;
+use App\Models\HouseholdStatus;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 
@@ -19,7 +20,7 @@ class EvacuationCenterService
                         FROM evacuation_records
                         JOIN disaster_events ON evacuation_records.event_id = disaster_events.event_id
                         WHERE evacuation_records.center_id = evacuation_centers.evacuation_center_id
-                          AND evacuation_records.household_status_id = 2
+                          AND evacuation_records.household_status_id = " . HouseholdStatus::EVACUATED . "
                           AND disaster_events.ended_at IS NULL
                     ) as household_count,
                     (
@@ -27,7 +28,7 @@ class EvacuationCenterService
                         FROM evacuation_records
                         JOIN disaster_events ON evacuation_records.event_id = disaster_events.event_id
                         WHERE evacuation_records.center_id = evacuation_centers.evacuation_center_id
-                          AND evacuation_records.household_status_id = 2
+                          AND evacuation_records.household_status_id = " . HouseholdStatus::EVACUATED . "
                           AND disaster_events.ended_at IS NULL
                     ) as current_occupancy
                 ")
@@ -71,7 +72,7 @@ class EvacuationCenterService
     public function getCapacityInfo(EvacuationCenter $center): array
     {
         $current = EvacuationRecord::where('center_id', $center->evacuation_center_id)
-            ->where('household_status_id', 2)
+            ->where('household_status_id', HouseholdStatus::EVACUATED)
             ->whereHas('event', function ($q) {
                 $q->whereNull('ended_at');
             })

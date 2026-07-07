@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use App\Models\HouseholdStatus;
 
 class Household extends Model
 {
@@ -68,14 +69,14 @@ class Household extends Model
         return $this->hasMany(DeviceToken::class, 'household_id', 'household_id');
     }
 
-    public function notificationRecepients()
+    public function notificationRecipients()
     {
         return $this->hasMany(NotificationRecipient::class, 'household_id', 'household_id');
     }
 
     public function currentEvacuation(){
         return $this->hasOne(EvacuationRecord::class, 'household_id')
-            ->where('household_status_id', 2)
+            ->where('household_status_id', HouseholdStatus::EVACUATED)
             ->whereHas('event', function ($query) {
                 $query->whereNull('ended_at');
             })
@@ -88,7 +89,7 @@ class Household extends Model
      */
     public function currentEvacuations(){
         return $this->hasMany(EvacuationRecord::class, 'household_id')
-            ->where('household_status_id', 2)
+            ->where('household_status_id', HouseholdStatus::EVACUATED)
             ->whereHas('event', function ($query) {
                 $query->whereNull('ended_at');
             });

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
 use App\Models\EvacuationRecord;
 use App\Models\EvacuationCenter;
 use App\Models\EvacuatedMember;
@@ -16,18 +15,11 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use OpenApi\Attributes as OA;
 
-class AnalyticsExportController extends Controller
+class AnalyticsExportController extends BaseApiController
 {
     // ─── SHARED FILTER HELPERS ───
 
-    private function authorize()
-    {
-        $user = Auth::user();
-        if (!$user->isSuperAdmin() && !$user->isEvacAdmin() && !$user->isEvacPersonnel()) {
-            abort(403, 'Unauthorized');
-        }
-        return $user;
-    }
+
 
     private function applyFilters(Request $request, $query, $centerField = 'center_id', $dateField = 'created_at')
     {
@@ -184,7 +176,7 @@ class AnalyticsExportController extends Controller
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function dromicMasterList(Request $request)
     {
-        $this->authorize();
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
         $meta = $this->getFilterMeta($request);
 
         $query = EvacuationRecord::with([
@@ -272,7 +264,7 @@ class AnalyticsExportController extends Controller
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function demographicSummary(Request $request)
     {
-        $this->authorize();
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
         $meta = $this->getFilterMeta($request);
 
         $query = EvacuationRecord::where('household_status_id', 2);
@@ -350,7 +342,7 @@ class AnalyticsExportController extends Controller
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function centerUtilization(Request $request)
     {
-        $this->authorize();
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
         $meta = $this->getFilterMeta($request);
 
         $query = EvacuationRecord::where('household_status_id', 2);
@@ -406,7 +398,7 @@ class AnalyticsExportController extends Controller
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function vulnerableGroups(Request $request)
     {
-        $this->authorize();
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
         $meta = $this->getFilterMeta($request);
 
         $query = EvacuationRecord::with([
@@ -472,7 +464,7 @@ class AnalyticsExportController extends Controller
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function resourceRequests(Request $request)
     {
-        $this->authorize();
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
         $meta = $this->getFilterMeta($request);
 
         $query = ResourceRequest::with(['center', 'requester', 'handler', 'urgencyLevel', 'status']);
@@ -531,7 +523,7 @@ class AnalyticsExportController extends Controller
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function centerIssues(Request $request)
     {
-        $this->authorize();
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
         $meta = $this->getFilterMeta($request);
 
         $query = CenterIssueReport::with(['center', 'reporter', 'handler', 'category', 'severityLevel', 'status']);
@@ -596,7 +588,7 @@ class AnalyticsExportController extends Controller
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function dailyIntake(Request $request)
     {
-        $this->authorize();
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
 
         $query = EvacuationRecord::with('center');
         $this->applyFilters($request, $query);
