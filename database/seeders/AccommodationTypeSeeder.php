@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\AccommodationType;
+use App\Domains\AccommodationUnits\Models\AccommodationType;
 
 class AccommodationTypeSeeder extends Seeder
 {

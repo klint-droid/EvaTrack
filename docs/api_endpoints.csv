@@ -1,0 +1,93 @@
+Method,API Endpoint,Controller Action,Module
+POST,/api/login,AuthController@apiLogin,Authentication
+POST,/api/logout,AuthController@apiLogout,Authentication
+GET,/api/user,AuthController@currentUser,Authentication
+PUT,/api/user/profile,UserController@updateProfile,Authentication
+PUT,/api/user/password,UserController@updatePassword,Authentication
+GET,/api/users,UserController@index,User Management
+POST,/api/users,UserController@createUser,User Management
+PUT,/api/users/{id},UserController@updateUser,User Management
+DELETE,/api/users/{id},UserController@deleteUser,User Management
+POST,/api/users/{user}/assign-center,UserController@assignCenter,User Management
+GET,/api/lookups,LookupController@index,Reference Data
+GET,/api/barangays,AddressController@barangays,Reference Data
+GET,/api/barangays/{id}/sitios,AddressController@sitios,Reference Data
+GET,/api/sitios/{id}/puroks,AddressController@puroks,Reference Data
+GET,/api/disaster-types,DisasterTypeController@index,Reference Data
+GET,/api/severity-levels,SeverityLevelController@index,Reference Data
+GET,/api/urgency-levels,ResourceRequestController@urgencyLevels,Reference Data
+GET,/api/accommodation-types,AccommodationUnitController@types,Reference Data
+GET,/api/households,HouseholdController@index,Households
+POST,/api/households,HouseholdController@store,Households
+GET,/api/households/search,HouseholdController@search,Households
+GET,/api/households/{id},HouseholdController@show,Households
+PATCH,/api/households/{id},HouseholdController@update,Households
+DELETE,/api/households/{id},HouseholdController@destroy,Households
+GET,/api/households/{householdId}/members,HouseholdMemberController@index,Household Members
+POST,/api/households/{householdId}/members,HouseholdMemberController@store,Household Members
+PATCH,/api/households/{householdId}/members/{memberId},HouseholdMemberController@update,Household Members
+DELETE,/api/households/{householdId}/members/{memberId},HouseholdMemberController@destroy,Household Members
+GET,/api/evacuation-centers,EvacuationCenterController@index,Evacuation Centers
+POST,/api/evacuation-centers,EvacuationCenterController@store,Evacuation Centers
+GET,/api/evacuation-centers/{center},EvacuationCenterController@show,Evacuation Centers
+PUT,/api/evacuation-centers/{center},EvacuationCenterController@update,Evacuation Centers
+DELETE,/api/evacuation-centers/{center},EvacuationCenterController@destroy,Evacuation Centers
+GET,/api/evacuation-centers/{center}/capacity,EvacuationCenterController@capacity,Evacuation Centers
+GET,/api/evacuation-centers/{center}/export,CenterExportController@exportCenterHouseholds,Evacuation Centers
+GET,/api/evacuations,EvacuationController@index,Evacuation Records
+GET,/api/evacuations/{evacuation},EvacuationController@show,Evacuation Records
+GET,/api/evacuations/search-household,HouseholdController@search,Evacuation Records
+POST,/api/evacuations/process-scan,EvacuationController@scan,Evacuation Records
+POST,/api/evacuations/verify-manual,EvacuationController@verifyManual,Evacuation Records
+POST,/api/evacuations/admit,EvacuationController@admit,Evacuation Records
+POST,/api/evacuations/{evacuationId}/checkout,EvacuationController@checkout,Evacuation Records
+PATCH,/api/evacuations/{evacuationId}/members/{memberId}/status,EvacuationController@updateMemberStatus,Evacuation Records
+DELETE,/api/evacuations/{evacuationId},EvacuationController@deleteRecord,Evacuation Records
+GET,/api/events,EvacuationEventController@index,Evacuation Events
+POST,/api/events,EvacuationEventController@store,Evacuation Events
+GET,/api/events/active,EvacuationEventController@active,Evacuation Events
+GET,/api/events/history,EvacuationEventController@history,Evacuation Events
+PATCH,/api/events/{id}/end,EvacuationEventController@end,Evacuation Events
+PATCH,/api/events/{id}/assign-centers,EvacuationEventController@assignCenters,Evacuation Events
+PATCH,/api/centers/{centerId}/unassign,EvacuationEventController@unassignCenter,Evacuation Events
+GET,/api/centers/{centerId}/units,AccommodationUnitController@index,Accommodation Units
+POST,/api/centers/{centerId}/units,AccommodationUnitController@store,Accommodation Units
+PATCH,/api/centers/{centerId}/units/{unitId},AccommodationUnitController@update,Accommodation Units
+DELETE,/api/centers/{centerId}/units/{unitId},AccommodationUnitController@destroy,Accommodation Units
+GET,/api/centers/{centerId}/unassigned,UnitAllocationController@unassigned,Unit Allocations
+GET,/api/units/{unitId}/allocations,UnitAllocationController@index,Unit Allocations
+POST,/api/units/{unitId}/allocations,UnitAllocationController@assign,Unit Allocations
+DELETE,/api/units/{unitId}/allocations/{allocationId},UnitAllocationController@unassign,Unit Allocations
+GET,/api/resource-requests,ResourceRequestController@index,Resource Requests
+POST,/api/resource-requests,ResourceRequestController@store,Resource Requests
+GET,/api/resource-requests/{id},ResourceRequestController@show,Resource Requests
+PATCH,/api/resource-requests/{id}/status,ResourceRequestController@updateStatus,Resource Requests
+DELETE,/api/resource-requests/{id},ResourceRequestController@destroy,Resource Requests
+GET,/api/center-issue-reports,CenterIssueReportController@index,Center Issue Reports
+POST,/api/center-issue-reports,CenterIssueReportController@store,Center Issue Reports
+GET,/api/center-issue-reports/{id},CenterIssueReportController@show,Center Issue Reports
+PATCH,/api/center-issue-reports/{id},CenterIssueReportController@update,Center Issue Reports
+PATCH,/api/center-issue-reports/{id}/status,CenterIssueReportController@updateStatus,Center Issue Reports
+DELETE,/api/center-issue-reports/{id},CenterIssueReportController@destroy,Center Issue Reports
+GET,/api/notifications,NotificationController@index,Notifications
+POST,/api/notifications,NotificationController@send,Notifications
+GET,/api/notifications/preview,NotificationController@preview,Notifications
+GET,/api/notifications/urgency-levels,NotificationController@urgencyLevels,Notifications
+GET,/api/notifications/{notification},NotificationController@show,Notifications
+GET,/api/notifications/{notification}/logs,NotificationController@logs,Notifications
+POST,/api/notifications/{notification}/acknowledge,NotificationController@acknowledge,Notifications
+DELETE,/api/notifications/{notification},NotificationController@cancel,Notifications
+GET,/api/analytics/dashboard,AnalyticsController@dashboard,Analytics
+GET,/api/analytics/events-list,AnalyticsController@eventsList,Analytics
+GET,/api/analytics/last-updated,AnalyticsController@lastUpdated,Analytics
+GET,/api/analytics/event/{eventId},AnalyticsController@eventAnalytics,Analytics
+GET,/api/analytics/event/{eventId}/center/{centerId},AnalyticsController@centerAnalytics,Analytics
+GET,/api/analytics/export/dromic,AnalyticsExportController@dromicMasterList,Analytics Exports
+GET,/api/analytics/export/demographics,AnalyticsExportController@demographicSummary,Analytics Exports
+GET,/api/analytics/export/utilization,AnalyticsExportController@centerUtilization,Analytics Exports
+GET,/api/analytics/export/vulnerable,AnalyticsExportController@vulnerableGroups,Analytics Exports
+GET,/api/analytics/export/resources,AnalyticsExportController@resourceRequests,Analytics Exports
+GET,/api/analytics/export/issues,AnalyticsExportController@centerIssues,Analytics Exports
+GET,/api/analytics/export/daily-intake,AnalyticsExportController@dailyIntake,Analytics Exports
+GET,/api/public/evacuation-centers,EvacuationCenterController@publicIndex,Public
+GET,/api/public/events/active,EvacuationEventController@activePublic,Public

@@ -2,9 +2,9 @@
 
 namespace App\Jobs;
 
-use App\Models\Notification;
-use App\Models\NotificationRecipient;
-use App\Services\NotificationService;
+use App\Domains\Notifications\Models\Notification;
+use App\Domains\Notifications\Models\NotificationRecipient;
+use App\Domains\Notifications\Services\NotificationService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;

@@ -1,28 +1,28 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\API\AuthController;
+use App\Domains\Authentication\Controllers\AuthController;
 use App\Http\Controllers\API\SyncController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\API\HouseholdController;
-use App\Http\Controllers\API\EvacuationCenterController;
-use App\Http\Controllers\API\EvacuationController;
+use App\Domains\Authentication\Controllers\UserController;
+use App\Domains\Households\Controllers\HouseholdController;
+use App\Domains\EvacuationCenters\Controllers\EvacuationCenterController;
+use App\Domains\Evacuations\Controllers\EvacuationController;
 use App\Http\Controllers\API\SmsWebhookController;
 use App\Http\Controllers\API\Admin\UserAssignmentController;
-use App\Http\Controllers\API\NotificationController;
-use App\Http\Controllers\API\EvacuationEventController;
-use App\Http\Controllers\API\AccommodationUnitController;
-use App\Http\Controllers\API\UnitAllocationController;
-use App\Http\Controllers\API\HouseholdMemberController;
-use App\Http\Controllers\API\ResourceRequestController;
-use App\Http\Controllers\API\CenterIssueReportController;
-use App\Http\Controllers\API\AddressController;
-use App\Http\Controllers\API\DisasterTypeController;
-use App\Http\Controllers\API\SeverityLevelController;
-use App\Http\Controllers\API\LookupController;
-use App\Http\Controllers\API\AnalyticsController;
-use App\Http\Controllers\API\ExportController;
-use App\Http\Controllers\API\AnalyticsExportController;
+use App\Domains\Notifications\Controllers\NotificationController;
+use App\Domains\EvacuationEvents\Controllers\EvacuationEventController;
+use App\Domains\AccommodationUnits\Controllers\AccommodationUnitController;
+use App\Domains\AccommodationUnits\Controllers\UnitAllocationController;
+use App\Domains\Households\Controllers\HouseholdMemberController;
+use App\Domains\ResourceRequests\Controllers\ResourceRequestController;
+use App\Domains\CenterIssueReports\Controllers\CenterIssueReportController;
+use App\Domains\ReferenceData\Controllers\AddressController;
+use App\Domains\EvacuationEvents\Controllers\DisasterTypeController;
+use App\Domains\EvacuationEvents\Controllers\SeverityLevelController;
+use App\Domains\ReferenceData\Controllers\LookupController;
+use App\Domains\Analytics\Controllers\AnalyticsController;
+use App\Domains\EvacuationCenters\Controllers\CenterExportController;
+use App\Domains\Analytics\Controllers\AnalyticsExportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -91,7 +91,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('evacuations/search-household', [HouseholdController::class, 'search']);
-    Route::get('evacuations/active', [EvacuationController::class, 'active']);
     Route::post('evacuations/process-scan', [EvacuationController::class, 'scan']);
     Route::post('evacuations/verify-manual', [EvacuationController::class, 'verifyManual']);
     Route::post('evacuations/admit', [EvacuationController::class, 'admit']);
@@ -116,7 +115,7 @@ Route::prefix('evacuation-centers')
         Route::get('/', [EvacuationCenterController::class, 'index']);
         Route::get('/{center}', [EvacuationCenterController::class, 'show']);
         Route::get('/{center}/capacity', [EvacuationCenterController::class, 'capacity']);
-        Route::get('/{center}/export', [ExportController::class, 'exportCenterHouseholds']);
+        Route::get('/{center}/export', [CenterExportController::class, 'exportCenterHouseholds']);
 
         Route::middleware('role:super_admin,evac_admin')->group(function () {
             Route::post('/', [EvacuationCenterController::class, 'store']);

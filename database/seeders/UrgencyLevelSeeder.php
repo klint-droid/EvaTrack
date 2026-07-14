@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\UrgencyLevel;
+use App\Domains\Notifications\Models\UrgencyLevel;
 
 class UrgencyLevelSeeder extends Seeder
 {

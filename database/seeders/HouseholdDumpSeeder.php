@@ -4,9 +4,9 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use App\Models\Household;
-use App\Models\HouseholdMember;
-use App\Models\Address;
+use App\Domains\Households\Models\Household;
+use App\Domains\Households\Models\HouseholdMember;
+use App\Domains\ReferenceData\Models\Address;
 
 class HouseholdDumpSeeder extends Seeder
 {

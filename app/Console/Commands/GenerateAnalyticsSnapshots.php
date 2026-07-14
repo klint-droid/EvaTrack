@@ -4,14 +4,14 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 
-use App\Models\Analytic;
-use App\Models\DisasterEvent;
-use App\Models\EvacuationCenter;
+use App\Domains\Analytics\Models\Analytic;
+use App\Domains\EvacuationEvents\Models\DisasterEvent;
+use App\Domains\EvacuationCenters\Models\EvacuationCenter;
 
-use App\Models\AnalyticsJobLog;
-use App\Models\AnalyticsJobStatus;
+use App\Domains\Analytics\Models\AnalyticsJobLog;
+use App\Domains\Analytics\Models\AnalyticsJobStatus;
 
-use App\Services\LiveAnalyticsService;
+use App\Domains\Analytics\Services\LiveAnalyticsService;
 
 class GenerateAnalyticsSnapshots extends Command
 {

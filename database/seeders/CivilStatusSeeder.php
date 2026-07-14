@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\CivilStatus;
+use App\Domains\ReferenceData\Models\CivilStatus;
 
 class CivilStatusSeeder extends Seeder
 {
