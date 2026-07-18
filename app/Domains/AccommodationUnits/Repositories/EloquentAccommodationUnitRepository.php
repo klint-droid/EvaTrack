@@ -15,7 +15,7 @@ use Exception;
 
 class EloquentAccommodationUnitRepository implements AccommodationUnitRepositoryInterface
 {
-    public function getUnitsByCenter(int $centerId, int $perPage = 15): LengthAwarePaginator
+    public function getUnitsByCenter(string $centerId, int $perPage = 15): LengthAwarePaginator
     {
         $units = AccommodationUnit::with('type')
             ->where('center_id', $centerId)
@@ -39,7 +39,7 @@ class EloquentAccommodationUnitRepository implements AccommodationUnitRepository
         return AccommodationType::all();
     }
 
-    public function createUnit(int $centerId, array $data): AccommodationUnit
+    public function createUnit(string $centerId, array $data): AccommodationUnit
     {
         $center = EvacuationCenter::where('evacuation_center_id', $centerId)->firstOrFail();
 
@@ -63,7 +63,7 @@ class EloquentAccommodationUnitRepository implements AccommodationUnitRepository
         return AccommodationUnit::create($data);
     }
 
-    public function updateUnit(int $unitId, int $centerId, array $data): AccommodationUnit
+    public function updateUnit(int $unitId, string $centerId, array $data): AccommodationUnit
     {
         $unit = AccommodationUnit::where('unit_id', $unitId)
             ->where('center_id', $centerId)
@@ -92,7 +92,7 @@ class EloquentAccommodationUnitRepository implements AccommodationUnitRepository
         return $unit;
     }
 
-    public function deleteUnit(int $unitId, int $centerId): void
+    public function deleteUnit(int $unitId, string $centerId): void
     {
         $unit = AccommodationUnit::where('unit_id', $unitId)
             ->where('center_id', $centerId)
@@ -119,7 +119,7 @@ class EloquentAccommodationUnitRepository implements AccommodationUnitRepository
         ->get();
     }
 
-    public function assignHousehold(int $unitId, int $evacuationId, int $assignedByUserId): UnitAllocation
+    public function assignHousehold(int $unitId, int $evacuationId, string $assignedByUserId): UnitAllocation
     {
         $evacuatedStatusId = HouseholdStatus::where('status_key', 'evacuated')->value('status_id');
 
@@ -181,7 +181,7 @@ class EloquentAccommodationUnitRepository implements AccommodationUnitRepository
         });
     }
 
-    public function getUnassignedEvacuations(int $centerId): Collection
+    public function getUnassignedEvacuations(string $centerId): Collection
     {
         $evacuatedStatusId = HouseholdStatus::where('status_key', 'evacuated')->value('status_id');
 

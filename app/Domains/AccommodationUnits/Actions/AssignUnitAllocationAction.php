@@ -12,7 +12,7 @@ class AssignUnitAllocationAction
         private AccommodationUnitRepositoryInterface $repository
     ) {}
 
-    public function execute(int $unitId, UnitAllocationDTO $dto, int $assignedByUserId): UnitAllocation
+    public function execute(int $unitId, UnitAllocationDTO $dto, string $assignedByUserId): UnitAllocation
     {
         return $this->repository->assignHousehold($unitId, $dto->evacuationId, $assignedByUserId);
     }

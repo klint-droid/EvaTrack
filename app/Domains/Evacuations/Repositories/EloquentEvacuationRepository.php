@@ -48,7 +48,7 @@ class EloquentEvacuationRepository implements EvacuationRepositoryInterface
         return $query->latest('verified_at')->get();
     }
 
-    public function findById(int $id, ?int $centerId = null): EvacuationRecord
+    public function findById(int $id, ?string $centerId = null): EvacuationRecord
     {
         $query = EvacuationRecord::with($this->recordRelations())
             ->where('evacuation_id', $id);
@@ -84,9 +84,7 @@ class EloquentEvacuationRepository implements EvacuationRepositoryInterface
             return [
                 'evacuation_id' => $record->evacuation_id,
                 'member_id'     => $memberId,
-                'status'        => 'Inside Center',
-                'created_at'    => now(),
-                'updated_at'    => now(),
+                'verified_at'   => now(),
             ];
         }, $memberIds);
 
@@ -103,15 +101,13 @@ class EloquentEvacuationRepository implements EvacuationRepositoryInterface
             $data[] = [
                 'evacuation_id' => $record->evacuation_id,
                 'member_id'     => null,
-                'status'        => 'Inside Center',
-                'created_at'    => now(),
-                'updated_at'    => now(),
+                'verified_at'   => now(),
             ];
         }
         EvacuatedMember::insert($data);
     }
 
-    public function updateEvacuatedMember(int $evacuationId, int $memberId, array $data): EvacuatedMember
+    public function updateEvacuatedMember(int $evacuationId, string $memberId, array $data): EvacuatedMember
     {
         $evacMember = EvacuatedMember::where('evacuation_id', $evacuationId)
             ->where('member_id', $memberId)
@@ -121,7 +117,7 @@ class EloquentEvacuationRepository implements EvacuationRepositoryInterface
         return $evacMember;
     }
 
-    public function isHouseholdEvacuatedAtCenter(string $householdId, int $centerId): bool
+    public function isHouseholdEvacuatedAtCenter(string $householdId, string $centerId): bool
     {
         return EvacuationRecord::where('household_id', $householdId)
             ->where('center_id', $centerId)
@@ -141,7 +137,7 @@ class EloquentEvacuationRepository implements EvacuationRepositoryInterface
             ->toArray();
     }
 
-    public function resolveEventId(?int $eventId, int $centerId): int
+    public function resolveEventId(?string $eventId, string $centerId): string
     {
         if ($eventId) {
             return $eventId;

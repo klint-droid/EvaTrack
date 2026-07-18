@@ -91,7 +91,7 @@ class HouseholdMemberController extends BaseApiController
     #[OA\Response(response: 200, description: 'Updated successfully')]
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     #[OA\Response(response: 404, description: 'Member not found')]
-    public function update(UpdateHouseholdMemberRequest $request, int $memberId, UpdateMemberAction $action)
+    public function update(UpdateHouseholdMemberRequest $request, string $memberId, UpdateMemberAction $action)
     {
         $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
 
@@ -115,7 +115,7 @@ class HouseholdMemberController extends BaseApiController
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     #[OA\Response(response: 403, description: 'Forbidden')]
     #[OA\Response(response: 404, description: 'Member not found')]
-    public function destroy(int $memberId, DeleteMemberAction $action)
+    public function destroy(string $memberId, DeleteMemberAction $action)
     {
         $this->authorizeRole('super_admin', 'evac_admin');
 

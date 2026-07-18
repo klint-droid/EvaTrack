@@ -16,5 +16,5 @@ interface EvacuationEventRepositoryInterface
     public function create(array $data): DisasterEvent;
     public function endEvent(DisasterEvent $event): DisasterEvent;
     public function assignCenters(DisasterEvent $event, array $centerIds): void;
-    public function unassignCenter(int $centerId): void;
+    public function unassignCenter(string $centerId): void;
 }

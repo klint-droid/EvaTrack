@@ -12,7 +12,7 @@ class CreateAccommodationUnitAction
         private AccommodationUnitRepositoryInterface $repository
     ) {}
 
-    public function execute(int $centerId, AccommodationUnitDTO $dto): AccommodationUnit
+    public function execute(string $centerId, AccommodationUnitDTO $dto): AccommodationUnit
     {
         return $this->repository->createUnit($centerId, $dto->toArray());
     }

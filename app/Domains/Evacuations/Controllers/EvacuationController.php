@@ -249,12 +249,12 @@ class EvacuationController extends BaseApiController
     #[OA\Response(response: 400, description: 'Invalid request')]
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     #[OA\Response(response: 403, description: 'Forbidden')]
-    public function updateMemberStatus(int $evacuationId, int $memberId, Request $request, UpdateEvacuatedMemberStatusAction $action)
+    public function updateMemberStatus(int $evacuationId, string $memberId, Request $request, UpdateEvacuatedMemberStatusAction $action)
     {
         $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
         
         $request->validate([
-            'status' => 'required|string|in:Inside Center,Checked Out,Transferred'
+            'status' => 'required|string|in:Inside Center,Checked Out,Transferred,evacuated,not_verified'
         ]);
 
         $centerId = $this->resolveUserCenterId($request);

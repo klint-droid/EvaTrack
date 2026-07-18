@@ -14,7 +14,7 @@ class CheckoutEvacuationAction
         private EvacuationRepositoryInterface $evacuationRepository
     ) {}
 
-    public function execute(int $evacuationId, int $centerId): EvacuationRecord
+    public function execute(int $evacuationId, string $centerId): EvacuationRecord
     {
         return DB::connection('mysql_v2')->transaction(function () use ($evacuationId, $centerId) {
             $record = $this->evacuationRepository->findById($evacuationId, $centerId);

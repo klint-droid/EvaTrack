@@ -92,7 +92,7 @@ class EloquentEvacuationEventRepository implements EvacuationEventRepositoryInte
         Cache::forget('all_centers_occupancy');
     }
 
-    public function unassignCenter(int $centerId): void
+    public function unassignCenter(string $centerId): void
     {
         $center = EvacuationCenter::where('evacuation_center_id', $centerId)->firstOrFail();
         $event_id = $center->current_event_id;

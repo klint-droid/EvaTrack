@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 class CenterIssueReportFilterDTO
 {
     public function __construct(
-        public readonly ?int $centerId,
+        public readonly ?string $centerId,
         public readonly ?string $category,
         public readonly ?string $severity,
         public readonly ?string $status,
@@ -18,7 +18,7 @@ class CenterIssueReportFilterDTO
     public static function fromRequest(Request $request): self
     {
         return new self(
-            centerId: $request->has('center_id') ? (int) $request->query('center_id') : null,
+            centerId: $request->has('center_id') ? (string) $request->query('center_id') : null,
             category: $request->query('category'),
             severity: $request->query('severity'),
             status:   $request->query('status'),

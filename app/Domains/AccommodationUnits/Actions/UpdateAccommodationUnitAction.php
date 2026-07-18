@@ -12,7 +12,7 @@ class UpdateAccommodationUnitAction
         private AccommodationUnitRepositoryInterface $repository
     ) {}
 
-    public function execute(int $unitId, int $centerId, AccommodationUnitDTO $dto): AccommodationUnit
+    public function execute(int $unitId, string $centerId, AccommodationUnitDTO $dto): AccommodationUnit
     {
         return $this->repository->updateUnit($unitId, $centerId, $dto->toArray());
     }

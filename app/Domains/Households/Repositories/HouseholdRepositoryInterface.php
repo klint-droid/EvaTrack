@@ -12,7 +12,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 interface HouseholdRepositoryInterface
 {
     public function findWithRelations(string $id): Household;
-    public function getFilteredList(HouseholdFilterDTO $filters, ?int $assignedCenterId): LengthAwarePaginator;
+    public function getFilteredList(HouseholdFilterDTO $filters, ?string $assignedCenterId): LengthAwarePaginator;
     public function create(HouseholdDTO $dto): Household;
     public function update(string $id, HouseholdDTO $dto): Household;
     public function delete(string $id): void;
@@ -20,6 +20,6 @@ interface HouseholdRepositoryInterface
     
     // Member operations
     public function addMember(string $householdId, MemberDTO $dto): HouseholdMember;
-    public function updateMember(int $memberId, MemberDTO $dto): HouseholdMember;
-    public function deleteMember(int $memberId): void;
+    public function updateMember(string $memberId, MemberDTO $dto): HouseholdMember;
+    public function deleteMember(string $memberId): void;
 }

@@ -26,9 +26,11 @@ class EloquentHouseholdRepository implements HouseholdRepositoryInterface
         'currentEvacuation.event',
         'currentEvacuation.unitAllocation.unit.type', 
         'currentEvacuation.verifier',                 
+        'currentEvacuation.evacuatedMembers',
         'currentEvacuations.center',
         'currentEvacuations.event',
         'currentEvacuations.unitAllocation.unit.type',
+        'currentEvacuations.evacuatedMembers',
     ];
 
     public function findWithRelations(string $id): Household
@@ -38,7 +40,7 @@ class EloquentHouseholdRepository implements HouseholdRepositoryInterface
             ->firstOrFail();
     }
 
-    public function getFilteredList(HouseholdFilterDTO $filters, ?int $assignedCenterId): LengthAwarePaginator
+    public function getFilteredList(HouseholdFilterDTO $filters, ?string $assignedCenterId): LengthAwarePaginator
     {
         $cacheKey = "households_list_c{$assignedCenterId}_p{$filters->page}_q" . md5($filters->search) . "_s{$filters->status}_ci{$filters->centerId}_ev{$filters->eventId}";
 
@@ -79,10 +81,9 @@ class EloquentHouseholdRepository implements HouseholdRepositoryInterface
                 }
             } else {
                 if ($filters->status === 'evacuated') {
-                    $query->where('status_id', HouseholdStatus::EVACUATED);
+                    $query->whereHas('currentEvacuation');
                 } elseif ($filters->status === 'not_evacuated') {
-                    $query->where('status_id', '!=', HouseholdStatus::EVACUATED)
-                          ->orWhereNull('status_id');
+                    $query->whereDoesntHave('currentEvacuation');
                 }
             }
 
@@ -180,7 +181,7 @@ class EloquentHouseholdRepository implements HouseholdRepositoryInterface
         return $member;
     }
 
-    public function updateMember(int $memberId, MemberDTO $dto): HouseholdMember
+    public function updateMember(string $memberId, MemberDTO $dto): HouseholdMember
     {
         $member = HouseholdMember::findOrFail($memberId);
 
@@ -203,7 +204,7 @@ class EloquentHouseholdRepository implements HouseholdRepositoryInterface
         return $member;
     }
 
-    public function deleteMember(int $memberId): void
+    public function deleteMember(string $memberId): void
     {
         $member = HouseholdMember::findOrFail($memberId);
         $member->delete();

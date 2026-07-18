@@ -11,7 +11,7 @@ class DeleteMemberAction
         private HouseholdRepositoryInterface $repository
     ) {}
 
-    public function execute(int $memberId): void
+    public function execute(string $memberId): void
     {
         DB::transaction(function () use ($memberId) {
             $this->repository->deleteMember($memberId);

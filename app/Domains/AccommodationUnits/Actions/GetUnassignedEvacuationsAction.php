@@ -11,7 +11,7 @@ class GetUnassignedEvacuationsAction
         private AccommodationUnitRepositoryInterface $repository
     ) {}
 
-    public function execute(int $centerId): Collection
+    public function execute(string $centerId): Collection
     {
         return $this->repository->getUnassignedEvacuations($centerId);
     }

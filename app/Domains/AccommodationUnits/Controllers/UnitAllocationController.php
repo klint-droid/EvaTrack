@@ -25,7 +25,7 @@ class UnitAllocationController extends BaseApiController
     #[OA\Response(response: 200, description: 'Success')]
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     #[OA\Response(response: 404, description: 'Unit not found')]
-    public function index($unitId, ListUnitAllocationsAction $action)
+    public function index(int $unitId, ListUnitAllocationsAction $action)
     {
         return response()->json(['data' => $action->execute($unitId)]);
     }
@@ -50,7 +50,7 @@ class UnitAllocationController extends BaseApiController
     #[OA\Response(response: 400, description: 'Invalid request, unit full, or already assigned')]
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     #[OA\Response(response: 404, description: 'Unit or Evacuation record not found')]
-    public function assign(AssignUnitAllocationRequest $request, $unitId, AssignUnitAllocationAction $action)
+    public function assign(AssignUnitAllocationRequest $request, int $unitId, AssignUnitAllocationAction $action)
     {
         $user = Auth::user();
         $dto = UnitAllocationDTO::fromRequest($request);
@@ -78,7 +78,7 @@ class UnitAllocationController extends BaseApiController
     #[OA\Response(response: 200, description: 'Success')]
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     #[OA\Response(response: 404, description: 'Allocation or Unit not found')]
-    public function unassign($unitId, $allocationId, UnassignUnitAllocationAction $action)
+    public function unassign(int $unitId, int $allocationId, UnassignUnitAllocationAction $action)
     {
         try {
             $action->execute($unitId, $allocationId);
@@ -98,7 +98,7 @@ class UnitAllocationController extends BaseApiController
     #[OA\Response(response: 200, description: 'Success')]
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     #[OA\Response(response: 404, description: 'Center not found')]
-    public function unassigned($centerId, GetUnassignedEvacuationsAction $action)
+    public function unassigned(string $centerId, GetUnassignedEvacuationsAction $action)
     {
         return response()->json(['data' => $action->execute($centerId)]);
     }

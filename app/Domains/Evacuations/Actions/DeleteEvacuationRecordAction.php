@@ -11,7 +11,7 @@ class DeleteEvacuationRecordAction
         private EvacuationRepositoryInterface $evacuationRepository
     ) {}
 
-    public function execute(int $evacuationId, int $centerId): void
+    public function execute(int $evacuationId, string $centerId): void
     {
         DB::connection('mysql_v2')->transaction(function () use ($evacuationId, $centerId) {
             // Ensure record belongs to center

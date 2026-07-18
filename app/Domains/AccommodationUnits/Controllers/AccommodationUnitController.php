@@ -26,7 +26,7 @@ class AccommodationUnitController extends BaseApiController
     #[OA\Response(response: 200, description: 'Success')]
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     #[OA\Response(response: 404, description: 'Center not found')]
-    public function index(Request $request, $centerId, ListAccommodationUnitsAction $action)
+    public function index(Request $request, string $centerId, ListAccommodationUnitsAction $action)
     {
         $perPage = $request->query('limit', 15);
         $units = $action->execute($centerId, $perPage);
@@ -70,7 +70,7 @@ class AccommodationUnitController extends BaseApiController
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     #[OA\Response(response: 403, description: 'Forbidden')]
     #[OA\Response(response: 422, description: 'Capacity limit exceeded')]
-    public function store(StoreAccommodationUnitRequest $request, $centerId, CreateAccommodationUnitAction $action)
+    public function store(StoreAccommodationUnitRequest $request, string $centerId, CreateAccommodationUnitAction $action)
     {
         $this->authorizeRole('super_admin', 'evac_admin');
 
@@ -110,7 +110,7 @@ class AccommodationUnitController extends BaseApiController
     #[OA\Response(response: 403, description: 'Forbidden')]
     #[OA\Response(response: 404, description: 'Unit or Center not found')]
     #[OA\Response(response: 422, description: 'Capacity limit exceeded')]
-    public function update(UpdateAccommodationUnitRequest $request, $centerId, $unitId, UpdateAccommodationUnitAction $action)
+    public function update(UpdateAccommodationUnitRequest $request, string $centerId, int $unitId, UpdateAccommodationUnitAction $action)
     {
         $this->authorizeRole('super_admin', 'evac_admin');
 
@@ -140,7 +140,7 @@ class AccommodationUnitController extends BaseApiController
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     #[OA\Response(response: 403, description: 'Forbidden')]
     #[OA\Response(response: 404, description: 'Unit not found')]
-    public function destroy($centerId, $unitId, DeleteAccommodationUnitAction $action)
+    public function destroy(string $centerId, int $unitId, DeleteAccommodationUnitAction $action)
     {
         $this->authorizeRole('super_admin', 'evac_admin');
 

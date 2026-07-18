@@ -11,7 +11,7 @@ class ListAccommodationUnitsAction
         private AccommodationUnitRepositoryInterface $repository
     ) {}
 
-    public function execute(int $centerId, int $perPage = 15): LengthAwarePaginator
+    public function execute(string $centerId, int $perPage = 15): LengthAwarePaginator
     {
         return $this->repository->getUnitsByCenter($centerId, $perPage);
     }

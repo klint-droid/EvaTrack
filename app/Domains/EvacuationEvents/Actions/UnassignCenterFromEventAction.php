@@ -10,7 +10,7 @@ class UnassignCenterFromEventAction
         private EvacuationEventRepositoryInterface $repository
     ) {}
 
-    public function execute(int $centerId): void
+    public function execute(string $centerId): void
     {
         $this->repository->unassignCenter($centerId);
     }

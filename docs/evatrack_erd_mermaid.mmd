@@ -1,0 +1,514 @@
+%% EvaTrack – Strict Entity Relationship Diagram
+%% Paste this entire code into https://mermaid.live
+%% NOTE: This diagram contains ONLY the tables and attributes actively used by the EvaTrack system models.
+
+erDiagram
+
+    %% ══════════════════════════════════════════
+    %% AUTHENTICATION & USERS
+    %% ══════════════════════════════════════════
+
+    users {
+        varchar user_id PK
+        varchar first_name
+        varchar last_name
+        varchar password
+        int role_id FK
+        varchar contact_number
+        varchar assigned_center_id FK
+        varchar household_id FK
+        boolean is_active
+        varchar profile_photo
+    }
+
+    roles {
+        int role_id PK
+        varchar role_key
+        varchar role_name
+    }
+
+    %% ══════════════════════════════════════════
+    %% HOUSEHOLDS & MEMBERS
+    %% ══════════════════════════════════════════
+
+    households {
+        varchar household_id PK
+        varchar household_name
+        int address_id FK
+        varchar contact_number
+        varchar emergency_contact
+    }
+
+    household_members {
+        varchar member_id PK
+        varchar household_id FK
+        varchar first_name
+        varchar middle_name
+        varchar last_name
+        date birth_date
+        int gender_id FK
+        int relationship_id FK
+        int civil_status_id FK
+    }
+
+    household_statuses {
+        int status_id PK
+        varchar status_key
+        varchar status_label
+    }
+
+    member_vulnerable_groups {
+        int id PK
+        varchar member_id FK
+        int vulnerable_group_id FK
+    }
+
+    %% ══════════════════════════════════════════
+    %% ADDRESS / LOCATION HIERARCHY
+    %% ══════════════════════════════════════════
+
+    addresses {
+        int address_id PK
+        int street_address
+        int barangay_id FK
+        int sitio_id FK
+        int purok_id FK
+        int zipcode_id FK
+    }
+
+    regions {
+        int region_id PK
+        varchar region_code
+        varchar region_name
+    }
+
+    provinces {
+        int province_id PK
+        varchar province_code
+        varchar province_name
+        int region_id FK
+    }
+
+    cities {
+        int city_id PK
+        varchar city_code
+        varchar city_name
+        int province_id FK
+    }
+
+    barangays {
+        int barangay_id PK
+        varchar barangay_code
+        varchar barangay_name
+        int city_id FK
+    }
+
+    sitios {
+        int sitio_id PK
+        varchar sitio_name
+        int barangay_id FK
+    }
+
+    puroks {
+        int purok_id PK
+        varchar purok_name
+        int sitio_id FK
+    }
+    
+    zipcodes {
+        int zipcode_id PK
+        varchar zipcode
+        int city_id FK
+    }
+
+    %% ══════════════════════════════════════════
+    %% DISASTER EVENTS
+    %% ══════════════════════════════════════════
+
+    disaster_events {
+        varchar event_id PK
+        varchar name
+        int type_id FK
+        int severity_level_id FK
+        datetime started_at
+        datetime ended_at
+    }
+
+    disaster_types {
+        int type_id PK
+        varchar type_code
+        varchar type_name
+        boolean is_active
+    }
+
+    disaster_event_types {
+        int event_type_id PK
+        varchar event_id FK
+        int type_id FK
+    }
+
+    severity_levels {
+        int severity_id PK
+        varchar severity_key
+        varchar severity_label
+    }
+
+    %% ══════════════════════════════════════════
+    %% EVACUATION CENTERS
+    %% ══════════════════════════════════════════
+
+    evacuation_centers {
+        varchar evacuation_center_id PK
+        varchar name
+        varchar osm_address
+        decimal latitude
+        decimal longitude
+        int capacity
+        varchar current_event_id FK
+        datetime created_at
+        datetime deleted_at
+    }
+
+    center_occupancies {
+        int id PK
+        varchar evacuation_center_id FK
+        int current_occupancy
+        datetime last_updated
+    }
+
+    %% ══════════════════════════════════════════
+    %% EVACUATION RECORDS
+    %% ══════════════════════════════════════════
+
+    evacuation_records {
+        int evacuation_id PK
+        varchar event_id FK
+        varchar household_id FK
+        varchar center_id FK
+        int household_status_id FK
+        int evacuated_count
+        enum method
+        varchar verified_by FK
+        datetime verified_at
+    }
+
+    evacuated_members {
+        int evacuated_member_id PK
+        int evacuation_id FK
+        varchar member_id FK
+        datetime verified_at
+    }
+
+    %% ══════════════════════════════════════════
+    %% ACCOMMODATION UNITS
+    %% ══════════════════════════════════════════
+
+    accommodation_units {
+        int unit_id PK
+        varchar center_id FK
+        varchar name
+        int type_id FK
+        int max_capacity
+    }
+
+    accommodation_types {
+        int type_id PK
+        varchar type_key
+        varchar type_label
+    }
+
+    unit_allocations {
+        int allocation_id PK
+        int evacuation_id FK
+        int unit_id FK
+        varchar assigned_by FK
+        boolean selected_by_resident
+    }
+
+    %% ══════════════════════════════════════════
+    %% CENTER ISSUE REPORTS
+    %% ══════════════════════════════════════════
+
+    center_issue_reports {
+        varchar report_id PK
+        varchar evacuation_center_id FK
+        varchar reported_by FK
+        varchar handled_by FK
+        int category_id FK
+        varchar title
+        text description
+        int severity_id FK
+        int status_id FK
+        varchar attachment_path
+    }
+
+    center_issue_categories {
+        int category_id PK
+        varchar category_key
+        varchar category_label
+    }
+
+    center_issue_report_statuses {
+        int status_id PK
+        varchar status_key
+        varchar status_label
+    }
+
+    %% ══════════════════════════════════════════
+    %% RESOURCE REQUESTS
+    %% ══════════════════════════════════════════
+
+    resource_requests {
+        varchar request_id PK
+        varchar evacuation_center_id FK
+        varchar requested_by FK
+        varchar handled_by FK
+        varchar resource_type
+        int quantity
+        text description
+        int urgency_id FK
+        int status_id FK
+    }
+
+    resource_request_status {
+        int status_id PK
+        varchar status_key
+        varchar status_label
+    }
+
+    %% ══════════════════════════════════════════
+    %% NOTIFICATIONS
+    %% ══════════════════════════════════════════
+
+    notifications {
+        int notif_id PK
+        text message
+        varchar sent_by FK
+        varchar evacuation_event_id FK
+        varchar evacuation_center_id FK
+        int urgency_level_id FK
+        datetime scheduled_at
+        boolean is_recurring
+        int recurrence_type_id FK
+        datetime recurrence_end_at
+        datetime last_sent_at
+        varchar channel
+        varchar status
+        varchar target_filter
+    }
+
+    notification_recipients {
+        int id PK
+        int notification_id FK
+        varchar household_id FK
+        datetime read_at
+        datetime acknowledged_at
+    }
+
+    notification_logs {
+        int log_id PK
+        int notification_id FK
+        varchar household_id FK
+        int channel_id FK
+        int status_id FK
+        datetime sent_at
+        int retry_count
+        varchar external_message_id
+    }
+
+    notification_channels {
+        int channel_id PK
+        varchar channel_key
+        varchar channel_label
+    }
+
+    notification_statuses {
+        int status_id PK
+        varchar status_key
+        varchar status_label
+    }
+
+    recurrence_types {
+        int type_id PK
+        varchar type_key
+        varchar type_label
+    }
+
+    device_tokens {
+        bigint token_id PK
+        varchar household_id FK
+        varchar player_id
+    }
+
+    %% ══════════════════════════════════════════
+    %% ANALYTICS
+    %% ══════════════════════════════════════════
+
+    analytics {
+        varchar analytic_id PK
+        varchar evacuation_event_id FK
+        varchar evacuation_center_id FK
+        varchar snapshot_type
+        datetime recorded_at
+        int total_population
+        int total_household
+        int children_count
+        int adult_count
+        int elderly_count
+        int pwd_count
+        int pregnant_count
+        int male_count
+        int female_count
+    }
+
+    analytics_job_logs {
+        int job_id PK
+        int status_id
+        datetime started_at
+        datetime finished_at
+        text message
+    }
+
+    analytics_job_status {
+        int status_id PK
+        varchar status_key
+        varchar status_label
+    }
+
+    %% ══════════════════════════════════════════
+    %% REFERENCE / LOOKUP TABLES
+    %% ══════════════════════════════════════════
+
+    genders {
+        int gender_id PK
+        varchar gender_key UK
+        varchar gender_label
+    }
+
+    civil_statuses {
+        int status_id PK
+        varchar status_key UK
+        varchar status_label
+    }
+
+    relationships {
+        int relationship_id PK
+        varchar relationship_key UK
+        varchar relationship_label
+    }
+
+    vulnerable_groups {
+        int vulnerable_group_id PK
+        varchar vulnerable_group_key UK
+        varchar vulnerable_group_label
+    }
+
+    urgency_levels {
+        int urgency_id PK
+        varchar urgency_key
+        varchar urgency_label
+    }
+
+    %% ══════════════════════════════════════════
+    %% RELATIONSHIPS
+    %% ══════════════════════════════════════════
+
+    users }o--|| roles : "role_id"
+    users }o--o| evacuation_centers : "assigned_center_id"
+    users }o--o| households : "household_id"
+
+    households }o--o| addresses : "address_id"
+    households ||--|{ household_members : "household_id"
+    households ||--|{ evacuation_records : "household_id"
+    households ||--|{ device_tokens : "household_id"
+    households ||--|{ notification_recipients : "household_id"
+    households ||--|{ notification_logs : "household_id"
+
+    household_members }o--o| genders : "gender_id"
+    household_members }o--o| civil_statuses : "civil_status_id"
+    household_members }o--o| relationships : "relationship_id"
+    household_members ||--|{ member_vulnerable_groups : "member_id"
+    household_members ||--|{ evacuated_members : "member_id"
+
+    member_vulnerable_groups }o--|| vulnerable_groups : "vulnerable_group_id"
+
+    addresses }o--o| barangays : "barangay_id"
+    addresses }o--o| sitios : "sitio_id"
+    addresses }o--o| puroks : "purok_id"
+    addresses }o--o| zipcodes : "zipcode_id"
+
+    regions ||--|{ provinces : "region_id"
+    provinces ||--|{ cities : "province_id"
+    cities ||--|{ barangays : "city_id"
+    barangays ||--|{ sitios : "barangay_id"
+    sitios ||--|{ puroks : "sitio_id"
+    zipcodes }o--|| cities : "city_id"
+
+    disaster_events }o--|| disaster_types : "type_id"
+    disaster_events }o--o| severity_levels : "severity_level_id"
+    disaster_events ||--|{ evacuation_records : "event_id"
+    disaster_events ||--|{ notifications : "evacuation_event_id"
+    disaster_events ||--|{ disaster_event_types : "event_id"
+    disaster_event_types }o--|| disaster_types : "type_id"
+
+    evacuation_centers }o--o| disaster_events : "current_event_id"
+    evacuation_centers ||--|{ evacuation_records : "center_id"
+    evacuation_centers ||--|{ accommodation_units : "center_id"
+    evacuation_centers ||--|{ notifications : "evacuation_center_id"
+    evacuation_centers ||--o| center_occupancies : "evacuation_center_id"
+    evacuation_centers ||--|{ center_issue_reports : "evacuation_center_id"
+    evacuation_centers ||--|{ resource_requests : "evacuation_center_id"
+    evacuation_centers ||--|{ analytics : "evacuation_center_id"
+
+    evacuation_records }o--|| disaster_events : "event_id"
+    evacuation_records }o--|| households : "household_id"
+    evacuation_records }o--|| evacuation_centers : "center_id"
+    evacuation_records }o--o| household_statuses : "household_status_id"
+    evacuation_records }o--o| users : "verified_by"
+    evacuation_records ||--|{ evacuated_members : "evacuation_id"
+    evacuation_records ||--|{ unit_allocations : "evacuation_id"
+
+    evacuated_members }o--|| evacuation_records : "evacuation_id"
+    evacuated_members }o--|| household_members : "member_id"
+
+    accommodation_units }o--|| evacuation_centers : "center_id"
+    accommodation_units }o--|| accommodation_types : "type_id"
+    accommodation_units ||--|{ unit_allocations : "unit_id"
+
+    unit_allocations }o--|| evacuation_records : "evacuation_id"
+    unit_allocations }o--|| accommodation_units : "unit_id"
+    unit_allocations }o--o| users : "assigned_by"
+
+    center_issue_reports }o--|| evacuation_centers : "evacuation_center_id"
+    center_issue_reports }o--|| users : "reported_by"
+    center_issue_reports }o--o| users : "handled_by"
+    center_issue_reports }o--|| center_issue_categories : "category_id"
+    center_issue_reports }o--o| severity_levels : "severity_id"
+    center_issue_reports }o--|| center_issue_report_statuses : "status_id"
+
+    resource_requests }o--|| evacuation_centers : "evacuation_center_id"
+    resource_requests }o--|| users : "requested_by"
+    resource_requests }o--o| users : "handled_by"
+    resource_requests }o--o| urgency_levels : "urgency_id"
+    resource_requests }o--|| resource_request_status : "status_id"
+
+    notifications }o--|| users : "sent_by"
+    notifications }o--o| disaster_events : "evacuation_event_id"
+    notifications }o--o| evacuation_centers : "evacuation_center_id"
+    notifications }o--o| urgency_levels : "urgency_level_id"
+    notifications }o--o| recurrence_types : "recurrence_type_id"
+    notifications ||--|{ notification_recipients : "notification_id"
+    notifications ||--|{ notification_logs : "notification_id"
+
+    notification_logs }o--|| notifications : "notification_id"
+    notification_logs }o--o| households : "household_id"
+    notification_logs }o--|| notification_channels : "channel_id"
+    notification_logs }o--|| notification_statuses : "status_id"
+
+    notification_recipients }o--|| notifications : "notification_id"
+    notification_recipients }o--o| households : "household_id"
+
+    device_tokens }o--|| households : "household_id"
+
+    analytics }o--o| disaster_events : "evacuation_event_id"
+    analytics }o--o| evacuation_centers : "evacuation_center_id"

@@ -10,7 +10,7 @@ class DeleteAccommodationUnitAction
         private AccommodationUnitRepositoryInterface $repository
     ) {}
 
-    public function execute(int $unitId, int $centerId): void
+    public function execute(int $unitId, string $centerId): void
     {
         $this->repository->deleteUnit($unitId, $centerId);
     }

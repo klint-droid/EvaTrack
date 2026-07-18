@@ -13,7 +13,7 @@ class UpdateMemberAction
         private HouseholdRepositoryInterface $repository
     ) {}
 
-    public function execute(int $memberId, MemberDTO $dto): HouseholdMember
+    public function execute(string $memberId, MemberDTO $dto): HouseholdMember
     {
         return DB::transaction(function () use ($memberId, $dto) {
             return $this->repository->updateMember($memberId, $dto);
