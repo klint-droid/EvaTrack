@@ -42,59 +42,51 @@ class EloquentHouseholdRepository implements HouseholdRepositoryInterface
 
     public function getFilteredList(HouseholdFilterDTO $filters, ?string $assignedCenterId): LengthAwarePaginator
     {
-        $cacheKey = "households_list_c{$assignedCenterId}_p{$filters->page}_q" . md5($filters->search) . "_s{$filters->status}_ci{$filters->centerId}_ev{$filters->eventId}";
+        $query = Household::withCount('members')->with([
+            'address',
+            'currentEvacuation.center',
+            'currentEvacuation.event',
+            'currentEvacuation.unitAllocation.unit',
+        ]);
 
-        return Cache::tags(['households'])->remember($cacheKey, 300, function () use ($filters, $assignedCenterId) {
-            $query = Household::withCount('members')->with([
-                'address',
-                'currentEvacuation.center',
-                'currentEvacuation.event',
-                'currentEvacuation.unitAllocation.unit',
-            ]);
+        $targetCenterId = $filters->centerId ?? ($assignedCenterId && $filters->status === 'evacuated' ? $assignedCenterId : null);
 
-            if ($assignedCenterId) {
-                $query->whereHas('currentEvacuation', fn($q) => $q->where('center_id', $assignedCenterId));
-            }
+        if ($targetCenterId) {
+            $query->whereHas('currentEvacuation', fn($q) => $q->where('center_id', $targetCenterId));
+        }
 
-            if (!empty($filters->search)) {
-                $query->where(function ($builder) use ($filters) {
-                    $builder->where('household_name', 'LIKE', "%{$filters->search}%")
-                        ->orWhere('household_id', 'LIKE', "%{$filters->search}%")
-                        ->orWhere('contact_number', 'LIKE', "%{$filters->search}%")
-                        ->orWhereHas('members', function ($q) use ($filters) {
-                            $q->where('first_name', 'LIKE', "%{$filters->search}%")
-                                ->orWhere('last_name', 'LIKE', "%{$filters->search}%")
-                                ->orWhere(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "%{$filters->search}%");
-                        });
+        if (!empty($filters->search)) {
+            $query->where(function ($builder) use ($filters) {
+                $builder->where('household_name', 'LIKE', "%{$filters->search}%")
+                    ->orWhere('household_id', 'LIKE', "%{$filters->search}%")
+                    ->orWhere('contact_number', 'LIKE', "%{$filters->search}%")
+                    ->orWhereHas('members', function ($q) use ($filters) {
+                        $q->where('first_name', 'LIKE', "%{$filters->search}%")
+                            ->orWhere('last_name', 'LIKE', "%{$filters->search}%")
+                            ->orWhere(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "%{$filters->search}%");
+                    });
+            });
+        }
+
+        if (!empty($filters->eventId)) {
+            if ($filters->status === 'evacuated') {
+                $query->whereHas('evacuations', function ($q) use ($filters) {
+                    $q->where('event_id', $filters->eventId);
                 });
-            }
-
-            if (!empty($filters->eventId)) {
-                if ($filters->status === 'evacuated') {
-                    $query->whereHas('evacuations', function ($q) use ($filters) {
-                        $q->where('event_id', $filters->eventId);
-                    });
-                } else {
-                    $query->whereDoesntHave('evacuations', function ($q) use ($filters) {
-                        $q->where('event_id', $filters->eventId);
-                    });
-                }
             } else {
-                if ($filters->status === 'evacuated') {
-                    $query->whereHas('currentEvacuation');
-                } elseif ($filters->status === 'not_evacuated') {
-                    $query->whereDoesntHave('currentEvacuation');
-                }
-            }
-
-            if (!empty($filters->centerId)) {
-                $query->whereHas('currentEvacuation', function ($q) use ($filters) {
-                    $q->where('center_id', $filters->centerId);
+                $query->whereDoesntHave('evacuations', function ($q) use ($filters) {
+                    $q->where('event_id', $filters->eventId);
                 });
             }
+        } else {
+            if ($filters->status === 'evacuated') {
+                $query->whereHas('currentEvacuation');
+            } elseif ($filters->status === 'not_evacuated') {
+                $query->whereDoesntHave('currentEvacuation');
+            }
+        }
 
-            return $query->paginate(15, ['*'], 'page', $filters->page);
-        });
+        return $query->paginate(15, ['*'], 'page', $filters->page);
     }
 
     public function create(HouseholdDTO $dto): Household
@@ -103,6 +95,7 @@ class EloquentHouseholdRepository implements HouseholdRepositoryInterface
             'household_name' => $dto->householdName,
             'contact_number' => $dto->contactNumber,
             'address_id'     => $dto->addressId,
+            'member_count'   => $dto->memberCount ?? 0,
         ]);
     }
 
@@ -126,8 +119,6 @@ class EloquentHouseholdRepository implements HouseholdRepositoryInterface
             ]));
         }
 
-        Cache::tags(['households'])->flush();
-
         return $household;
     }
 
@@ -141,8 +132,6 @@ class EloquentHouseholdRepository implements HouseholdRepositoryInterface
 
         $household->members()->delete();
         $household->delete();
-        
-        Cache::tags(['households'])->flush();
     }
 
     public function createAddress(Household $household, HouseholdDTO $dto): void
@@ -176,8 +165,6 @@ class EloquentHouseholdRepository implements HouseholdRepositoryInterface
             $member->vulnerableGroupDetails()->sync($dto->vulnerableGroupIds);
         }
 
-        Cache::tags(['households'])->flush();
-
         return $member;
     }
 
@@ -199,8 +186,6 @@ class EloquentHouseholdRepository implements HouseholdRepositoryInterface
             $member->vulnerableGroupDetails()->sync($dto->vulnerableGroupIds);
         }
 
-        Cache::tags(['households'])->flush();
-
         return $member;
     }
 
@@ -208,6 +193,5 @@ class EloquentHouseholdRepository implements HouseholdRepositoryInterface
     {
         $member = HouseholdMember::findOrFail($memberId);
         $member->delete();
-        Cache::tags(['households'])->flush();
     }
 }

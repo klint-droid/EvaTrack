@@ -139,18 +139,18 @@ class EloquentEvacuationRepository implements EvacuationRepositoryInterface
 
     public function resolveEventId(?string $eventId, string $centerId): string
     {
-        if ($eventId) {
-            return $eventId;
-        }
-
         $center = EvacuationCenter::where('evacuation_center_id', $centerId)->firstOrFail();
 
         if (!$center->current_event_id) {
             throw new NoCenterAssignedException(
-                'This evacuation center has no active event assigned. Please contact your admin.'
+                'Cannot admit household: This evacuation center is not assigned to an active disaster event.'
             );
         }
 
-        return $center->current_event_id;
+        if ($eventId) {
+            return (string) $eventId;
+        }
+
+        return (string) $center->current_event_id;
     }
 }

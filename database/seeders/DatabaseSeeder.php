@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
             ResourceRequestStatusSeeder::class,
             NotificationLookupSeeder::class,
             CivilStatusSeeder::class,
+            MambalingHouseholdSeeder::class,
         ]);
     }
 }

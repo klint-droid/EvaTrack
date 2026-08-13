@@ -12,7 +12,7 @@ class UpdateEvacuatedMemberStatusAction
         private EvacuationRepositoryInterface $evacuationRepository
     ) {}
 
-    public function execute(int $evacuationId, string $memberId, string $status, string $centerId): EvacuatedMember
+    public function execute(int $evacuationId, string $memberId, string $status, ?string $centerId = null): EvacuatedMember
     {
         return DB::connection('mysql_v2')->transaction(function () use ($evacuationId, $memberId, $status, $centerId) {
             // Verify ownership

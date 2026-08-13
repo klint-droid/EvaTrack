@@ -37,16 +37,22 @@ class OneSignalService
         }
 
         try {
-            $response = Http::withHeaders([
-                'Authorization' => "Basic {$this->apiKey}",
-                'Content-Type'  => 'application/json',
-            ])->post("{$this->baseUrl}/notifications", [
+            $postData = [
                 'app_id'             => $this->appId,
                 'include_player_ids' => $playerIds,
                 'headings'           => ['en' => $title],
                 'contents'           => ['en' => $body],
                 'data'               => empty($data) ? new \stdClass() : $data,
-            ]);
+            ];
+
+            if (!empty($data['url'])) {
+                $postData['url'] = $data['url'];
+            }
+
+            $response = Http::withHeaders([
+                'Authorization' => "Basic {$this->apiKey}",
+                'Content-Type'  => 'application/json',
+            ])->post("{$this->baseUrl}/notifications", $postData);
 
             if ($response->successful()) {
                 return [

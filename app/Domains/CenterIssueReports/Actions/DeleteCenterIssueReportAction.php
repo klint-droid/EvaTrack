@@ -12,7 +12,7 @@ class DeleteCenterIssueReportAction
         private CenterIssueReportRepositoryInterface $repository
     ) {}
 
-    public function execute(string $id, User $user, ?int $enforcedCenterId = null): void
+    public function execute(string $id, User $user, int|string|null $enforcedCenterId = null): void
     {
         $report = $this->repository->getReportById($id, $enforcedCenterId);
         

@@ -15,7 +15,7 @@ class UpdateCenterIssueReportAction
         private CenterIssueReportRepositoryInterface $repository
     ) {}
 
-    public function execute(string $id, CenterIssueReportDTO $dto, User $user, ?int $enforcedCenterId = null, ?UploadedFile $attachment = null): CenterIssueReport
+    public function execute(string $id, CenterIssueReportDTO $dto, User $user, int|string|null $enforcedCenterId = null, ?UploadedFile $attachment = null): CenterIssueReport
     {
         $report = $this->repository->getReportById($id, $enforcedCenterId);
 

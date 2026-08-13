@@ -66,6 +66,8 @@ class EloquentResourceRequestRepository implements ResourceRequestRepositoryInte
             });
         }
 
+        $urgencyIds = $this->getUrgencyLevelIds();
+
         $summary = [
             'pending'      => (clone $query)->where('status_id', $statusIds[ResourceRequestStatus::PENDING] ?? null)->count(),
             'acknowledged' => (clone $query)->where('status_id', $statusIds[ResourceRequestStatus::ACKNOWLEDGED] ?? null)->count(),
@@ -77,6 +79,10 @@ class EloquentResourceRequestRepository implements ResourceRequestRepositoryInte
                     $q->where('evacuation_center_id', $enforcedCenterId);
                 })
                 ->count(),
+            'critical'     => isset($urgencyIds['critical']) ? (clone $query)->where('urgency_id', $urgencyIds['critical'])->count() : 0,
+            'high'         => isset($urgencyIds['high']) ? (clone $query)->where('urgency_id', $urgencyIds['high'])->count() : 0,
+            'medium'       => isset($urgencyIds['medium']) ? (clone $query)->where('urgency_id', $urgencyIds['medium'])->count() : 0,
+            'low'          => isset($urgencyIds['low']) ? (clone $query)->where('urgency_id', $urgencyIds['low'])->count() : 0,
         ];
 
         if ($filter->limit > 0) {

@@ -52,8 +52,6 @@ class HouseholdMember extends Model
             }
         });
 
-        static::saved(fn () => \Illuminate\Support\Facades\Cache::tags(['households'])->flush());
-        static::deleted(fn () => \Illuminate\Support\Facades\Cache::tags(['households'])->flush());
     }
 
         public function household()

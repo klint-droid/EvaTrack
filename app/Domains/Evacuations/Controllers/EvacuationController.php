@@ -22,7 +22,7 @@ use OpenApi\Attributes as OA;
 
 class EvacuationController extends BaseApiController
 {
-    protected function resolveUserCenterId(Request $request): string
+    protected function resolveUserCenterId(Request $request, bool $required = true): ?string
     {
         $user = Auth::user();
         if ($user->isEvacPersonnel()) {
@@ -32,12 +32,12 @@ class EvacuationController extends BaseApiController
             return (string) $user->assigned_center_id;
         }
 
-        $centerId = $request->input('center_id') ?? $request->query('center_id');
-        if (!$centerId) {
+        $centerId = $request->input('center_id') ?? $request->query('center_id') ?? $user->assigned_center_id;
+        if (!$centerId && $required) {
             abort(400, 'center_id is required for admins.');
         }
 
-        return (string) $centerId;
+        return $centerId ? (string) $centerId : null;
     }
 
     #[OA\Get(
@@ -214,7 +214,7 @@ class EvacuationController extends BaseApiController
     {
         $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
 
-        $centerId = $this->resolveUserCenterId($request);
+        $centerId = $this->resolveUserCenterId($request, false);
 
         try {
             $record = $action->execute($evacuationId, $centerId);
@@ -257,7 +257,7 @@ class EvacuationController extends BaseApiController
             'status' => 'required|string|in:Inside Center,Checked Out,Transferred,evacuated,not_verified'
         ]);
 
-        $centerId = $this->resolveUserCenterId($request);
+        $centerId = $this->resolveUserCenterId($request, false);
 
         try {
             $action->execute($evacuationId, $memberId, $request->status, $centerId);
@@ -281,7 +281,7 @@ class EvacuationController extends BaseApiController
     {
         $this->authorizeRole('super_admin', 'evac_admin');
 
-        $centerId = $this->resolveUserCenterId($request);
+        $centerId = $this->resolveUserCenterId($request, false);
 
         try {
             $action->execute($evacuationId, $centerId);

@@ -24,17 +24,39 @@ class SendScheduledNotification implements ShouldQueue
             ->where('status', 'scheduled')
             ->first();
 
-        if (!$notification) return; // cancelled or already sent
+        if (!$notification) return; // cancelled, completed, or non-existent
 
         // check if recurring has expired
         if ($notification->is_recurring && $notification->recurrence_end_at) {
             if (now()->isAfter($notification->recurrence_end_at)) {
-                $notification->update(['status' => 'sent']);
+                $notification->update(['status' => 'completed']);
                 return;
             }
         }
 
-        $householdIds = $notification->recipients->pluck('household_id')->toArray();
+        // Dynamically resolve recipients for current run (so newly evacuated households are included)
+        $householdIds = $service->resolveRecipients(
+            $notification->target_filter ?? 'all',
+            $notification->evacuation_center_id,
+            $notification->evacuation_event_id
+        );
+
+        if (empty($householdIds)) {
+            $householdIds = $notification->recipients->pluck('household_id')->toArray();
+        } else {
+            // Ensure any new recipient records exist in notification_recipients
+            $existingHids = $notification->recipients->pluck('household_id')->toArray();
+            $newHids = array_diff($householdIds, $existingHids);
+            if (!empty($newHids)) {
+                $newRows = array_map(fn ($hid) => [
+                    'notification_id' => $notification->notif_id,
+                    'household_id'    => $hid,
+                    'read_at'         => null,
+                    'acknowledged_at' => null,
+                ], $newHids);
+                NotificationRecipient::insert($newRows);
+            }
+        }
 
         $channels = match($notification->channel) {
             'sms'  => ['sms'],
@@ -61,8 +83,9 @@ class SendScheduledNotification implements ShouldQueue
             if (!$notification->recurrence_end_at || now()->parse($nextRun)->isBefore($notification->recurrence_end_at)) {
                 // reset status to scheduled for next run
                 $notification->update(['status' => 'scheduled']);
-
                 self::dispatch($this->notifId)->delay($nextRun);
+            } else {
+                $notification->update(['status' => 'completed']);
             }
         }
     }

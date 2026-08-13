@@ -24,7 +24,7 @@ class EloquentCenterIssueReportRepository implements CenterIssueReportRepository
         ];
     }
 
-    public function getFilteredReports(CenterIssueReportFilterDTO $filter, ?int $enforcedCenterId = null): array
+    public function getFilteredReports(CenterIssueReportFilterDTO $filter, int|string|null $enforcedCenterId = null): array
     {
         $query = CenterIssueReport::with($this->reportRelations());
 
@@ -65,12 +65,18 @@ class EloquentCenterIssueReportRepository implements CenterIssueReportRepository
         $inProgressStatusId = CenterIssueReportStatus::where('status_key', 'in_progress')->value('status_id');
         $resolvedStatusId = CenterIssueReportStatus::where('status_key', 'resolved')->value('status_id');
         $criticalSeverityId = SeverityLevel::where('severity_key', 'critical')->value('severity_id');
+        $highSeverityId = SeverityLevel::where('severity_key', 'high')->value('severity_id');
+        $mediumSeverityId = SeverityLevel::where('severity_key', 'medium')->value('severity_id');
+        $lowSeverityId = SeverityLevel::where('severity_key', 'low')->value('severity_id');
 
         $summary = [
             'open'        => $openStatusId ? (clone $query)->where('status_id', $openStatusId)->count() : 0,
             'in_progress' => $inProgressStatusId ? (clone $query)->where('status_id', $inProgressStatusId)->count() : 0,
             'resolved'    => $resolvedStatusId ? (clone $query)->where('status_id', $resolvedStatusId)->count() : 0,
             'critical'    => $criticalSeverityId ? (clone $query)->where('severity_id', $criticalSeverityId)->count() : 0,
+            'high'        => $highSeverityId ? (clone $query)->where('severity_id', $highSeverityId)->count() : 0,
+            'medium'      => $mediumSeverityId ? (clone $query)->where('severity_id', $mediumSeverityId)->count() : 0,
+            'low'         => $lowSeverityId ? (clone $query)->where('severity_id', $lowSeverityId)->count() : 0,
         ];
 
         if ($filter->limit > 0) {
@@ -83,7 +89,7 @@ class EloquentCenterIssueReportRepository implements CenterIssueReportRepository
         ];
     }
 
-    public function getReportById(string $id, ?int $enforcedCenterId = null): ?CenterIssueReport
+    public function getReportById(string $id, int|string|null $enforcedCenterId = null): ?CenterIssueReport
     {
         $query = CenterIssueReport::with($this->reportRelations())->where('report_id', $id);
 

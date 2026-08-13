@@ -11,7 +11,7 @@ class GetCenterIssueReportAction
         private CenterIssueReportRepositoryInterface $repository
     ) {}
 
-    public function execute(string $id, ?int $enforcedCenterId = null): ?CenterIssueReport
+    public function execute(string $id, int|string|null $enforcedCenterId = null): ?CenterIssueReport
     {
         return $this->repository->getReportById($id, $enforcedCenterId);
     }

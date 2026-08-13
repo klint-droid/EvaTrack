@@ -80,13 +80,5 @@ class EvacuationRecord extends Model
     protected static function boot()
     {
         parent::boot();
-        static::saved(function () {
-            \Illuminate\Support\Facades\Cache::tags(['households'])->flush();
-            \Illuminate\Support\Facades\Cache::forget('all_centers_occupancy');
-        });
-        static::deleted(function () {
-            \Illuminate\Support\Facades\Cache::tags(['households'])->flush();
-            \Illuminate\Support\Facades\Cache::forget('all_centers_occupancy');
-        });
     }
 }

@@ -211,19 +211,39 @@ class LiveAnalyticsService
 
     protected function getDemographics($eventId, $centerId = null, $startDate = null, $endDate = null)
     {
-        $evacuationIds = EvacuationRecord::query()
+        $evacuationRecords = EvacuationRecord::query()
             ->when($eventId !== 'all', fn($q) => $q->where('event_id', $eventId))
             ->when($centerId, fn($q) => $q->where('center_id', $centerId))
             ->when($startDate, fn($q) => $q->whereDate('created_at', '>=', $startDate))
             ->when($endDate, fn($q) => $q->whereDate('created_at', '<=', $endDate))
-            ->pluck('evacuation_id');
+            ->get();
 
-        $members = EvacuatedMember::with([
+        $evacuationIds = $evacuationRecords->pluck('evacuation_id');
+        $householdIds = $evacuationRecords->pluck('household_id')->unique()->filter();
+
+        $evacuatedMembers = EvacuatedMember::with([
             'member.gender',
             'member.vulnerableGroupDetails',
         ])
         ->whereIn('evacuation_id', $evacuationIds)
         ->get();
+
+        $memberList = collect();
+        foreach ($evacuatedMembers as $em) {
+            if ($em->member) {
+                $memberList->push($em->member);
+            }
+        }
+
+        // Fallback: If no explicit evacuated_members records matched, load members of evacuated households
+        if ($memberList->isEmpty() && $householdIds->isNotEmpty()) {
+            $memberList = \App\Domains\Households\Models\HouseholdMember::with([
+                'gender',
+                'vulnerableGroupDetails',
+            ])
+            ->whereIn('household_id', $householdIds)
+            ->get();
+        }
 
         // Age groups
         $children = 0;
@@ -238,8 +258,7 @@ class LiveAnalyticsService
         // Vulnerable groups
         $vulnerableCounts = [];
 
-        foreach ($members as $em) {
-            $member = $em->member;
+        foreach ($memberList as $member) {
             if (!$member) continue;
 
             // Age
@@ -252,14 +271,15 @@ class LiveAnalyticsService
             }
 
             // Gender
-            $genderModel = $member->getRelation('gender');
-            $genderKey = $genderModel?->gender_key;
+            $genderModel = $member->getRelation('gender') ?? $member->gender;
+            $genderKey = strtolower($genderModel?->gender_key ?? '');
             if ($genderKey === 'male') $male++;
             elseif ($genderKey === 'female') $female++;
 
             // Vulnerable groups
-            if ($member->vulnerableGroupDetails) {
-                foreach ($member->vulnerableGroupDetails as $vg) {
+            $vgroups = $member->getRelation('vulnerableGroupDetails') ?? $member->vulnerableGroupDetails;
+            if ($vgroups) {
+                foreach ($vgroups as $vg) {
                     $key = $vg->vulnerable_group_key;
                     $label = $vg->vulnerable_group_label;
                     if (!isset($vulnerableCounts[$key])) {

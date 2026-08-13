@@ -42,8 +42,6 @@ class Household extends Model
             }
         });
 
-        static::saved(fn () => \Illuminate\Support\Facades\Cache::tags(['households'])->flush());
-        static::deleted(fn () => \Illuminate\Support\Facades\Cache::tags(['households'])->flush());
     }
 
     protected $fillable = [
@@ -51,6 +49,7 @@ class Household extends Model
         'address_id',
         'contact_number',
         'emergency_contact',
+        'member_count',
     ];
 
     protected $casts = [
@@ -90,8 +89,11 @@ class Household extends Model
     public function currentEvacuation(){
         return $this->hasOne(EvacuationRecord::class, 'household_id')
             ->where('household_status_id', HouseholdStatus::EVACUATED)
-            ->whereHas('event', function ($query) {
-                $query->whereNull('ended_at');
+            ->where(function ($q) {
+                $q->whereNull('event_id')
+                  ->orWhereHas('event', function ($query) {
+                      $query->whereNull('ended_at');
+                  });
             })
             ->latest();
     }
@@ -103,8 +105,11 @@ class Household extends Model
     public function currentEvacuations(){
         return $this->hasMany(EvacuationRecord::class, 'household_id')
             ->where('household_status_id', HouseholdStatus::EVACUATED)
-            ->whereHas('event', function ($query) {
-                $query->whereNull('ended_at');
+            ->where(function ($q) {
+                $q->whereNull('event_id')
+                  ->orWhereHas('event', function ($query) {
+                      $query->whereNull('ended_at');
+                  });
             });
     }
 

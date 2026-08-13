@@ -9,6 +9,10 @@ use App\Domains\Notifications\Models\NotificationLog;
 use App\Domains\Notifications\Models\NotificationRecipient;
 use App\Domains\Notifications\Models\UrgencyLevel;
 use App\Domains\Notifications\Services\NotificationService;
+use App\Domains\CenterIssueReports\Models\CenterIssueReport;
+use App\Domains\ResourceRequests\Models\ResourceRequest;
+use App\Domains\EvacuationCenters\Models\EvacuationCenter;
+use App\Domains\Evacuations\Models\EvacuationRecord;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -74,7 +78,7 @@ class NotificationController extends Controller
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function index(Request $request): JsonResponse
     {
-        $query = Notification::with(['sender', 'urgencyLevel', 'event'])
+        $query = Notification::with(['sender', 'urgencyLevel', 'event', 'center'])
             ->withCount('recipients')
             ->orderByDesc('created_at');
 
@@ -102,6 +106,8 @@ class NotificationController extends Controller
         $notification = Notification::with([
             'sender',
             'urgencyLevel',
+            'event',
+            'center',
             'recipients.household',
             'logs.channel',
             'logs.status',
@@ -214,32 +220,26 @@ class NotificationController extends Controller
     #[OA\Response(response: 422, description: 'Only scheduled notifications can be cancelled')]
     public function cancel(string $id): JsonResponse
     {
-        $notification = Notification::where('notif_id', $id)
-            ->where('status', 'scheduled')
-            ->first();
+        $notification = Notification::where('notif_id', $id)->first();
 
         if (!$notification) {
-            // Check if notification exists at all (for better error messaging)
-            $exists = Notification::where('notif_id', $id)->exists();
-            
-            if (!$exists) {
-                return response()->json([
-                    'message' => 'Notification not found.'
-                ], 404);
-            }
-
             return response()->json([
-                'message' => 'Only scheduled alerts can be cancelled.'
-            ], 422);
+                'message' => 'Notification not found.'
+            ], 404);
         }
 
-        $notification->update(['status' => 'cancelled']);
+        // Clean up linked logs and recipients
+        $notification->logs()->delete();
+        $notification->recipients()->delete();
+
+        $notification->delete();
 
         return response()->json([
-            'message' => 'Scheduled alert cancelled successfully.',
-            'notif_id' => $notification->notif_id
+            'message' => 'Notification alert deleted successfully.',
+            'notif_id' => $id
         ]);
     }
+
 
     #[OA\Get(
         path: '/notifications/preview',

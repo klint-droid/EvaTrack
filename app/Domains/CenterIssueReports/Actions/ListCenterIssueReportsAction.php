@@ -11,7 +11,7 @@ class ListCenterIssueReportsAction
         private CenterIssueReportRepositoryInterface $repository
     ) {}
 
-    public function execute(CenterIssueReportFilterDTO $filter, ?int $enforcedCenterId = null): array
+    public function execute(CenterIssueReportFilterDTO $filter, int|string|null $enforcedCenterId = null): array
     {
         return $this->repository->getFilteredReports($filter, $enforcedCenterId);
     }

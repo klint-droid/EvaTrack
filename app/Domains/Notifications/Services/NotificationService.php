@@ -52,6 +52,18 @@ class NotificationService
             $recurrenceTypeId = \App\Domains\Notifications\Models\RecurrenceType::where('type_key', $payload['recurrence_type'])->value('type_id');
         }
 
+        // Auto-resolve active disaster event if not explicitly provided
+        if (empty($payload['evacuation_event_id'])) {
+            if (!empty($payload['evacuation_center_id'])) {
+                $center = \App\Domains\EvacuationCenters\Models\EvacuationCenter::find($payload['evacuation_center_id']);
+                $payload['evacuation_event_id'] = $center?->current_event_id;
+            }
+            if (empty($payload['evacuation_event_id'])) {
+                $activeEvent = \App\Domains\EvacuationEvents\Models\DisasterEvent::whereNull('ended_at')->latest()->first();
+                $payload['evacuation_event_id'] = $activeEvent?->event_id;
+            }
+        }
+
         $notification = DB::connection('mysql_v2')->transaction(function () use ($payload, $householdIds, $channel, $status, $isRecurring, $recurrenceTypeId) {
 
             $notification = Notification::create([
@@ -137,7 +149,7 @@ class NotificationService
         $notification->update(['status' => 'sent']);
     }
 
-    private function resolveRecipients(string $targetFilter, ?string $centerId, ?string $eventId): array
+    public function resolveRecipients(string $targetFilter, ?string $centerId, ?string $eventId): array
     {
         $query = Household::on('mysql_v2');
 
@@ -162,6 +174,56 @@ class NotificationService
         return $query->pluck('household_id')->toArray();
     }
 
+    protected function formatDetailedMessage(Notification $notification): array
+    {
+        $notification->loadMissing(['event', 'center']);
+
+        $rawMessage = trim($notification->message);
+        
+        // Extract clean base message directive
+        $cleanMessage = explode("\n\nEvent:", $rawMessage)[0];
+        $cleanMessage = explode("\n\nCenter:", $cleanMessage)[0];
+        $cleanMessage = explode("\n\nCenters:", $cleanMessage)[0];
+        $cleanMessage = explode("\n\nLink:", $cleanMessage)[0];
+        $cleanMessage = explode("\n\nhttp", $cleanMessage)[0];
+        $cleanMessage = trim($cleanMessage);
+
+        $event = $notification->event;
+        if (!$event && $notification->center?->current_event_id) {
+            $event = \App\Domains\EvacuationEvents\Models\DisasterEvent::find($notification->center->current_event_id);
+        }
+        if (!$event) {
+            $event = \App\Domains\EvacuationEvents\Models\DisasterEvent::whereNull('ended_at')->latest()->first();
+        }
+
+        $eventName = $event?->name ?? 'General Emergency Alert';
+
+        if ($notification->center) {
+            $centerName  = $notification->center->name;
+            $url         = "http://100.73.14.100:5173/evacuation-centers/{$notification->center->evacuation_center_id}";
+            $centerLabel = "Center: {$centerName}";
+        } else {
+            $url         = "http://100.73.14.100:5173/public";
+            $centerLabel = "Centers: All Evacuation Centers";
+        }
+
+        $asOfTime   = ($notification->created_at ?? now())->format('M j, Y, g:i A');
+        $asOfHeader = "As of {$asOfTime} Announcement";
+
+        $structuredDetails = [];
+        $structuredDetails[] = $asOfHeader;
+        $structuredDetails[] = "Event: {$eventName}";
+        $structuredDetails[] = $centerLabel;
+        $structuredDetails[] = $url;
+
+        $finalMessage = $cleanMessage . "\n\n" . implode("\n", $structuredDetails);
+
+        return [
+            'message' => $finalMessage,
+            'url'     => $url,
+        ];
+    }
+
     protected function dispatchSms(Notification $notification, array $householdIds): void
     {
         $households = Household::on('mysql_v2')
@@ -176,14 +238,16 @@ class NotificationService
             return;
         }
 
+        $details = $this->formatDetailedMessage($notification);
+
         foreach ($households as $household) {
-            $result = $this->sms->send($household->contact_number, $notification->message);
+            $result = $this->sms->send($household->contact_number, $details['message']);
 
             NotificationLog::create([
                 'notification_id'     => $notification->notif_id,
                 'household_id'        => $household->household_id,
-                'channel_id'             => $this->channelId('sms'),
-                'status_id'              => $this->statusId($result['success'] ? 'sent' : 'failed'),
+                'channel_id'          => $this->channelId('sms'),
+                'status_id'           => $this->statusId($result['success'] ? 'sent' : 'failed'),
                 'sent_at'             => $result['success'] ? now() : null,
                 'external_message_id' => $result['message_id'] ?? null,
             ]);
@@ -204,12 +268,18 @@ class NotificationService
         }
 
         $playerIds = $tokens->pluck('player_id')->toArray();
+        $details = $this->formatDetailedMessage($notification);
 
         $result = $this->push->sendToPlayers(
             $playerIds,
-            'Alert',
-            $notification->message,
-            ['notif_id' => $notification->notif_id],
+            'Disaster Alert',
+            $details['message'],
+            [
+                'notif_id'  => $notification->notif_id,
+                'url'       => $details['url'],
+                'center_id' => $notification->evacuation_center_id,
+                'event_id'  => $notification->evacuation_event_id,
+            ],
         );
 
         $channelId = $this->channelId('push');
@@ -220,8 +290,8 @@ class NotificationService
                 NotificationLog::create([
                     'notification_id'     => $notification->notif_id,
                     'household_id'        => $householdId,
-                    'channel_id'             => $channelId,
-                    'status_id'              => $statusId,
+                    'channel_id'          => $channelId,
+                    'status_id'           => $statusId,
                     'sent_at'             => $result['success'] ? now() : null,
                     'external_message_id' => $result['notification_id'] ?? null,
                 ]);

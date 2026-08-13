@@ -45,19 +45,24 @@ class BaseApiController extends Controller
      * - Evac personnel are locked to their assigned center.
      * - Aborts with 403 if no center can be determined.
      */
-    protected function resolveUserCenterId(Request $request): string
+    protected function resolveUserCenterId(Request $request, bool $required = true): ?string
     {
         $user = Auth::user();
 
-        if (($user->isSuperAdmin() || $user->isEvacAdmin()) && $request->has('center_id')) {
-            return $request->center_id;
+        if ($user->isEvacPersonnel()) {
+            if (!$user->assigned_center_id) {
+                abort(403, 'No center assigned.');
+            }
+            return (string) $user->assigned_center_id;
         }
 
-        if (!$user->assigned_center_id) {
-            abort(403, 'No evacuation center specified or assigned');
+        $centerId = $request->input('center_id') ?? $request->query('center_id') ?? $user->assigned_center_id;
+
+        if (!$centerId && $required) {
+            abort(400, 'center_id is required for admins.');
         }
 
-        return $user->assigned_center_id;
+        return $centerId ? (string) $centerId : null;
     }
 
     /**

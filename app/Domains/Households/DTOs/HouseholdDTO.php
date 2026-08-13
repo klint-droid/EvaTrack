@@ -16,6 +16,7 @@ class HouseholdDTO
         public readonly ?string $city = null,
         public readonly ?string $province = null,
         public readonly ?string $fullAddress = null,
+        public readonly ?int    $memberCount = null,
     ) {}
 
     public static function fromRequest(FormRequest $request): self
@@ -32,6 +33,7 @@ class HouseholdDTO
             city:           $data['city'] ?? null,
             province:       $data['province'] ?? null,
             fullAddress:    $data['full_address'] ?? null,
+            memberCount:    isset($data['member_count']) ? (int) $data['member_count'] : null,
         );
     }
 }

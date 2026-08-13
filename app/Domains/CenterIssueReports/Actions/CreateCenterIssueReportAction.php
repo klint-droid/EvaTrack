@@ -13,7 +13,7 @@ class CreateCenterIssueReportAction
         private CenterIssueReportRepositoryInterface $repository
     ) {}
 
-    public function execute(CenterIssueReportDTO $dto, int $reporterUserId, ?int $enforcedCenterId = null, ?UploadedFile $attachment = null): CenterIssueReport
+    public function execute(CenterIssueReportDTO $dto, int|string $reporterUserId, int|string|null $enforcedCenterId = null, ?UploadedFile $attachment = null): CenterIssueReport
     {
         $data = $dto->toArray();
         $data['reported_by'] = $reporterUserId;

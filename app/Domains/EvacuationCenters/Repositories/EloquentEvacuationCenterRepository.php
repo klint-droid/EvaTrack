@@ -15,29 +15,31 @@ class EloquentEvacuationCenterRepository implements EvacuationCenterRepositoryIn
 
     public function getAllWithOccupancy(): Collection
     {
-        return Cache::remember(self::CACHE_KEY, self::CACHE_TTL, function () {
-            return EvacuationCenter::selectRaw("
-                    evacuation_centers.*,
-                    (
-                        SELECT COUNT(*)
-                        FROM evacuation_records
-                        JOIN disaster_events ON evacuation_records.event_id = disaster_events.event_id
-                        WHERE evacuation_records.center_id = evacuation_centers.evacuation_center_id
-                          AND evacuation_records.household_status_id = " . HouseholdStatus::EVACUATED . "
-                          AND disaster_events.ended_at IS NULL
-                    ) as household_count,
-                    (
-                        SELECT COALESCE(SUM(evacuation_records.evacuated_count), 0)
-                        FROM evacuation_records
-                        JOIN disaster_events ON evacuation_records.event_id = disaster_events.event_id
-                        WHERE evacuation_records.center_id = evacuation_centers.evacuation_center_id
-                          AND evacuation_records.household_status_id = " . HouseholdStatus::EVACUATED . "
-                          AND disaster_events.ended_at IS NULL
-                    ) as current_occupancy
-                ")
-                ->with('currentEvent')
-                ->get();
-        });
+        EvacuationCenter::whereNotNull('current_event_id')
+            ->whereDoesntHave('currentEvent')
+            ->update(['current_event_id' => null]);
+
+        return EvacuationCenter::selectRaw("
+                evacuation_centers.*,
+                (
+                    SELECT COUNT(*)
+                    FROM evacuation_records
+                    JOIN disaster_events ON evacuation_records.event_id = disaster_events.event_id
+                    WHERE evacuation_records.center_id = evacuation_centers.evacuation_center_id
+                      AND evacuation_records.household_status_id = " . HouseholdStatus::EVACUATED . "
+                      AND disaster_events.ended_at IS NULL
+                ) as household_count,
+                (
+                    SELECT COALESCE(SUM(evacuation_records.evacuated_count), 0)
+                    FROM evacuation_records
+                    JOIN disaster_events ON evacuation_records.event_id = disaster_events.event_id
+                    WHERE evacuation_records.center_id = evacuation_centers.evacuation_center_id
+                      AND evacuation_records.household_status_id = " . HouseholdStatus::EVACUATED . "
+                      AND disaster_events.ended_at IS NULL
+                ) as current_occupancy
+            ")
+            ->with('currentEvent')
+            ->get();
     }
 
     public function create(array $data): EvacuationCenter

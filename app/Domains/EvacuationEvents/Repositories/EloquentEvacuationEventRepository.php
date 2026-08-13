@@ -67,12 +67,16 @@ class EloquentEvacuationEventRepository implements EvacuationEventRepositoryInte
             EvacuationCenter::where('current_event_id', $event->event_id)->update(['current_event_id' => null]);
             Cache::forget('all_centers_occupancy');
 
-            EvacuationRecord::where('event_id', $event->event_id)
-                ->where('household_status_id', 2) // EVACUATED
-                ->update([
-                    'household_status_id' => 6, // CHECKED_OUT
-                    'updated_at' => now()
-                ]);
+            $evacIds = EvacuationRecord::where('event_id', $event->event_id)->pluck('evacuation_id')->toArray();
+            if (!empty($evacIds)) {
+                EvacuationRecord::whereIn('evacuation_id', $evacIds)
+                    ->where('household_status_id', 2)
+                    ->update([
+                        'household_status_id' => 6,
+                        'updated_at'          => now()
+                    ]);
+                UnitAllocation::whereIn('evacuation_id', $evacIds)->delete();
+            }
 
             $event->update(['ended_at' => now()]);
 

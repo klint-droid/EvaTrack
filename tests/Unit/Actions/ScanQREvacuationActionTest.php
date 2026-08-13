@@ -9,6 +9,7 @@ use App\Domains\Households\Repositories\HouseholdRepositoryInterface;
 use App\Domains\Households\Models\Household;
 use App\Exceptions\HouseholdAlreadyEvacuatedException;
 use App\Exceptions\MembersAlreadyEvacuatedException;
+use App\Exceptions\NoCenterAssignedException;
 use App\Domains\EvacuationCenters\Models\EvacuationCenter;
 use Illuminate\Support\Facades\DB;
 use Mockery;
@@ -22,19 +23,49 @@ class ScanQREvacuationActionTest extends TestCase
         parent::tearDown();
     }
 
+    public function test_it_throws_exception_if_center_has_no_active_event()
+    {
+        $evacRepo = Mockery::mock(EvacuationRepositoryInterface::class);
+        $houseRepo = Mockery::mock(HouseholdRepositoryInterface::class);
+
+        DB::shouldReceive('connection')->with('mysql_v2')->andReturnSelf();
+        DB::shouldReceive('transaction')->andReturnUsing(fn($cb) => $cb());
+
+        $centerMock = Mockery::mock('overload:' . EvacuationCenter::class);
+        $centerMock->shouldReceive('where')->with('evacuation_center_id', 1)->andReturnSelf();
+
+        $centerInstance = new EvacuationCenter();
+        $centerInstance->current_event_id = null;
+        $centerMock->shouldReceive('firstOrFail')->andReturn($centerInstance);
+
+        $dto = new AdmissionDTO(
+            householdId: 'HH-123',
+            centerId: 1,
+            userId: 99
+        );
+
+        $action = new ScanQREvacuationAction($evacRepo, $houseRepo);
+
+        $this->expectException(NoCenterAssignedException::class);
+        $this->expectExceptionMessage('Cannot admit household: This evacuation center is not assigned to an active disaster event.');
+
+        $action->execute($dto);
+    }
+
     public function test_it_throws_exception_if_household_already_evacuated()
     {
         $evacRepo = Mockery::mock(EvacuationRepositoryInterface::class);
         $houseRepo = Mockery::mock(HouseholdRepositoryInterface::class);
 
         DB::shouldReceive('connection')->with('mysql_v2')->andReturnSelf();
-        DB::shouldReceive('transaction')->andReturnUsing(function ($callback) {
-            return $callback();
-        });
+        DB::shouldReceive('transaction')->andReturnUsing(fn($cb) => $cb());
 
         $centerMock = Mockery::mock('overload:' . EvacuationCenter::class);
         $centerMock->shouldReceive('where')->with('evacuation_center_id', 1)->andReturnSelf();
-        $centerMock->shouldReceive('firstOrFail')->andReturn(new EvacuationCenter());
+
+        $centerInstance = new EvacuationCenter();
+        $centerInstance->current_event_id = '10';
+        $centerMock->shouldReceive('firstOrFail')->andReturn($centerInstance);
 
         $dto = new AdmissionDTO(
             householdId: 'HH-123',
@@ -59,13 +90,14 @@ class ScanQREvacuationActionTest extends TestCase
         $houseRepo = Mockery::mock(HouseholdRepositoryInterface::class);
 
         DB::shouldReceive('connection')->with('mysql_v2')->andReturnSelf();
-        DB::shouldReceive('transaction')->andReturnUsing(function ($callback) {
-            return $callback();
-        });
+        DB::shouldReceive('transaction')->andReturnUsing(fn($cb) => $cb());
 
         $centerMock = Mockery::mock('overload:' . EvacuationCenter::class);
         $centerMock->shouldReceive('where')->with('evacuation_center_id', 1)->andReturnSelf();
-        $centerMock->shouldReceive('firstOrFail')->andReturn(new EvacuationCenter());
+
+        $centerInstance = new EvacuationCenter();
+        $centerInstance->current_event_id = '10';
+        $centerMock->shouldReceive('firstOrFail')->andReturn($centerInstance);
 
         $dto = new AdmissionDTO(
             householdId: 'HH-123',
@@ -94,13 +126,14 @@ class ScanQREvacuationActionTest extends TestCase
         $houseRepo = Mockery::mock(HouseholdRepositoryInterface::class);
 
         DB::shouldReceive('connection')->with('mysql_v2')->andReturnSelf();
-        DB::shouldReceive('transaction')->andReturnUsing(function ($callback) {
-            return $callback();
-        });
+        DB::shouldReceive('transaction')->andReturnUsing(fn($cb) => $cb());
 
         $centerMock = Mockery::mock('overload:' . EvacuationCenter::class);
         $centerMock->shouldReceive('where')->with('evacuation_center_id', 1)->andReturnSelf();
-        $centerMock->shouldReceive('firstOrFail')->andReturn(new EvacuationCenter());
+
+        $centerInstance = new EvacuationCenter();
+        $centerInstance->current_event_id = '10';
+        $centerMock->shouldReceive('firstOrFail')->andReturn($centerInstance);
 
         $dto = new AdmissionDTO(
             householdId: 'HH-123',
@@ -128,7 +161,7 @@ class ScanQREvacuationActionTest extends TestCase
             ->once()
             ->with(Mockery::on(function ($data) {
                 return $data['household_id'] === 'HH-123' 
-                    && $data['center_id'] === 1 
+                    && (string)$data['center_id'] === '1' 
                     && $data['evacuated_count'] === 2
                     && $data['method'] === 'qr';
             }))

@@ -15,9 +15,9 @@ interface CenterIssueReportRepositoryInterface
      * @param int|null $enforcedCenterId If set, scopes the query to this center.
      * @return array ['data' => Collection, 'summary' => array]
      */
-    public function getFilteredReports(CenterIssueReportFilterDTO $filter, ?int $enforcedCenterId = null): array;
+    public function getFilteredReports(CenterIssueReportFilterDTO $filter, int|string|null $enforcedCenterId = null): array;
 
-    public function getReportById(string $id, ?int $enforcedCenterId = null): ?CenterIssueReport;
+    public function getReportById(string $id, int|string|null $enforcedCenterId = null): ?CenterIssueReport;
 
     public function createReport(array $data): CenterIssueReport;
 

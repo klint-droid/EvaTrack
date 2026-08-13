@@ -1,27 +1,64 @@
 # EvaTrack – Use Case Diagram & Detailed Use Cases
 
----
-
-## System Actors
-
-| Actor | Description |
-|-------|-------------|
-| **Super Admin** | Full system access. Manages users, centers, events, analytics, and all operations. |
-| **Evacuation Admin** | Manages users, centers, events, and oversees evacuation operations across all centers. |
-| **Center Personnel** | Assigned to a specific evacuation center. Manages day-to-day center operations (admissions, reports, requests). |
-| **Public User** | Unauthenticated user. Can only view publicly available evacuation center info and active events. |
+**Project Title:** EVATRACK: Streamlined Evacuation Processes and Coordination Platform Integrating SafeTrack Demographics and ResQperation Response Support  
+**Proponents:** Klint M. Ruales, Danica Gelbolingo, Anna Rhea Villadolid, Vhenz Cernal  
 
 ---
-https://www.mermaideditor.io/#pako:eJyVWetu3DYWfhVigiw2gAwMSUlz-VFgIqu1AceeziVA0RQLjkR5BGukWUljxw36EAX6P9jFPsL2vfoIPdIcURpKytj-kcTn8pH8zkfyUPky8BJfDqaDIEqevK1Ic3Kz-BQT-Hn7lsy8PEmz46_L2c-fBn99_f1_ZHnYy5TM_F0Yfxr8cvS6yus-Cu8g8jCJtRBnXoU4Ms4BYS7TLIljGamQ-boKmR82UeiRdSbT0qumBBbiCPjjQ-IfIomTyw6b-1Tst2Tt_Gu2Xl0BzOyQb2Gc0CvnooYofvwwlV45w9X72rp2KKStnYshnZKb5D48TVo7DN2sdCeHXPNz9PMp-RjKJzJPkyCMpBZlYpQ5Jeu9L3LZE2dhnDUlzlbE9xAnsuwpSX0VKGO_YqZJwHrpLj78sCrygT7yQcTiXu6AixeRYOO4NqwyzPKyBJk2txHGjGBuqSzWoApVB40xaKwW2hE0waDJlFzKSHYH0eExig6nZJZl4X1cRpE8QSmdY-TqDji5uru5BJyr5JDJbRL5ryWGojwoRWYUkk4PRaVQpvhRsXooioZWoukNRN3QWje9oSgdailSe0Ox2hSqvZQi9bbfWBVWnULVZ75PGkTK3aZdNKw_Hbcn3JOBYqAghoXcJY_fyOgptOPertwFwDROITxtXllthppjQ6z2EUYnhaEoGFWl1iSJcSgJxrDOOKtLmYswaqGiKhhX3HWjoiiYqSrdHYeKYNbp6I7YCy_Mn_VwVAUDVbif90maq-mKXJyrgfsRigAAl2EmsiLJfYTkV_OPamMj5L9EaRGFImNjRX8Zp4ehstgE1w8XW_jYHcux8HyIscfpX8EcklRnimP5OZTfjf1uQCw9Z-r0Qi0VB1hnBpafF-WPRTOHBGmy05J66zBzTnfCHdzb5b-yF5WAo7o4qGvpiZj8uCAOdAv6bFFcvBCXTMPguaj1QUSNVkBPQYFxe1o2CXnvAcVRBry4arbSe4Brtz8Y1cDHqnRq7QvpwdWp64ejMPikLwN3qH6Jo0jModqgmCmro4osc5Ef9AFNFIxJ1Y5tDXn2fr-9Xi2LDsfzkt0u8Y-5r9xfJqrSZLi_TtHWcdjabCbK0uRqs7WT9BzUkFlfW-dzUFBmfX-dz0FFmbbaZPXdAdusKwWlZY4au6xOKjdaVxqKzKxEVuVKv-vu7Knhwl3erReOC1gLmSWH1JNQ_X8fZPbqk9JEDZsTrKQOqNfRQvFaQ1VHPUXPQNVaVFWxmmynyi0Ul8VUBXtH6CHoerlcu4XK8dy7zrJDkVzcRi87viyUq8WRl34ICEadWqbipBmuR6NCLUvx8a1o1KZlN9grb9Vu8lCX1kiR1wneQ9zt3er6e0C4TfIwwNfPayVlocatMVLXBGvNF_VnTYoeEi7BZrAWa6P0bJDePJWPxf6BQy_chx2Xu42qsynutJMldZ7LNgrPLjpvEXsy6p5ND3ez29nNT6trpzxdYxE9w_MxI_9A5sP4_mUvKBSeXfX0NdSlyLabRKT6zWWj_GxTdVyXi7sP1w5UruyhiiroOShC26pzoGsuFwNj6dEoQrvV063zMAp_7awWKtEeqZyPhyiGJmITSfJDmhz2rWFQOfa4nhSU6Zlcx7l4kOcKMF-_v7kuuhZ8_8O5L7OXbXcbZWhXVzlCdPftIxTiaNjREWbkn8fkd13zffuW_PX1j_83P4NAWxTHx1lBLqUkCuOHbErC2JefZUaG8HR9V31GIRcX31XfKXQbPt11s3q_6o7je0e3lh142zhzWsMVnYRurK4m3X48kXVredy0llbto1PO_mx9HDpHHKXwsnpXfWJqM-d2M-f2Med2Mud2Med2MOd2Mef2MOd2Mud2MeeeYe7rf1vfzE6Zm-jEMQYPGCTOmbeJq20aQ7WjyVBtbTDUNFYM1bYGQ7XxlKHa3mSotiJDTSL-0_wyqKmn5AApILySzXxdwR0PlwbeMn-GlHu4Inz1IRFMslByEEbR9E0wkVxyI8vT5EFO38iR6XEPf714Cv18O2X7z4aXREk6fcM5b6K4FYq0AhZsFAo3J2N_81IUoANRRCACqlCY9LwRfSkKsIArkrCmkUIJqGcOg2-jtPi6KbR2tBaUL8sRhgY1mMEN07AM2xgZY2Ni0CE5Q52OQqlBmUG5QU2DWga1DToy6NigE4MNDUbJGRJ1PMYMxg1mGswymG2wkcHGBpsYvJ5ZD5E6Eq_H7iFtYAxKsrPB9MtgIzJZ_J1voe0aTI-_G_CX93APF2fsOwXD4HhDBd0wG3xBEuffix3clmDORJxdZMVzGjz7NNyJ9FmljIRgwagYDx6Msd90bTYTUbrgtMjDkyTuC0-AB9YkldUbeiKwBr8B1h4aMeiUylk_70_-U-BkaTFsl_dqHQUIM9mYbyCodMETVpbYJjXH9hjNK_k5bwxoDHwYLoOtewolhyIoc5RbwQWgXNtsuCpIxWCWw1zd2D-FVAtXbgXZcrUg92lStCAaYsV_5a0BNU-FF5Q_YBdpmjzp7KP5RmxkdDoSDRjnpwEtIqsGqidTudt1qVyrMI_0Av0GP38D3jXBRg
-## Use Case Diagram
+
+## 1. System Overview & Must-Haves Alignment
+
+EvaTrack provides streamlined evacuation operations, real-time center occupancy tracking, demographic analytics, and response coordination by integrating with **SafeTrack** (for household demographic data retrieval) and **ResQperation** (for emergency response support and push notification dispatch).
+
+### Core Must-Have System Requirements:
+
+1. **SafeTrack Demographics Integration:** Retrieves household demographic data from SafeTrack for identification and verification during evacuation. This data is not visible to households and is used exclusively for verification and analytics purposes.
+2. **Evacuation Status Tracking:** Real-time tracking of household evacuation status as `Evacuated` or `Not Evacuated`.
+3. **Auto Capacity Updates:** Automatically updates evacuation center capacity and occupancy counts when a household is verified and admitted at that center.
+4. **Demographic Analytics Computation:** Automatically computes evacuation analytics from demographic data captured through personnel updates, including:
+   - Age distribution (children, adults, elderly)
+   - Pregnant women count
+   - Persons with Disabilities (PWD) count
+   - Gender distribution
+   - Total affected population
+5. **Alert & Assistance Routing:**
+   - Routes emergency evacuation alerts to households via SMS (for those without internet access) and push notifications via ResQperation (for those with the app).
+   - Routes resource shortages and personnel assistance requests directly to ResQperation.
+6. **Role-Based Workflows & Super Admin Override:**
+   - **Evacuation Personnel:** Log in, verify arriving households (QR code or manual input), perform post-verification updates (assign rooms, monitor stay duration, update evacuation status), report in-center resource/personnel shortages, and request assistance from ResQperation.
+   - **Evacuation Admin:** Log in, create/configure evacuation centers and rooms, monitor ongoing evacuations and requests per center, send evacuation alerts (SMS/push), assign personnel, edit household/room records, and **generate/retrieve system-wide and center-level reports** (DROMIC master list, demographics, vulnerable groups, center utilization, daily intake summaries). **Inherits all operational capabilities of Evacuation Personnel** (QR scanning, manual verification, household admission, room assignment, reporting shortages, requesting assistance).
+   - **Super Admin:** Log in, generate and retrieve system-wide reports & analytics, maintain full oversight of all system operations across all centers and roles, and hold **emergency override access** over all Evacuation Admin and Personnel actions for emergency intervention or troubleshooting.
+   - **Households / Residents (Secondary Actor):** Receive alerts via SMS or push; verified and tracked by personnel without direct system login.
+
+---
+
+## 2. System Actors
+
+| Actor | Role Type | Description |
+|-------|-----------|-------------|
+| **Super Admin** | Primary System Actor | Full system oversight across all centers and roles. Generates and retrieves system-wide reports and evacuation analytics. Holds emergency override access over all Evacuation Admin and Evacuation Personnel actions for emergency intervention or troubleshooting. |
+| **Evacuation Admin** | Primary System Actor | Holds full administrative, reporting, and operational capabilities across all centers. Creates/configures centers and rooms, monitors evacuations & requests, sends alerts (SMS/push), assigns personnel, edits records, and **generates & retrieves all system reports** (DROMIC master list, demographics, vulnerable groups, utilization, daily intake). Performs all Evacuation Personnel actions. |
+| **Evacuation Personnel** | Primary System Actor | Assigned to a specific evacuation center. Logs in, verifies arriving households via QR code scanning or manual input. Updates household info post-verification (assigns rooms, monitors stay, updates evacuation status). Reports in-center needs (essential resource shortages, personnel requests) and requests assistance from ResQperation. |
+| **Households / Residents** | Secondary Actor | Secondary user with no direct system access. Receives evacuation alerts via SMS (no internet) or ResQperation push notifications. Verified by QR code or manual input and tracked by evacuation personnel. |
+| **Public User** | Unauthenticated Actor | Accesses public landing portal to view active disaster events and public evacuation center status/locations. |
+| **SafeTrack System** | External System | External demographic database system providing verified household demographic data for identification and analytics. |
+| **ResQperation System** | External System | External response platform receiving resource/personnel assistance requests and dispatching mobile push notifications. |
+
+---
+
+## 3. Use Case Diagram
 
 ```mermaid
 flowchart LR
     %% Actors
     SA["👤 Super Admin"]
     EA["👤 Evacuation Admin"]
-    CP["👤 Center Personnel"]
+    EP["👤 Evacuation Personnel"]
+    HH["📱 Households (Secondary)"]
     PU["👤 Public User"]
+
+    %% External Systems
+    ST["🌐 SafeTrack API"]
+    RQ["🌐 ResQperation API"]
 
     %% Use Case Modules
     subgraph UC_AUTH["Authentication"]
@@ -42,7 +79,7 @@ flowchart LR
         UC10["UC-10: Assign User to Center"]
     end
 
-    subgraph UC_HOUSEHOLD["Household Management"]
+    subgraph UC_HOUSEHOLD["Household & SafeTrack Demographics"]
         direction TB
         UC11["UC-11: List Households"]
         UC12["UC-12: Create Household"]
@@ -50,9 +87,10 @@ flowchart LR
         UC14["UC-14: Update Household"]
         UC15["UC-15: Delete Household"]
         UC16["UC-16: Search Households"]
-        UC17["UC-17: Add Household Member"]
-        UC18["UC-18: Update Household Member"]
-        UC19["UC-19: Remove Household Member"]
+        UC17["UC-17: Add Member"]
+        UC18["UC-18: Update Member"]
+        UC19["UC-19: Remove Member"]
+        UC72["UC-72: Sync SafeTrack Demographics"]
     end
 
     subgraph UC_CENTER["Evacuation Center Management"]
@@ -62,7 +100,7 @@ flowchart LR
         UC22["UC-22: View Center Details"]
         UC23["UC-23: Update Center"]
         UC24["UC-24: Delete Center"]
-        UC25["UC-25: View Center Capacity"]
+        UC25["UC-25: Auto-Update Center Capacity"]
         UC26["UC-26: Export Center Data"]
     end
 
@@ -77,35 +115,36 @@ flowchart LR
         UC33["UC-33: Unassign Center from Event"]
     end
 
-    subgraph UC_EVAC["Evacuation Operations"]
+    subgraph UC_EVAC["Evacuation Operations & Tracking"]
         direction TB
         UC34["UC-34: Scan QR Code"]
         UC35["UC-35: Verify Manual Evacuation"]
-        UC36["UC-36: Admit Household"]
+        UC36["UC-36: Admit Household & Update Status"]
         UC37["UC-37: Checkout Household"]
         UC38["UC-38: View Evacuation Records"]
-        UC39["UC-39: View Evacuation Record Detail"]
-        UC40["UC-40: Update Evacuated Member Status"]
-        UC41["UC-41: Delete Evacuation Record"]
+        UC39["UC-39: View Record Details"]
+        UC40["UC-40: Update Member Status"]
+        UC41["UC-41: Delete Record"]
     end
 
-    subgraph UC_UNITS["Accommodation Management"]
+    subgraph UC_ROOMS["Room / Accommodation Management"]
         direction TB
-        UC42["UC-42: List Accommodation Units"]
-        UC43["UC-43: Create Accommodation Unit"]
-        UC44["UC-44: Update Accommodation Unit"]
-        UC45["UC-45: Delete Accommodation Unit"]
-        UC46["UC-46: Assign Household to Unit"]
-        UC47["UC-47: Unassign Household from Unit"]
+        UC42["UC-42: List Rooms"]
+        UC43["UC-43: Create & Configure Room"]
+        UC44["UC-44: Update Room"]
+        UC45["UC-45: Delete Room"]
+        UC46["UC-46: Assign Household to Room"]
+        UC47["UC-47: Unassign Household from Room"]
         UC48["UC-48: View Unassigned Households"]
     end
 
-    subgraph UC_RESOURCE["Resource Request Management"]
+    subgraph UC_RESOURCE["Resource & Personnel Requests"]
         direction TB
         UC49["UC-49: List Resource Requests"]
-        UC50["UC-50: Create Resource Request"]
+        UC50["UC-50: Report In-Center Needs"]
         UC51["UC-51: Update Request Status"]
         UC52["UC-52: Delete Resource Request"]
+        UC73["UC-73: Route Request to ResQperation"]
     end
 
     subgraph UC_ISSUES["Center Issue Reports"]
@@ -117,18 +156,18 @@ flowchart LR
         UC57["UC-57: Delete Issue Report"]
     end
 
-    subgraph UC_NOTIF["Notification Management"]
+    subgraph UC_NOTIF["Evacuation Alerts & Notifications"]
         direction TB
         UC58["UC-58: List Notifications"]
-        UC59["UC-59: Send Notification"]
+        UC59["UC-59: Send Alerts via SMS and Push"]
         UC60["UC-60: Preview Recipients"]
         UC61["UC-61: View Notification Detail"]
         UC62["UC-62: Cancel Notification"]
     end
 
-    subgraph UC_ANALYTICS["Analytics & Reporting"]
+    subgraph UC_ANALYTICS["Analytics & System-Wide Reports"]
         direction TB
-        UC63["UC-63: View Analytics Dashboard"]
+        UC63["UC-63: Compute Evacuation Analytics"]
         UC64["UC-64: Export DROMIC Master List"]
         UC65["UC-65: Export Demographics"]
         UC66["UC-66: Export Center Utilization"]
@@ -136,68 +175,65 @@ flowchart LR
         UC68["UC-68: Export Daily Intake"]
     end
 
+    subgraph UC_OVERRIDE["Emergency Intervention"]
+        direction TB
+        UC71["UC-71: Super Admin Emergency Override"]
+    end
+
     subgraph UC_PUBLIC["Public Access"]
         direction TB
         UC69["UC-69: View Public Centers"]
-        UC70["UC-70: View Active Events (Public)"]
+        UC70["UC-70: View Active Events"]
     end
 
-    %% 🔴 Super Admin Connections (11 links: indexes 0-10)
+    %% Actor Connections
     SA --> UC_AUTH
     SA --> UC_USERMGT
     SA --> UC_HOUSEHOLD
     SA --> UC_CENTER
     SA --> UC_EVENT
     SA --> UC_EVAC
-    SA --> UC_UNITS
+    SA --> UC_ROOMS
     SA --> UC_RESOURCE
     SA --> UC_ISSUES
     SA --> UC_NOTIF
     SA --> UC_ANALYTICS
+    SA --> UC_OVERRIDE
 
-    %% 🔵 Evacuation Admin Connections (11 links: indexes 11-21)
     EA --> UC_AUTH
     EA --> UC_USERMGT
     EA --> UC_HOUSEHOLD
     EA --> UC_CENTER
     EA --> UC_EVENT
     EA --> UC_EVAC
-    EA --> UC_UNITS
+    EA --> UC_ROOMS
     EA --> UC_RESOURCE
     EA --> UC_ISSUES
     EA --> UC_NOTIF
     EA --> UC_ANALYTICS
 
-    %% 🟢 Center Personnel Connections (9 links: indexes 22-30)
-    CP --> UC_AUTH
-    CP --> UC_HOUSEHOLD
-    CP --> UC_CENTER
-    CP --> UC_EVENT
-    CP --> UC_EVAC
-    CP --> UC_UNITS
-    CP --> UC_RESOURCE
-    CP --> UC_ISSUES
-    CP --> UC_NOTIF
+    EP --> UC_AUTH
+    EP --> UC_HOUSEHOLD
+    EP --> UC_CENTER
+    EP --> UC_EVAC
+    EP --> UC_ROOMS
+    EP --> UC_RESOURCE
+    EP --> UC_ISSUES
 
-    %% 🟡 Public User Connections (1 link: index 31)
+    HH -.-> UC_NOTIF
+    HH -.-> UC_EVAC
+
     PU --> UC_PUBLIC
 
-    %% Styling Nodes
-    style SA fill:#f9e3e3,stroke:#e74c3c,stroke-width:2px,color:#333
-    style EA fill:#e5f2fb,stroke:#3498db,stroke-width:2px,color:#333
-    style CP fill:#eafaf1,stroke:#2ecc71,stroke-width:2px,color:#333
-    style PU fill:#fef9e7,stroke:#f1c40f,stroke-width:2px,color:#333
-
-    %% Styling Links
-    linkStyle 0,1,2,3,4,5,6,7,8,9,10 stroke:#e74c3c,stroke-width:2px
-    linkStyle 11,12,13,14,15,16,17,18,19,20,21 stroke:#3498db,stroke-width:2px
-    linkStyle 22,23,24,25,26,27,28,29,30 stroke:#2ecc71,stroke-width:2px
-    linkStyle 31 stroke:#f1c40f,stroke-width:2px
+    %% System Connections
+    UC72 <--> ST
+    UC73 --> RQ
+    UC59 --> RQ
 ```
 
 ---
 
-## Detailed Use Cases
+## 4. Detailed Use Cases
 
 ---
 
@@ -207,12 +243,12 @@ flowchart LR
 |-------|--------|
 | **Use Case ID** | UC-01 |
 | **Use Case Name** | Login |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | An authorized user logs into the system using their credentials to access system features. |
-| **Preconditions** | The user has a valid account created by an admin. |
-| **Postconditions** | The user is authenticated and receives a session token. |
-| **Main Flow** | 1. User navigates to the Login page. <br> 2. User enters username/email and password. <br> 3. System validates credentials. <br> 4. System generates a Sanctum API token. <br> 5. System redirects user to the Dashboard. |
-| **Alternative Flow** | 3a. Invalid credentials → System displays "Invalid credentials" error. <br> 3b. Account is deactivated → System displays "Account is deactivated" error. |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | An authorized user logs into the system using their credentials to access role-specific system features. |
+| **Preconditions** | User has a valid active account created by an admin. |
+| **Postconditions** | User is authenticated and receives a Sanctum session token with role claims. |
+| **Main Flow** | 1. User navigates to the Login page.<br>2. User enters username/email and password.<br>3. System validates credentials.<br>4. System issues Sanctum API token.<br>5. System redirects user to their role-based dashboard. |
+| **Alternative Flow** | 3a. Invalid credentials → System displays error.<br>3b. Account deactivated → System displays "Account deactivated". |
 | **API Endpoint** | `POST /api/login` |
 
 ---
@@ -223,11 +259,11 @@ flowchart LR
 |-------|--------|
 | **Use Case ID** | UC-02 |
 | **Use Case Name** | Logout |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
 | **Description** | The user logs out and their current session token is revoked. |
 | **Preconditions** | User is authenticated. |
-| **Postconditions** | The session token is invalidated; the user is redirected to the Login page. |
-| **Main Flow** | 1. User clicks the "Logout" button. <br> 2. System revokes the current Sanctum token. <br> 3. System redirects to the Login page. |
+| **Postconditions** | Session token is revoked; user is redirected to Login page. |
+| **Main Flow** | 1. User clicks "Logout".<br>2. System revokes current API token.<br>3. System redirects to Login page. |
 | **API Endpoint** | `POST /api/logout` |
 
 ---
@@ -238,11 +274,11 @@ flowchart LR
 |-------|--------|
 | **Use Case ID** | UC-03 |
 | **Use Case Name** | View Profile |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | The user views their own profile information (name, email, role, assigned center). |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | User views their own profile information (name, email, role, assigned center). |
 | **Preconditions** | User is authenticated. |
 | **Postconditions** | Profile information is displayed. |
-| **Main Flow** | 1. User navigates to the Profile page. <br> 2. System retrieves the current user's data. <br> 3. System displays name, email, role, contact number, and assigned center. |
+| **Main Flow** | 1. User navigates to Profile page.<br>2. System retrieves user details.<br>3. System displays name, role, contact info, and assigned center. |
 | **API Endpoint** | `GET /api/user` |
 
 ---
@@ -253,12 +289,11 @@ flowchart LR
 |-------|--------|
 | **Use Case ID** | UC-04 |
 | **Use Case Name** | Update Profile |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | The user updates their profile photo and personal details. |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | User updates their contact details or profile photo. |
 | **Preconditions** | User is authenticated. |
-| **Postconditions** | Profile is updated in the database. |
-| **Main Flow** | 1. User navigates to the Profile page. <br> 2. User modifies their name, contact number, or profile photo. <br> 3. User clicks "Save". <br> 4. System validates and saves the changes. <br> 5. System confirms the update with a success message. |
-| **Alternative Flow** | 4a. Validation fails → System displays specific error messages. |
+| **Postconditions** | User profile is updated. |
+| **Main Flow** | 1. User edits contact details on Profile page.<br>2. User clicks "Save".<br>3. System validates and updates profile. |
 | **API Endpoint** | `PUT /api/user/profile` |
 
 ---
@@ -269,12 +304,11 @@ flowchart LR
 |-------|--------|
 | **Use Case ID** | UC-05 |
 | **Use Case Name** | Change Password |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | The user changes their account password. |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | User changes their password. |
 | **Preconditions** | User is authenticated. |
-| **Postconditions** | Password is updated; the `must_change_password` flag is cleared if applicable. |
-| **Main Flow** | 1. User navigates to the Change Password section. <br> 2. User enters current password, new password, and confirmation. <br> 3. System validates that current password is correct and new password meets requirements. <br> 4. System updates the password hash. <br> 5. System confirms the change. |
-| **Alternative Flow** | 3a. Current password is incorrect → System displays error. <br> 3b. New password does not match confirmation → System displays error. |
+| **Postconditions** | Password hash is updated in database. |
+| **Main Flow** | 1. User enters current password and new password.<br>2. System verifies current password.<br>3. System updates password hash. |
 | **API Endpoint** | `PUT /api/user/password` |
 
 ---
@@ -284,12 +318,12 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-06 |
-| **Use Case Name** | List Users |
+| **Use Case Name** | List System Users |
 | **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin views a paginated list of all system users. |
-| **Preconditions** | User is authenticated with `super_admin` or `evac_admin` role. |
-| **Postconditions** | A list of users with their roles, statuses, and assigned centers is displayed. |
-| **Main Flow** | 1. Admin navigates to User Management page. <br> 2. System retrieves all users with role and center relationships. <br> 3. System displays paginated list with name, role, status, and assigned center. |
+| **Description** | Admin views a paginated list of all system users across roles. |
+| **Preconditions** | User has `super_admin` or `evac_admin` role. |
+| **Postconditions** | Paginated user list is displayed. |
+| **Main Flow** | 1. Admin navigates to User Management.<br>2. System retrieves users with roles and assigned centers.<br>3. System displays user list. |
 | **API Endpoint** | `GET /api/users` |
 
 ---
@@ -299,13 +333,12 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-07 |
-| **Use Case Name** | Create User |
+| **Use Case Name** | Create System User Account |
 | **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin creates a new system user account (admin or personnel). |
-| **Preconditions** | User is authenticated with `super_admin` or `evac_admin` role. |
-| **Postconditions** | A new user account is created with a system-generated user ID (e.g., `SUP-2026-XXXXXX`). |
-| **Main Flow** | 1. Admin clicks "Add User" button. <br> 2. System displays user creation form. <br> 3. Admin fills in first name, last name, role, contact number, and temporary password. <br> 4. Admin clicks "Create". <br> 5. System generates a unique user ID with role-based prefix. <br> 6. System creates the user with `must_change_password = true`. <br> 7. System displays a success confirmation. |
-| **Alternative Flow** | 4a. Validation fails (missing fields) → System shows errors. |
+| **Description** | Admin creates a new Evacuation Admin or Evacuation Personnel account. |
+| **Preconditions** | Admin is authenticated. |
+| **Postconditions** | New user record created with system-generated ID prefix (e.g. `SUP-`, `ADM-`, `PER-`). |
+| **Main Flow** | 1. Admin fills in user form (name, role, contact number, temporary password).<br>2. System creates user record with `must_change_password = true`. |
 | **API Endpoint** | `POST /api/users` |
 
 ---
@@ -315,12 +348,12 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-08 |
-| **Use Case Name** | Update User |
+| **Use Case Name** | Update User Account |
 | **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin modifies an existing user's details (name, role, active status). |
-| **Preconditions** | User is authenticated with admin role; the target user exists. |
-| **Postconditions** | User record is updated in the database. |
-| **Main Flow** | 1. Admin selects a user from the list. <br> 2. System displays the user edit form with current data. <br> 3. Admin modifies the desired fields. <br> 4. Admin clicks "Save". <br> 5. System validates and updates the record. |
+| **Description** | Admin updates a user's details, role, or active status. |
+| **Preconditions** | Target user exists. |
+| **Postconditions** | User record is updated. |
+| **Main Flow** | 1. Admin edits user details.<br>2. System validates and updates database record. |
 | **API Endpoint** | `PUT /api/users/{id}` |
 
 ---
@@ -330,13 +363,12 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-09 |
-| **Use Case Name** | Delete User |
+| **Use Case Name** | Delete User Account |
 | **Actors** | Super Admin, Evacuation Admin |
 | **Description** | Admin soft-deletes a user account. |
-| **Preconditions** | User is authenticated with admin role; the target user exists. |
-| **Postconditions** | User account is soft-deleted (`deleted_at` timestamp is set). |
-| **Main Flow** | 1. Admin clicks "Delete" on a user. <br> 2. System displays a confirmation dialog. <br> 3. Admin confirms deletion. <br> 4. System soft-deletes the user. |
-| **Alternative Flow** | 3a. Admin cancels → No changes made. |
+| **Preconditions** | Target user exists. |
+| **Postconditions** | User account soft-deleted (`deleted_at` timestamp set). |
+| **Main Flow** | 1. Admin selects "Delete User".<br>2. Admin confirms action.<br>3. System soft-deletes user. |
 | **API Endpoint** | `DELETE /api/users/{id}` |
 
 ---
@@ -346,12 +378,12 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-10 |
-| **Use Case Name** | Assign User to Center |
+| **Use Case Name** | Assign Personnel to Center |
 | **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin assigns a center personnel to a specific evacuation center. |
-| **Preconditions** | User and evacuation center both exist. |
-| **Postconditions** | The user's `assigned_center_id` is updated. |
-| **Main Flow** | 1. Admin selects a user. <br> 2. Admin selects an evacuation center from the dropdown. <br> 3. Admin clicks "Assign". <br> 4. System updates the user's assigned center. |
+| **Description** | Admin assigns an Evacuation Personnel user to a specific evacuation center. |
+| **Preconditions** | Personnel user and center exist. |
+| **Postconditions** | User's `assigned_center_id` is updated. |
+| **Main Flow** | 1. Admin selects personnel user.<br>2. Admin selects evacuation center.<br>3. System updates assignment link. |
 | **API Endpoint** | `POST /api/users/{user}/assign-center` |
 
 ---
@@ -361,12 +393,12 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-11 |
-| **Use Case Name** | List Households |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User views a paginated list of all registered households. |
+| **Use Case Name** | List Registered Households |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | View registered households, member counts, address, and current evacuation status. |
 | **Preconditions** | User is authenticated. |
-| **Postconditions** | Household list is displayed with name, code, member count, and address. |
-| **Main Flow** | 1. User navigates to the Household Management page. <br> 2. System retrieves paginated households with address and member count. <br> 3. System displays the list. |
+| **Postconditions** | Household list displayed with live status (`Evacuated` / `Not Evacuated`). |
+| **Main Flow** | 1. User opens Household Management.<br>2. System fetches household records and evacuation status.<br>3. System displays paginated list. |
 | **API Endpoint** | `GET /api/households` |
 
 ---
@@ -376,27 +408,27 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-12 |
-| **Use Case Name** | Create Household |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User registers a new household with its address and head of family information. |
+| **Use Case Name** | Create Household Record |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | Manually registers a new household in EvaTrack when SafeTrack lookup is pending. |
 | **Preconditions** | User is authenticated. |
-| **Postconditions** | A new household record is created with a unique household ID and QR code. |
-| **Main Flow** | 1. User clicks "Add Household". <br> 2. System displays the household creation form. <br> 3. User enters household name, contact number, emergency contact, and address. <br> 4. User clicks "Save". <br> 5. System generates a unique household ID. <br> 6. System creates the household record and returns it. |
+| **Postconditions** | Household created with unique ID and QR code. |
+| **Main Flow** | 1. User inputs household name, contact, emergency contact, and address.<br>2. System generates unique ID & QR code.<br>3. System saves household. |
 | **API Endpoint** | `POST /api/households` |
 
 ---
 
-### UC-13: View Household
+### UC-13: View Household Details
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-13 |
 | **Use Case Name** | View Household Details |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User views detailed household information including all members and address. |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | View full household profile, individual member list, demographic flags, and stay history. |
 | **Preconditions** | Household exists. |
-| **Postconditions** | Household details and member list are displayed. |
-| **Main Flow** | 1. User clicks on a household from the list. <br> 2. System retrieves the household with members, address, and evacuation history. <br> 3. System displays the details. |
+| **Postconditions** | Details displayed. Demographic data used for verification (hidden from households). |
+| **Main Flow** | 1. User selects household.<br>2. System retrieves members, demographic attributes, and evacuation history.<br>3. System renders details view. |
 | **API Endpoint** | `GET /api/households/{id}` |
 
 ---
@@ -406,12 +438,12 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-14 |
-| **Use Case Name** | Update Household |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User modifies an existing household's contact and address information. |
+| **Use Case Name** | Update Household Profile |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | Edit household contact details, address, or emergency info. |
 | **Preconditions** | Household exists. |
-| **Postconditions** | Household record is updated. |
-| **Main Flow** | 1. User opens a household's edit form. <br> 2. User modifies contact number, address, or emergency contact. <br> 3. User clicks "Save". <br> 4. System validates and updates the record. |
+| **Postconditions** | Household record updated. |
+| **Main Flow** | 1. User modifies household details.<br>2. System validates and saves updates. |
 | **API Endpoint** | `PATCH /api/households/{id}` |
 
 ---
@@ -421,12 +453,12 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-15 |
-| **Use Case Name** | Delete Household |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User soft-deletes a household record. |
+| **Use Case Name** | Delete Household Record |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | Soft-delete a household record from EvaTrack. |
 | **Preconditions** | Household exists. |
-| **Postconditions** | Household is soft-deleted. |
-| **Main Flow** | 1. User clicks "Delete" on a household. <br> 2. System shows confirmation dialog. <br> 3. User confirms. <br> 4. System soft-deletes the household. |
+| **Postconditions** | Household soft-deleted. |
+| **Main Flow** | 1. User clicks "Delete Household".<br>2. User confirms.<br>3. System soft-deletes record. |
 | **API Endpoint** | `DELETE /api/households/{id}` |
 
 ---
@@ -436,12 +468,12 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-16 |
-| **Use Case Name** | Search Households |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User searches for households by name, code, or household number during evacuation operations. |
-| **Preconditions** | User is authenticated. |
-| **Postconditions** | Matching households are displayed. |
-| **Main Flow** | 1. User enters a search query in the search bar. <br> 2. System searches by household name, code, or household number. <br> 3. System returns matching results. |
+| **Use Case Name** | Search Household Records |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | Search households by name, household ID code, head of family, or contact number. |
+| **Preconditions** | User authenticated. |
+| **Postconditions** | Matching results returned. |
+| **Main Flow** | 1. Personnel types search query.<br>2. System queries database and returns matching records. |
 | **API Endpoint** | `GET /api/evacuations/search-household` |
 
 ---
@@ -451,12 +483,12 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-17 |
-| **Use Case Name** | Add Household Member |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User adds a new member to an existing household. |
+| **Use Case Name** | Add Member to Household |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | Add an individual member to a household, specifying demographics (age, gender, PWD status, pregnancy status). |
 | **Preconditions** | Household exists. |
-| **Postconditions** | A new member is added; the household's `member_count` is incremented. |
-| **Main Flow** | 1. User opens a household detail view and clicks "Add Member". <br> 2. System displays the member form with fields for name, birth date, gender, relationship, civil status, and vulnerable group flags. <br> 3. User fills the form and clicks "Save". <br> 4. System creates the member record and links it to the household. <br> 5. System updates the household member count. |
+| **Postconditions** | Member added; household member count updated; demographic analytics updated. |
+| **Main Flow** | 1. Personnel fills member details (name, DOB, age, gender, PWD flag, pregnancy flag).<br>2. System creates member record.<br>3. System updates household total member count. |
 | **API Endpoint** | `POST /api/households/{householdId}/members` |
 
 ---
@@ -466,12 +498,12 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-18 |
-| **Use Case Name** | Update Household Member |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User modifies an existing household member's details. |
-| **Preconditions** | The member and household exist. |
-| **Postconditions** | Member record is updated. |
-| **Main Flow** | 1. User selects a member and clicks "Edit". <br> 2. System displays the member edit form. <br> 3. User modifies the fields and clicks "Save". <br> 4. System validates and updates. |
+| **Use Case Name** | Update Household Member Demographics |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | Update member demographic details (age group, vulnerable status). |
+| **Preconditions** | Member exists. |
+| **Postconditions** | Member record updated. |
+| **Main Flow** | 1. User edits member fields.<br>2. System updates database record. |
 | **API Endpoint** | `PATCH /api/households/{householdId}/members/{memberId}` |
 
 ---
@@ -481,12 +513,12 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-19 |
-| **Use Case Name** | Remove Household Member |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User removes a member from a household. |
-| **Preconditions** | The member and household exist. |
-| **Postconditions** | Member is soft-deleted; household `member_count` is decremented. |
-| **Main Flow** | 1. User clicks "Remove" on a member. <br> 2. System confirms the action. <br> 3. System soft-deletes the member and updates the count. |
+| **Use Case Name** | Remove Member from Household |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | Soft-deletes a member record from a household. |
+| **Preconditions** | Member exists. |
+| **Postconditions** | Member soft-deleted; member count updated. |
+| **Main Flow** | 1. Personnel removes member.<br>2. System soft-deletes member record and recalculates count. |
 | **API Endpoint** | `DELETE /api/households/{householdId}/members/{memberId}` |
 
 ---
@@ -497,11 +529,11 @@ flowchart LR
 |-------|--------|
 | **Use Case ID** | UC-20 |
 | **Use Case Name** | List Evacuation Centers |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User views all evacuation centers with their status, capacity, and occupancy. |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | Displays all configured evacuation centers with real-time status, capacity, and current occupancy. |
 | **Preconditions** | User is authenticated. |
-| **Postconditions** | Center list is displayed. |
-| **Main Flow** | 1. User navigates to the Evacuation Centers page. <br> 2. System retrieves all centers with current event and occupancy data. <br> 3. System displays cards/list showing name, status, capacity, and current occupancy. |
+| **Postconditions** | Center list displayed. |
+| **Main Flow** | 1. User navigates to Evacuation Centers.<br>2. System retrieves center details and occupancy.<br>3. System displays summary list. |
 | **API Endpoint** | `GET /api/evacuation-centers` |
 
 ---
@@ -513,10 +545,10 @@ flowchart LR
 | **Use Case ID** | UC-21 |
 | **Use Case Name** | Create Evacuation Center |
 | **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin registers a new evacuation center in the system. |
-| **Preconditions** | User has admin role. |
-| **Postconditions** | A new evacuation center is created with a unique ID. |
-| **Main Flow** | 1. Admin clicks "Add Center". <br> 2. System displays the center creation form. <br> 3. Admin enters name, center type, capacity, coordinates (latitude/longitude), contact person, and contact number. <br> 4. Admin clicks "Save". <br> 5. System generates a unique center ID and creates the record. |
+| **Description** | Evacuation Admin or Super Admin creates and configures a new evacuation center. |
+| **Preconditions** | Admin authenticated. |
+| **Postconditions** | New center record created. |
+| **Main Flow** | 1. Admin inputs center name, address, max capacity, GPS coordinates, and contact details.<br>2. System creates new center record. |
 | **API Endpoint** | `POST /api/evacuation-centers` |
 
 ---
@@ -527,11 +559,11 @@ flowchart LR
 |-------|--------|
 | **Use Case ID** | UC-22 |
 | **Use Case Name** | View Center Details |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User views the full detail of an evacuation center including accommodation units, current evacuees, and capacity information. |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | View center overview, occupancy breakdown, configured rooms/units, assigned personnel, and evacuee list. |
 | **Preconditions** | Center exists. |
-| **Postconditions** | Center details, unit list, and evacuee records are displayed. |
-| **Main Flow** | 1. User clicks on a center from the list. <br> 2. System retrieves center details with units, allocations, and evacuation records. <br> 3. System displays tabs for overview, units, evacuees, issues, and resources. |
+| **Postconditions** | Center details displayed. |
+| **Main Flow** | 1. User selects center.<br>2. System retrieves center profile, rooms, occupancy, and evacuees. |
 | **API Endpoint** | `GET /api/evacuation-centers/{center}` |
 
 ---
@@ -541,12 +573,12 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-23 |
-| **Use Case Name** | Update Evacuation Center |
+| **Use Case Name** | Update Center Configuration |
 | **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin updates an evacuation center's information. |
-| **Preconditions** | Center exists; user has admin role. |
-| **Postconditions** | Center record is updated. |
-| **Main Flow** | 1. Admin opens a center's edit form. <br> 2. Admin modifies name, capacity, contact info, or status. <br> 3. Admin clicks "Save". <br> 4. System validates and updates. |
+| **Description** | Admin edits evacuation center parameters (capacity, operational status, location). |
+| **Preconditions** | Center exists. |
+| **Postconditions** | Center configuration updated. |
+| **Main Flow** | 1. Admin modifies center details.<br>2. System updates database record. |
 | **API Endpoint** | `PUT /api/evacuation-centers/{center}` |
 
 ---
@@ -558,25 +590,25 @@ flowchart LR
 | **Use Case ID** | UC-24 |
 | **Use Case Name** | Delete Evacuation Center |
 | **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin soft-deletes an evacuation center. |
-| **Preconditions** | Center exists; user has admin role. |
-| **Postconditions** | Center is soft-deleted. |
-| **Main Flow** | 1. Admin clicks "Delete" on a center. <br> 2. System confirms the action. <br> 3. System soft-deletes the center. |
+| **Description** | Soft-delete an evacuation center. |
+| **Preconditions** | Center exists. |
+| **Postconditions** | Center soft-deleted. |
+| **Main Flow** | 1. Admin selects "Delete Center".<br>2. System confirms and soft-deletes center. |
 | **API Endpoint** | `DELETE /api/evacuation-centers/{center}` |
 
 ---
 
-### UC-25: View Center Capacity
+### UC-25: Auto-Update Center Capacity
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-25 |
-| **Use Case Name** | View Center Capacity |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User views the real-time capacity and occupancy of a specific evacuation center. |
-| **Preconditions** | Center exists. |
-| **Postconditions** | Capacity information is displayed including max capacity, current occupancy, and percentage. |
-| **Main Flow** | 1. User navigates to a center's detail page. <br> 2. System retrieves capacity data. <br> 3. System displays capacity bar/card with current vs. max capacity. |
+| **Use Case Name** | Auto-Update Evacuation Center Capacity |
+| **Actors** | System, Evacuation Personnel, Evacuation Admin, Super Admin |
+| **Description** | System automatically increments or decrements center occupancy and updates remaining capacity when a household is verified/admitted or checked out. |
+| **Preconditions** | Household verification or checkout action performed. |
+| **Postconditions** | Center `current_occupancy` and capacity percentage updated in real time. |
+| **Main Flow** | 1. Household verified/admitted at center.<br>2. System increments center `current_occupancy` by count of admitted members.<br>3. System recalculates remaining capacity percentage.<br>4. Live indicators reflect updated occupancy instantly. |
 | **API Endpoint** | `GET /api/evacuation-centers/{center}/capacity` |
 
 ---
@@ -586,57 +618,57 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-26 |
-| **Use Case Name** | Export Center Data |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User exports the list of households currently evacuated in a center as a downloadable file. |
-| **Preconditions** | Center exists and has evacuation records. |
-| **Postconditions** | A downloadable file (CSV/Excel) is generated. |
-| **Main Flow** | 1. User clicks "Export" on a center's detail page. <br> 2. System compiles all current evacuation records with household and member details. <br> 3. System generates and downloads the file. |
+| **Use Case Name** | Export Center Evacuee Data |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | Export CSV report of evacuees currently staying in a center. |
+| **Preconditions** | Center exists. |
+| **Postconditions** | Downloadable CSV file generated. |
+| **Main Flow** | 1. User clicks "Export".<br>2. System compiles evacuee roster and initiates download. |
 | **API Endpoint** | `GET /api/evacuation-centers/{center}/export` |
 
 ---
 
-### UC-27: List Events
+### UC-27: List Disaster Events
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-27 |
 | **Use Case Name** | List Disaster Events |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User views all disaster events (active and past). |
-| **Preconditions** | User is authenticated. |
-| **Postconditions** | Event list is displayed. |
-| **Main Flow** | 1. User navigates to the Events page. <br> 2. System retrieves events with disaster type, severity, and assigned centers. <br> 3. System displays the list. |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | View active and historical disaster events. |
+| **Preconditions** | User authenticated. |
+| **Postconditions** | Event list displayed. |
+| **Main Flow** | 1. User navigates to Events page.<br>2. System retrieves event records.<br>3. System displays active and past events. |
 | **API Endpoint** | `GET /api/events` |
 
 ---
 
-### UC-28: Create Event
+### UC-28: Create Disaster Event
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-28 |
 | **Use Case Name** | Create Disaster Event |
 | **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin creates a new disaster event to begin evacuation operations. |
-| **Preconditions** | User has admin role. |
-| **Postconditions** | A new disaster event is created with a unique ID; assigned centers are activated. |
-| **Main Flow** | 1. Admin clicks "Create Event". <br> 2. Admin enters event name, disaster type, severity level, and start date. <br> 3. Admin selects evacuation centers to assign. <br> 4. Admin clicks "Create". <br> 5. System creates the event and assigns the selected centers. |
+| **Description** | Admin initiates a new disaster event to manage evacuations. |
+| **Preconditions** | Admin authenticated. |
+| **Postconditions** | Disaster event created and active. |
+| **Main Flow** | 1. Admin inputs event title, disaster type, severity level, and start date.<br>2. System creates event record. |
 | **API Endpoint** | `POST /api/events` |
 
 ---
 
-### UC-29: View Active Event
+### UC-29: View Active Disaster Event
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-29 |
-| **Use Case Name** | View Active Event |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User views the currently active disaster event and its assigned centers. |
-| **Preconditions** | An active event exists. |
-| **Postconditions** | Active event details are displayed. |
-| **Main Flow** | 1. System checks for an active event (no `ended_at`). <br> 2. System displays the event name, type, severity, start date, and list of assigned centers. |
+| **Use Case Name** | View Active Event Details |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | View details of currently active disaster event and assigned centers. |
+| **Preconditions** | Active event exists. |
+| **Postconditions** | Active event details displayed. |
+| **Main Flow** | 1. System retrieves active event (`ended_at = null`).<br>2. System displays active event parameters and assigned centers. |
 | **API Endpoint** | `GET /api/events/active` |
 
 ---
@@ -646,27 +678,27 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-30 |
-| **Use Case Name** | View Event History |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User views past (ended) disaster events with paginated results. |
-| **Preconditions** | User is authenticated. |
-| **Postconditions** | List of past events is displayed. |
-| **Main Flow** | 1. User navigates to the Event History tab. <br> 2. System retrieves ended events ordered by `ended_at` descending. <br> 3. System displays the paginated list. |
+| **Use Case Name** | View Disaster Event History |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | Browse completed/past disaster events. |
+| **Preconditions** | User authenticated. |
+| **Postconditions** | Historical events list displayed. |
+| **Main Flow** | 1. User opens Event History tab.<br>2. System lists past events with start and end dates. |
 | **API Endpoint** | `GET /api/events/history` |
 
 ---
 
-### UC-31: End Event
+### UC-31: End Disaster Event
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-31 |
 | **Use Case Name** | End Disaster Event |
 | **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin ends the currently active disaster event. |
-| **Preconditions** | An active event exists; user has admin role. |
-| **Postconditions** | The event's `ended_at` is set; all assigned centers are unlinked. |
-| **Main Flow** | 1. Admin clicks "End Event". <br> 2. System shows confirmation. <br> 3. Admin confirms. <br> 4. System sets `ended_at` to the current timestamp. <br> 5. System clears `current_event_id` on all assigned centers. |
+| **Description** | Admin marks an active disaster event as ended. |
+| **Preconditions** | Active event exists. |
+| **Postconditions** | Event timestamp `ended_at` set; active status closed. |
+| **Main Flow** | 1. Admin clicks "End Event".<br>2. Admin confirms.<br>3. System sets `ended_at` timestamp. |
 | **API Endpoint** | `PATCH /api/events/{id}/end` |
 
 ---
@@ -676,12 +708,12 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-32 |
-| **Use Case Name** | Assign Centers to Event |
+| **Use Case Name** | Assign Evacuation Centers to Event |
 | **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin assigns one or more evacuation centers to an active disaster event. |
-| **Preconditions** | An active event exists; centers exist. |
-| **Postconditions** | Selected centers are linked to the event. |
-| **Main Flow** | 1. Admin opens the "Assign Centers" modal. <br> 2. System lists available centers. <br> 3. Admin selects centers and clicks "Assign". <br> 4. System links each center to the event via `event_center_history`. <br> 5. System sets `current_event_id` on each center. |
+| **Description** | Assign active evacuation centers to a disaster event. |
+| **Preconditions** | Active event exists. |
+| **Postconditions** | Centers linked to event. |
+| **Main Flow** | 1. Admin selects centers.<br>2. System links centers to event via history mapping. |
 | **API Endpoint** | `PATCH /api/events/{id}/assign-centers` |
 
 ---
@@ -693,10 +725,10 @@ flowchart LR
 | **Use Case ID** | UC-33 |
 | **Use Case Name** | Unassign Center from Event |
 | **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin removes a center from the current active event. |
-| **Preconditions** | Center is currently assigned to an active event. |
-| **Postconditions** | Center is unlinked; `current_event_id` is cleared. |
-| **Main Flow** | 1. Admin clicks "Unassign" on a center. <br> 2. System confirms the action. <br> 3. System clears the center's `current_event_id`. |
+| **Description** | Unlink an evacuation center from an active event. |
+| **Preconditions** | Center assigned to event. |
+| **Postconditions** | Center unlinked from event. |
+| **Main Flow** | 1. Admin unassigns center.<br>2. System clears center `current_event_id`. |
 | **API Endpoint** | `PATCH /api/centers/{centerId}/unassign` |
 
 ---
@@ -706,13 +738,13 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-34 |
-| **Use Case Name** | Scan QR Code for Evacuation |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | Personnel scans a household's QR code to begin the evacuation admission process. |
-| **Preconditions** | User is authenticated; an active event exists; the household has registered members. |
-| **Postconditions** | The household is identified and ready for admission. |
-| **Main Flow** | 1. Personnel opens the QR scanner on the evacuation page. <br> 2. Personnel scans the household's QR code. <br> 3. System decodes the QR code to extract the household ID. <br> 4. System validates that the household exists and has members. <br> 5. System checks that the household is not already evacuated in the current event. <br> 6. System returns the household details for admission. |
-| **Alternative Flow** | 4a. Household has no members → System throws "This household has no registered members" error. <br> 5a. Household is already evacuated → System throws "HouseholdAlreadyEvacuatedException". |
+| **Use Case Name** | Verify Household Arrival via QR Code |
+| **Actors** | Evacuation Personnel, Evacuation Admin, Super Admin |
+| **Description** | Personnel scans a household's QR code on arrival at an evacuation center. System decodes QR code, fetches household demographic data from SafeTrack for verification (hidden from households), and prepares record for admission. |
+| **Preconditions** | Personnel logged in; household presents QR code; active event exists. |
+| **Postconditions** | Household identity verified; ready for room assignment and admission. |
+| **Main Flow** | 1. Personnel opens QR Scanner tool.<br>2. Personnel scans household QR code.<br>3. System decodes ID and retrieves demographic data from SafeTrack.<br>4. System displays member roster for verification.<br>5. Personnel verifies arriving members. |
+| **Alternative Flow** | 2a. Camera scan fails or QR missing → Fallback to Manual Verification (UC-35). |
 | **API Endpoint** | `POST /api/evacuations/process-scan` |
 
 ---
@@ -722,28 +754,27 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-35 |
-| **Use Case Name** | Verify Manual Evacuation |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | Personnel manually verifies a household's identity for evacuation when QR code is unavailable. |
-| **Preconditions** | User is authenticated; the household exists; an active event exists. |
-| **Postconditions** | An evacuation record is created with method = "manual"; selected members are recorded as evacuated. |
-| **Main Flow** | 1. Personnel searches for the household by name or code. <br> 2. Personnel selects specific members to evacuate. <br> 3. Personnel clicks "Verify". <br> 4. System checks that the household is not already evacuated at this center. <br> 5. System checks that selected members are not evacuated at another center. <br> 6. System creates the `evacuation_records` entry with method = "manual". <br> 7. System creates `evacuated_members` entries for each selected member. |
-| **Alternative Flow** | 4a. Already evacuated → "HouseholdAlreadyEvacuatedException". <br> 5a. Members elsewhere → "MembersAlreadyEvacuatedException". |
+| **Use Case Name** | Manual Household Verification |
+| **Actors** | Evacuation Personnel, Evacuation Admin, Super Admin |
+| **Description** | Fallback verification when QR code is unavailable. Personnel searches household by name or ID, fetches SafeTrack demographics for identity verification, and selects arriving members. |
+| **Preconditions** | Personnel logged in; household present without QR code. |
+| **Postconditions** | Household manually verified and ready for admission. |
+| **Main Flow** | 1. Personnel inputs household name, ID, or head of family.<br>2. System retrieves SafeTrack demographic record.<br>3. Personnel selects members physically present.<br>4. System records manual verification. |
 | **API Endpoint** | `POST /api/evacuations/verify-manual` |
 
 ---
 
-### UC-36: Admit Household
+### UC-36: Admit Household & Update Status
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-36 |
-| **Use Case Name** | Admit Household |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | Personnel confirms the admission of a verified household into the evacuation center. |
-| **Preconditions** | Household has been verified (via QR or manual). |
-| **Postconditions** | Evacuation record status is updated to "admitted"; center occupancy is incremented. |
-| **Main Flow** | 1. After verification, personnel reviews the household and member details. <br> 2. Personnel clicks "Admit". <br> 3. System updates the evacuation record status. <br> 4. System updates the center's current occupancy. |
+| **Use Case Name** | Admit Household & Update Evacuation Status |
+| **Actors** | Evacuation Personnel, Evacuation Admin, Super Admin |
+| **Description** | Personnel confirms admission of verified household members into the evacuation center, updates household status to `Evacuated`, triggers auto capacity update for the center, and monitors stay duration. |
+| **Preconditions** | Household verified via QR (UC-34) or manual input (UC-35). |
+| **Postconditions** | Evacuation record created; status set to `Evacuated`; center occupancy incremented automatically. |
+| **Main Flow** | 1. Personnel confirms member count.<br>2. Personnel selects room (if configured).<br>3. Personnel clicks "Admit Household".<br>4. System marks household evacuation status as `Evacuated`.<br>5. System automatically updates center occupancy (UC-25). |
 | **API Endpoint** | `POST /api/evacuations/admit` |
 
 ---
@@ -754,12 +785,11 @@ flowchart LR
 |-------|--------|
 | **Use Case ID** | UC-37 |
 | **Use Case Name** | Checkout Household |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | Personnel checks out a household from the evacuation center when they leave. |
-| **Preconditions** | Household has an active evacuation record with status "admitted". |
-| **Postconditions** | Evacuation record status is updated to "checked_out"; `checkout_at` timestamp is set; center occupancy is decremented. |
-| **Main Flow** | 1. Personnel locates the household in the evacuee list. <br> 2. Personnel clicks "Checkout". <br> 3. System validates the household is currently admitted (not already checked out). <br> 4. System updates the record with `checkout_at` and new status. <br> 5. System decrements the center occupancy. |
-| **Alternative Flow** | 3a. Already checked out → System throws exception. |
+| **Actors** | Evacuation Personnel, Evacuation Admin, Super Admin |
+| **Description** | Personnel checks out a household when leaving the center. Updates status to `Not Evacuated` / `Checked Out` and auto-decrements center occupancy. |
+| **Preconditions** | Household currently admitted. |
+| **Postconditions** | Record updated with `checkout_at` timestamp; status updated; center occupancy decremented. |
+| **Main Flow** | 1. Personnel selects household from evacuee roster.<br>2. Personnel clicks "Checkout".<br>3. System sets `checkout_at` timestamp.<br>4. System updates center occupancy automatically. |
 | **API Endpoint** | `POST /api/evacuations/{evacuationId}/checkout` |
 
 ---
@@ -769,12 +799,12 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-38 |
-| **Use Case Name** | View Evacuation Records |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User views all evacuation records for a specific center, optionally filtered by event. |
-| **Preconditions** | User is authenticated. |
-| **Postconditions** | Evacuation record list is displayed. |
-| **Main Flow** | 1. User navigates to a center's evacuee tab. <br> 2. System retrieves records with household, member, and status data. <br> 3. System displays the records with filters for status and search. |
+| **Use Case Name** | View Evacuation Roster & Records |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | View active and past evacuation records for centers. |
+| **Preconditions** | User authenticated. |
+| **Postconditions** | Evacuation records list displayed. |
+| **Main Flow** | 1. User opens Evacuees page.<br>2. System displays records with search and status filters. |
 | **API Endpoint** | `GET /api/evacuations` |
 
 ---
@@ -784,27 +814,27 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-39 |
-| **Use Case Name** | View Evacuation Record Detail |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User views detailed information about a specific evacuation record including all evacuated members. |
+| **Use Case Name** | View Evacuation Record Details |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | View individual evacuation record, room assignment, admission timestamp, and verified member list. |
 | **Preconditions** | Record exists. |
-| **Postconditions** | Record details are displayed. |
-| **Main Flow** | 1. User clicks on an evacuation record. <br> 2. System retrieves the full record with household, members, unit allocation, and verification info. <br> 3. System displays the detail view. |
+| **Postconditions** | Full record details displayed. |
+| **Main Flow** | 1. User selects record.<br>2. System displays record overview, assigned room, and member list. |
 | **API Endpoint** | `GET /api/evacuations/{evacuation}` |
 
 ---
 
-### UC-40: Update Evacuated Member Status
+### UC-40: Update Member Status
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-40 |
 | **Use Case Name** | Update Evacuated Member Status |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | Personnel updates the status of an individual evacuated member (e.g., marking as verified). |
-| **Preconditions** | Evacuation record and member exist. |
-| **Postconditions** | Member's verification timestamp is updated. |
-| **Main Flow** | 1. Personnel views an evacuation record's member list. <br> 2. Personnel clicks on a member to update their status. <br> 3. System updates the member's `verified_at` field. |
+| **Actors** | Evacuation Personnel, Evacuation Admin, Super Admin |
+| **Description** | Personnel updates individual member verification status or special condition within a center. |
+| **Preconditions** | Member record exists. |
+| **Postconditions** | Member status updated. |
+| **Main Flow** | 1. Personnel clicks member.<br>2. Personnel updates status/flag.<br>3. System saves change. |
 | **API Endpoint** | `PATCH /api/evacuations/{evacuationId}/members/{memberId}/status` |
 
 ---
@@ -815,101 +845,101 @@ flowchart LR
 |-------|--------|
 | **Use Case ID** | UC-41 |
 | **Use Case Name** | Delete Evacuation Record |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User deletes an evacuation record (e.g., in case of error). |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | Delete erroneous evacuation entry and restore center capacity. |
 | **Preconditions** | Record exists. |
-| **Postconditions** | Record and associated evacuated members are deleted; center occupancy is adjusted. |
-| **Main Flow** | 1. User clicks "Delete" on an evacuation record. <br> 2. System confirms. <br> 3. System deletes the record and its associated evacuated members. <br> 4. System adjusts center occupancy. |
+| **Postconditions** | Record deleted; capacity recalculated. |
+| **Main Flow** | 1. User selects "Delete Record".<br>2. User confirms.<br>3. System deletes record and recalculates capacity. |
 | **API Endpoint** | `DELETE /api/evacuations/{evacuationId}` |
 
 ---
 
-### UC-42: List Accommodation Units
+### UC-42: List Accommodation Rooms / Units
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-42 |
-| **Use Case Name** | List Accommodation Units |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User views all accommodation units (rooms, tents, classrooms) in a center. |
+| **Use Case Name** | List Rooms / Accommodation Units |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | View all configured rooms/units within an evacuation center with room capacity and current assignment count. |
 | **Preconditions** | Center exists. |
-| **Postconditions** | Unit list is displayed with type, capacity, and allocation count. |
-| **Main Flow** | 1. User navigates to a center's "Units" tab. <br> 2. System retrieves units with type and allocation data. <br> 3. System displays the unit list. |
+| **Postconditions** | Room list displayed. |
+| **Main Flow** | 1. User navigates to Center Rooms.<br>2. System displays list of rooms, capacity, and current occupants. |
 | **API Endpoint** | `GET /api/centers/{centerId}/units` |
 
 ---
 
-### UC-43: Create Accommodation Unit
+### UC-43: Create & Configure Room / Unit
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-43 |
-| **Use Case Name** | Create Accommodation Unit |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User adds a new accommodation unit to a center. |
-| **Preconditions** | Center exists. |
-| **Postconditions** | A new unit record is created. |
-| **Main Flow** | 1. User clicks "Add Unit". <br> 2. User enters unit name, type (room, tent, classroom, etc.), and maximum capacity. <br> 3. User clicks "Save". <br> 4. System creates the unit linked to the center. |
+| **Use Case Name** | Create and Configure Center Room |
+| **Actors** | Super Admin, Evacuation Admin |
+| **Description** | Evacuation Admin or Super Admin creates and configures individual rooms/units (classrooms, tents, designated areas) within an evacuation center. |
+| **Preconditions** | Evacuation center exists. |
+| **Postconditions** | New room configured for center. |
+| **Main Flow** | 1. Admin inputs room name/number, unit type (room/tent/classroom), and room capacity.<br>2. System saves room configuration linked to center. |
 | **API Endpoint** | `POST /api/centers/{centerId}/units` |
 
 ---
 
-### UC-44: Update Accommodation Unit
+### UC-44: Update Room / Unit
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-44 |
-| **Use Case Name** | Update Accommodation Unit |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User modifies a unit's name, type, or capacity. |
-| **Preconditions** | Unit exists. |
-| **Postconditions** | Unit record is updated. |
-| **Main Flow** | 1. User clicks "Edit" on a unit. <br> 2. User modifies the fields. <br> 3. User clicks "Save". <br> 4. System updates the record. |
+| **Use Case Name** | Update Room Configuration |
+| **Actors** | Super Admin, Evacuation Admin |
+| **Description** | Modify room name, type, or capacity. |
+| **Preconditions** | Room exists. |
+| **Postconditions** | Room updated. |
+| **Main Flow** | 1. Admin edits room fields.<br>2. System updates database record. |
 | **API Endpoint** | `PATCH /api/centers/{centerId}/units/{unitId}` |
 
 ---
 
-### UC-45: Delete Accommodation Unit
+### UC-45: Delete Room / Unit
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-45 |
-| **Use Case Name** | Delete Accommodation Unit |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User removes a unit from a center. |
-| **Preconditions** | Unit exists. |
-| **Postconditions** | Unit is soft-deleted. |
-| **Main Flow** | 1. User clicks "Delete" on a unit. <br> 2. System confirms. <br> 3. System soft-deletes the unit. |
+| **Use Case Name** | Delete Room / Unit |
+| **Actors** | Super Admin, Evacuation Admin |
+| **Description** | Soft-delete a room configuration from a center. |
+| **Preconditions** | Room exists. |
+| **Postconditions** | Room deleted. |
+| **Main Flow** | 1. Admin selects "Delete Room".<br>2. System confirms and soft-deletes room. |
 | **API Endpoint** | `DELETE /api/centers/{centerId}/units/{unitId}` |
 
 ---
 
-### UC-46: Assign Household to Unit
+### UC-46: Assign Household to Room
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-46 |
-| **Use Case Name** | Assign Household to Unit |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | Personnel assigns an evacuated household to a specific accommodation unit. |
-| **Preconditions** | Household is admitted to the center and not yet assigned to a unit. |
-| **Postconditions** | A `unit_allocations` record is created linking the evacuation record to the unit. |
-| **Main Flow** | 1. Personnel navigates to a unit's detail. <br> 2. Personnel clicks "Assign Household". <br> 3. System displays unassigned households. <br> 4. Personnel selects a household and confirms. <br> 5. System creates the allocation record. |
+| **Use Case Name** | Assign Household to Room / Unit |
+| **Actors** | Evacuation Personnel, Evacuation Admin, Super Admin |
+| **Description** | Post-verification step: Personnel assigns an admitted household to a specific room or accommodation unit within the center. |
+| **Preconditions** | Household admitted to center; room configured. |
+| **Postconditions** | Household allocated to room. |
+| **Main Flow** | 1. Personnel views unassigned households or room details.<br>2. Personnel selects household and target room.<br>3. System creates room allocation link. |
 | **API Endpoint** | `POST /api/units/{unitId}/allocations` |
 
 ---
 
-### UC-47: Unassign Household from Unit
+### UC-47: Unassign Household from Room
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-47 |
-| **Use Case Name** | Unassign Household from Unit |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | Personnel removes a household's assignment from an accommodation unit. |
-| **Preconditions** | Allocation exists. |
-| **Postconditions** | Allocation record is deleted. |
-| **Main Flow** | 1. Personnel clicks "Unassign" on a household within a unit. <br> 2. System confirms. <br> 3. System deletes the allocation record. |
+| **Use Case Name** | Unassign Household from Room |
+| **Actors** | Evacuation Personnel, Evacuation Admin, Super Admin |
+| **Description** | Relocate or remove a household from an assigned room. |
+| **Preconditions** | Room allocation exists. |
+| **Postconditions** | Household unassigned from room. |
+| **Main Flow** | 1. Personnel clicks "Unassign".<br>2. System deletes allocation record. |
 | **API Endpoint** | `DELETE /api/units/{unitId}/allocations/{allocationId}` |
 
 ---
@@ -919,12 +949,12 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-48 |
-| **Use Case Name** | View Unassigned Households |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User views households that are admitted to a center but not yet assigned to any accommodation unit. |
-| **Preconditions** | Center has evacuees. |
-| **Postconditions** | List of unassigned households is displayed. |
-| **Main Flow** | 1. System retrieves evacuation records that have no corresponding `unit_allocations` record. <br> 2. System displays the list for unit assignment. |
+| **Use Case Name** | View Unassigned Households in Center |
+| **Actors** | Evacuation Personnel, Evacuation Admin, Super Admin |
+| **Description** | View households that are admitted to the center but not yet assigned to any room. |
+| **Preconditions** | Center has admitted households. |
+| **Postconditions** | List of unassigned households displayed. |
+| **Main Flow** | 1. Personnel views room management tab.<br>2. System lists admitted households without active room allocations. |
 | **API Endpoint** | `GET /api/centers/{centerId}/unassigned` |
 
 ---
@@ -934,42 +964,42 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-49 |
-| **Use Case Name** | List Resource Requests |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User views resource requests, optionally filtered by center, status, or event. |
-| **Preconditions** | User is authenticated. |
-| **Postconditions** | Resource request list is displayed. |
-| **Main Flow** | 1. User navigates to the Resource Requests page. <br> 2. System retrieves requests with center, user, urgency, and status data. <br> 3. System displays with summary cards (pending, acknowledged, approved, delivered counts). |
+| **Use Case Name** | List Resource & Personnel Requests |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | Monitor ongoing requests across evacuation centers, including essential resource shortages and personnel assistance requests. |
+| **Preconditions** | User authenticated. |
+| **Postconditions** | Requests list displayed with summary cards. |
+| **Main Flow** | 1. User navigates to Resource Requests.<br>2. System retrieves requests, urgency levels, and status counts.<br>3. System displays requests dashboard. |
 | **API Endpoint** | `GET /api/resource-requests` |
 
 ---
 
-### UC-50: Create Resource Request
+### UC-50: Report In-Center Needs & Requests
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-50 |
-| **Use Case Name** | Create Resource Request |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User creates a request for resources (food, water, medicine, etc.) for a center. |
-| **Preconditions** | User is authenticated; center exists. |
-| **Postconditions** | A new resource request is created with status "pending". |
-| **Main Flow** | 1. User clicks "New Request". <br> 2. User selects center, resource type, item name, quantity, unit, urgency level, and description. <br> 3. User clicks "Submit". <br> 4. System creates the request with `requested_by` set to the current user and status "pending". |
+| **Use Case Name** | Report In-Center Needs & Request Assistance |
+| **Actors** | Evacuation Personnel, Evacuation Admin, Super Admin |
+| **Description** | Evacuation Personnel reports in-center needs, including essential resource shortages (food, medical, sanitation) and requests for additional response personnel assistance. Request is submitted and routed to ResQperation. |
+| **Preconditions** | Personnel logged in; evacuation center active. |
+| **Postconditions** | Request created with `pending` status and routed to ResQperation. |
+| **Main Flow** | 1. Personnel clicks "New Request".<br>2. Personnel specifies request category (supplies or response personnel), items/count, urgency level, and description.<br>3. Personnel submits request.<br>4. System logs request and triggers ResQperation integration dispatch (UC-73). |
 | **API Endpoint** | `POST /api/resource-requests` |
 
 ---
 
-### UC-51: Update Resource Request Status
+### UC-51: Update Request Status
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-51 |
-| **Use Case Name** | Update Resource Request Status |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User updates the status of a resource request (e.g., pending → acknowledged → approved → delivered). |
+| **Use Case Name** | Update Request Status |
+| **Actors** | Evacuation Admin, Super Admin, Evacuation Personnel |
+| **Description** | Update status of a request (`pending` → `acknowledged` → `approved` → `delivered` / `rejected`). |
 | **Preconditions** | Request exists. |
-| **Postconditions** | Request status is updated; `handled_by` is set to current user. |
-| **Main Flow** | 1. User selects a request and clicks "Update Status". <br> 2. User selects the new status from the dropdown. <br> 3. System updates the status and records who handled it. |
+| **Postconditions** | Request status updated; handler recorded. |
+| **Main Flow** | 1. Admin/Personnel selects request.<br>2. User updates status dropdown.<br>3. System records update timestamp and handler user ID. |
 | **API Endpoint** | `PATCH /api/resource-requests/{id}/status` |
 
 ---
@@ -980,11 +1010,11 @@ flowchart LR
 |-------|--------|
 | **Use Case ID** | UC-52 |
 | **Use Case Name** | Delete Resource Request |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User deletes a resource request. |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | Delete a duplicate or invalid resource request. |
 | **Preconditions** | Request exists. |
-| **Postconditions** | Request record is deleted. |
-| **Main Flow** | 1. User clicks "Delete" on a request. <br> 2. System confirms. <br> 3. System deletes the request. |
+| **Postconditions** | Request deleted. |
+| **Main Flow** | 1. User selects "Delete Request".<br>2. System confirms and deletes record. |
 | **API Endpoint** | `DELETE /api/resource-requests/{id}` |
 
 ---
@@ -995,11 +1025,11 @@ flowchart LR
 |-------|--------|
 | **Use Case ID** | UC-53 |
 | **Use Case Name** | List Center Issue Reports |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User views all issue reports filed against evacuation centers. |
-| **Preconditions** | User is authenticated. |
-| **Postconditions** | Issue report list is displayed. |
-| **Main Flow** | 1. User navigates to the Issue Reports page. <br> 2. System retrieves reports with center, reporter, category, severity, and status data. <br> 3. System displays the list. |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | View filed issue reports for evacuation centers (facility damage, safety issues, health incidents). |
+| **Preconditions** | User authenticated. |
+| **Postconditions** | Issue reports list displayed with status/severity summary cards. |
+| **Main Flow** | 1. User opens Issue Reports page.<br>2. System displays reports with category, severity, and center filters. |
 | **API Endpoint** | `GET /api/center-issue-reports` |
 
 ---
@@ -1009,12 +1039,12 @@ flowchart LR
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-54 |
-| **Use Case Name** | Create Issue Report |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User files an issue report for a center (e.g., infrastructure damage, supply shortage, health concern). |
-| **Preconditions** | User is authenticated; center exists. |
-| **Postconditions** | A new issue report is created with status "open". |
-| **Main Flow** | 1. User clicks "Report Issue". <br> 2. User selects center, category, severity, title, description, and optional attachment. <br> 3. User clicks "Submit". <br> 4. System creates the report with `reported_by` set to the current user. |
+| **Use Case Name** | Create Center Issue Report |
+| **Actors** | Evacuation Personnel, Evacuation Admin, Super Admin |
+| **Description** | File an issue report for a center regarding infrastructure, health, or safety problems. |
+| **Preconditions** | User authenticated. |
+| **Postconditions** | Issue report created with `open` status. |
+| **Main Flow** | 1. User clicks "Report Issue".<br>2. User fills category, title, description, severity, and photo attachment.<br>3. System saves issue report. |
 | **API Endpoint** | `POST /api/center-issue-reports` |
 
 ---
@@ -1025,11 +1055,11 @@ flowchart LR
 |-------|--------|
 | **Use Case ID** | UC-55 |
 | **Use Case Name** | Update Issue Report |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User updates the details of an existing issue report. |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | Edit issue report details or upload additional attachment. |
 | **Preconditions** | Report exists. |
-| **Postconditions** | Report is updated. |
-| **Main Flow** | 1. User opens a report and clicks "Edit". <br> 2. User modifies category, severity, title, description, or attachment. <br> 3. User clicks "Save". <br> 4. System updates the report. |
+| **Postconditions** | Report updated. |
+| **Main Flow** | 1. User edits report details.<br>2. System updates record. |
 | **API Endpoint** | `PATCH /api/center-issue-reports/{id}` |
 
 ---
@@ -1040,11 +1070,11 @@ flowchart LR
 |-------|--------|
 | **Use Case ID** | UC-56 |
 | **Use Case Name** | Update Issue Report Status |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User changes the status of an issue report (e.g., open → in_progress → resolved). |
+| **Actors** | Evacuation Admin, Super Admin, Evacuation Personnel |
+| **Description** | Update issue report resolution status (`open` → `in_progress` → `resolved` → `closed`). |
 | **Preconditions** | Report exists. |
-| **Postconditions** | Report status is updated; `handled_by` is set. |
-| **Main Flow** | 1. User selects a new status for the report. <br> 2. System updates the status and `handled_by`. |
+| **Postconditions** | Report status updated. |
+| **Main Flow** | 1. User changes status.<br>2. System saves status change and handler ID. |
 | **API Endpoint** | `PATCH /api/center-issue-reports/{id}/status` |
 
 ---
@@ -1056,40 +1086,40 @@ flowchart LR
 | **Use Case ID** | UC-57 |
 | **Use Case Name** | Delete Issue Report |
 | **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin deletes an issue report. |
-| **Preconditions** | Report exists; user has admin role. |
-| **Postconditions** | Report is deleted. |
-| **Main Flow** | 1. Admin clicks "Delete" on a report. <br> 2. System confirms. <br> 3. System deletes the report. |
+| **Description** | Delete an issue report entry. |
+| **Preconditions** | Report exists. |
+| **Postconditions** | Report deleted. |
+| **Main Flow** | 1. Admin deletes report.<br>2. System removes database record. |
 | **API Endpoint** | `DELETE /api/center-issue-reports/{id}` |
 
 ---
 
-### UC-58: List Notifications
+### UC-58: List Notifications & Alerts
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-58 |
-| **Use Case Name** | List Notifications |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User views a paginated list of all sent notifications/alerts. |
-| **Preconditions** | User is authenticated. |
-| **Postconditions** | Notification list is displayed with status, sent date, and recipient count. |
-| **Main Flow** | 1. User navigates to the Alerts page. <br> 2. System retrieves notifications with sender, event, center, and urgency data. <br> 3. System displays the paginated list. |
+| **Use Case Name** | List Notifications & Alerts |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | View log of sent evacuation alerts and notifications. |
+| **Preconditions** | User authenticated. |
+| **Postconditions** | Notifications list displayed. |
+| **Main Flow** | 1. User opens Alerts page.<br>2. System lists dispatched notifications with delivery status. |
 | **API Endpoint** | `GET /api/notifications` |
 
 ---
 
-### UC-59: Send Notification
+### UC-59: Send Evacuation Alerts via SMS and Push
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-59 |
-| **Use Case Name** | Send Notification / Alert |
-| **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin sends an emergency notification/alert to households via push notification or SMS. |
-| **Preconditions** | User has admin role; an active event exists. |
-| **Postconditions** | Notification is created; recipients are recorded; delivery is initiated via push or SMS. |
-| **Main Flow** | 1. Admin clicks "Send Alert". <br> 2. Admin enters message, selects urgency level, event, center (optional), channel (push/SMS), and target filter. <br> 3. Admin previews the recipient list. <br> 4. Admin clicks "Send". <br> 5. System creates the notification, generates recipients, and dispatches via the selected channel. |
+| **Use Case Name** | Send Evacuation Alerts to Households |
+| **Actors** | Evacuation Admin, Super Admin |
+| **Description** | Admin dispatches emergency evacuation alerts to target households. The system automatically routes SMS messages to households without internet access and mobile push notifications via ResQperation for households with the app installed. |
+| **Preconditions** | Admin logged in; active event selected. |
+| **Postconditions** | Notification logged; alerts dispatched via SMS gateway and ResQperation push service. |
+| **Main Flow** | 1. Admin inputs alert message, urgency, target location/center.<br>2. Admin chooses target filter.<br>3. Admin previews target recipient count.<br>4. Admin clicks "Send Alert".<br>5. System dispatches SMS for offline households and ResQperation push notifications for app users. |
 | **API Endpoint** | `POST /api/notifications` |
 
 ---
@@ -1100,11 +1130,11 @@ flowchart LR
 |-------|--------|
 | **Use Case ID** | UC-60 |
 | **Use Case Name** | Preview Notification Recipients |
-| **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin previews which households will receive a notification based on the selected filters. |
-| **Preconditions** | Filter criteria are provided. |
-| **Postconditions** | A count and list of targeted households is displayed. |
-| **Main Flow** | 1. Admin selects filters (event, center, target filter). <br> 2. System calculates the matching households. <br> 3. System displays the count and sample list. |
+| **Actors** | Evacuation Admin, Super Admin |
+| **Description** | Calculate and preview households targeted for an alert prior to sending. |
+| **Preconditions** | Filter parameters selected. |
+| **Postconditions** | Target recipient count and sample list displayed. |
+| **Main Flow** | 1. Admin sets recipient filters.<br>2. System queries matching households and displays preview count. |
 | **API Endpoint** | `GET /api/notifications/preview` |
 
 ---
@@ -1115,116 +1145,116 @@ flowchart LR
 |-------|--------|
 | **Use Case ID** | UC-61 |
 | **Use Case Name** | View Notification Detail |
-| **Actors** | Super Admin, Evacuation Admin, Center Personnel |
-| **Description** | User views the full detail of a notification including message, recipients, and delivery status. |
+| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
+| **Description** | View alert text, dispatch timestamp, target centers, and recipient logs. |
 | **Preconditions** | Notification exists. |
-| **Postconditions** | Notification detail is displayed. |
-| **Main Flow** | 1. User clicks on a notification from the list. <br> 2. System retrieves the notification with sender, recipients, and log data. <br> 3. System displays the details. |
+| **Postconditions** | Alert detail view displayed. |
+| **Main Flow** | 1. User selects notification.<br>2. System retrieves notification summary and dispatch log. |
 | **API Endpoint** | `GET /api/notifications/{notification}` |
 
 ---
 
-### UC-62: Cancel Notification
+### UC-62: Cancel Scheduled Notification
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-62 |
-| **Use Case Name** | Cancel Notification |
-| **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin cancels a pending or scheduled notification. |
-| **Preconditions** | Notification exists and is in a cancellable state. |
-| **Postconditions** | Notification status is set to "cancelled". |
-| **Main Flow** | 1. Admin clicks "Cancel" on a notification. <br> 2. System confirms. <br> 3. System updates the notification status to "cancelled". |
+| **Use Case Name** | Cancel Scheduled Notification |
+| **Actors** | Evacuation Admin, Super Admin |
+| **Description** | Cancel a pending or scheduled emergency alert before dispatch. |
+| **Preconditions** | Notification status is `pending` or `scheduled`. |
+| **Postconditions** | Notification marked as `cancelled`. |
+| **Main Flow** | 1. Admin clicks "Cancel Alert".<br>2. System updates notification status to `cancelled`. |
 | **API Endpoint** | `DELETE /api/notifications/{notification}` |
 
 ---
 
-### UC-63: View Analytics Dashboard
+### UC-63: Compute Evacuation Analytics
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-63 |
-| **Use Case Name** | View Analytics Dashboard |
+| **Use Case Name** | Compute & View Evacuation Analytics |
 | **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin views aggregated analytics data including demographics, capacity, and evacuation trends. |
-| **Preconditions** | User has admin role; analytics snapshots have been generated. |
-| **Postconditions** | Dashboard with charts and statistics is displayed. |
-| **Main Flow** | 1. Admin navigates to the Analytics page. <br> 2. Admin selects an event and optionally a center. <br> 3. System retrieves aggregated data (demographics, vulnerable groups, capacity utilization, daily intake). <br> 4. System displays charts and summary statistics. |
+| **Description** | Automatically computes and displays evacuation analytics derived from SafeTrack demographic data and live personnel verification updates. Metrics include: age distribution (children: 0-12, adults: 13-59, elderly: 60+), pregnant women count, PWD count, gender distribution, and total affected population. |
+| **Preconditions** | Active event or event history selected; demographic data captured. |
+| **Postconditions** | Demographic dashboard and analytic breakdown displayed. |
+| **Main Flow** | 1. Admin navigates to Analytics Dashboard.<br>2. System computes aggregate age brackets, gender totals, pregnant women, PWDs, and total affected population.<br>3. System renders visual charts and summary metric cards. |
 | **API Endpoint** | `GET /api/analytics/dashboard` |
 
 ---
 
-### UC-64: Export DROMIC Master List
+### UC-64: Export DROMIC Master List Report
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-64 |
-| **Use Case Name** | Export DROMIC Master List |
+| **Use Case Name** | Generate System-Wide DROMIC Master List |
 | **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin exports the DROMIC (Disaster Response Operations Monitoring and Information Center) master list report. |
-| **Preconditions** | Analytics data exists for the selected event. |
-| **Postconditions** | An Excel/CSV file is generated and downloaded. |
-| **Main Flow** | 1. Admin clicks "Export" and selects "DROMIC Master List". <br> 2. Admin selects the event and center filters. <br> 3. System compiles the DROMIC report. <br> 4. System downloads the file. |
+| **Description** | Generates and retrieves official DSWD DROMIC (Disaster Response Operations Monitoring and Information Center) master list report for centers or system-wide. |
+| **Preconditions** | Admin authenticated. |
+| **Postconditions** | Downloadable DROMIC master list spreadsheet generated. |
+| **Main Flow** | 1. Admin clicks "Export DROMIC Master List".<br>2. Admin filters by event or center.<br>3. System compiles master list and initiates download. |
 | **API Endpoint** | `GET /api/analytics/export/dromic` |
 
 ---
 
-### UC-65: Export Demographics
+### UC-65: Export Demographics Report
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-65 |
-| **Use Case Name** | Export Demographics Summary |
+| **Use Case Name** | Export Demographics Summary Report |
 | **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin exports a demographic summary of evacuees (age groups, gender distribution). |
-| **Preconditions** | Analytics data exists. |
-| **Postconditions** | A downloadable report is generated. |
-| **Main Flow** | 1. Admin selects "Demographics" export. <br> 2. System generates the report. <br> 3. System downloads the file. |
+| **Description** | Export detailed demographic summary report (age distribution, gender, vulnerable groups). |
+| **Preconditions** | Analytics snapshot available. |
+| **Postconditions** | Downloadable report generated. |
+| **Main Flow** | 1. Admin selects "Export Demographics".<br>2. System compiles demographic breakdown report. |
 | **API Endpoint** | `GET /api/analytics/export/demographics` |
 
 ---
 
-### UC-66: Export Center Utilization
+### UC-66: Export Center Utilization Report
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-66 |
-| **Use Case Name** | Export Center Utilization |
+| **Use Case Name** | Export Center Utilization Summary |
 | **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin exports center utilization data showing occupancy trends over time. |
+| **Description** | Export capacity, occupancy rate, and shelter utilization report. |
 | **Preconditions** | Analytics data exists. |
-| **Postconditions** | A downloadable report is generated. |
-| **Main Flow** | 1. Admin selects "Center Utilization" export. <br> 2. System generates the report. <br> 3. System downloads the file. |
+| **Postconditions** | Downloadable report generated. |
+| **Main Flow** | 1. Admin exports utilization report.<br>2. System generates CSV/Excel download. |
 | **API Endpoint** | `GET /api/analytics/export/utilization` |
 
 ---
 
-### UC-67: Export Vulnerable Groups
+### UC-67: Export Vulnerable Groups Report
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-67 |
 | **Use Case Name** | Export Vulnerable Groups Report |
 | **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin exports a report of vulnerable populations (PWDs, seniors, pregnant, children). |
-| **Preconditions** | Analytics data exists. |
-| **Postconditions** | A downloadable report is generated. |
-| **Main Flow** | 1. Admin selects "Vulnerable Groups" export. <br> 2. System generates the report. <br> 3. System downloads the file. |
+| **Description** | Export detailed listing of PWDs, pregnant women, senior citizens, and children for targeted relief. |
+| **Preconditions** | Evacuee records present. |
+| **Postconditions** | Downloadable report generated. |
+| **Main Flow** | 1. Admin selects "Export Vulnerable Groups".<br>2. System compiles report. |
 | **API Endpoint** | `GET /api/analytics/export/vulnerable` |
 
 ---
 
-### UC-68: Export Daily Intake
+### UC-68: Export Daily Intake Report
 
 | Field | Detail |
 |-------|--------|
 | **Use Case ID** | UC-68 |
 | **Use Case Name** | Export Daily Intake Report |
 | **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin exports a daily intake report showing the number of households and individuals admitted per day. |
-| **Preconditions** | Analytics data exists. |
-| **Postconditions** | A downloadable report is generated. |
-| **Main Flow** | 1. Admin selects "Daily Intake" export. <br> 2. System generates the report. <br> 3. System downloads the file. |
+| **Description** | Export day-by-day admission and checkout timeline report. |
+| **Preconditions** | Evacuation logs exist. |
+| **Postconditions** | Downloadable report generated. |
+| **Main Flow** | 1. Admin exports daily intake timeline.<br>2. System generates report. |
 | **API Endpoint** | `GET /api/analytics/export/daily-intake` |
 
 ---
@@ -1236,10 +1266,10 @@ flowchart LR
 | **Use Case ID** | UC-69 |
 | **Use Case Name** | View Public Evacuation Centers |
 | **Actors** | Public User |
-| **Description** | An unauthenticated user views the list of active evacuation centers with their locations and capacity. |
-| **Preconditions** | None (public access). |
-| **Postconditions** | Public center list is displayed with map view. |
-| **Main Flow** | 1. Public user navigates to the landing page or public portal. <br> 2. System retrieves active centers with coordinates, capacity, and occupancy. <br> 3. System displays the centers on a map and/or list. |
+| **Description** | Unauthenticated public user views open evacuation centers, map locations, and live capacity status. |
+| **Preconditions** | Public access. |
+| **Postconditions** | Public shelter map and list displayed. |
+| **Main Flow** | 1. Public user visits landing page.<br>2. System displays open centers, status, and occupancy percentage. |
 | **API Endpoint** | `GET /api/public/evacuation-centers` |
 
 ---
@@ -1251,19 +1281,81 @@ flowchart LR
 | **Use Case ID** | UC-70 |
 | **Use Case Name** | View Active Events (Public) |
 | **Actors** | Public User |
-| **Description** | An unauthenticated user views currently active disaster events. |
-| **Preconditions** | None (public access). |
-| **Postconditions** | Active event information is displayed. |
-| **Main Flow** | 1. Public user navigates to the landing page. <br> 2. System retrieves the currently active event with type and severity. <br> 3. System displays the event name, type, severity, and start date. |
+| **Description** | Public user views details of active disaster events and emergency advisories. |
+| **Preconditions** | Public access. |
+| **Postconditions** | Active event advisories displayed. |
+| **Main Flow** | 1. Public user visits public portal.<br>2. System displays active event name, type, and advisory notice. |
 | **API Endpoint** | `GET /api/public/events/active` |
 
 ---
 
-## Use Case Summary by Actor
+### UC-71: Super Admin Emergency Override
 
-| Actor | Use Cases | Count |
-|-------|-----------|-------|
-| **Super Admin** | UC-01 to UC-68 | 68 |
-| **Evacuation Admin** | UC-01 to UC-68 | 68 |
-| **Center Personnel** | UC-01 to UC-05, UC-11 to UC-22, UC-25 to UC-27, UC-29 to UC-56, UC-58, UC-61 | 52 |
+| Field | Detail |
+|-------|--------|
+| **Use Case ID** | UC-71 |
+| **Use Case Name** | Super Admin Emergency Override |
+| **Actors** | Super Admin |
+| **Description** | Super Admin exercises full administrative override access over any Evacuation Admin or Evacuation Personnel action. Used exclusively for emergency intervention, system troubleshooting, unlocking locked records, force-updating evacuation status, or overriding center assignments. |
+| **Preconditions** | Super Admin logged in (`super_admin` role). |
+| **Postconditions** | Override action executed; audit log entry recorded. |
+| **Main Flow** | 1. Super Admin encounters locked, disputed, or erroneous record/action.<br>2. Super Admin invokes Emergency Override tool.<br>3. System verifies `super_admin` privileges.<br>4. System executes requested modification/override.<br>5. System logs override action in administrative audit trail. |
+| **API Endpoint** | `POST /api/admin/emergency-override` |
+
+---
+
+### UC-72: Sync SafeTrack Demographics
+
+| Field | Detail |
+|-------|--------|
+| **Use Case ID** | UC-72 |
+| **Use Case Name** | Sync SafeTrack Household Demographics |
+| **Actors** | System, Evacuation Personnel, Evacuation Admin, Super Admin |
+| **Description** | System automatically queries and retrieves household demographic data from SafeTrack during verification and registration. Data is used for identification and analytics calculation, and is kept hidden from household views. |
+| **Preconditions** | SafeTrack integration API active; valid household identifier provided. |
+| **Postconditions** | Demographic attributes synced into EvaTrack database. |
+| **Main Flow** | 1. Personnel initiates QR scan or manual search.<br>2. System issues secure API query to SafeTrack.<br>3. SafeTrack returns demographic payload (head of family, members, age, gender, PWD, pregnancy flags).<br>4. System stores demographic data for verification and analytics computation. |
+| **API Endpoint** | `POST /api/integration/safetrack/sync` |
+
+---
+
+### UC-73: Route Assistance Requests to ResQperation
+
+| Field | Detail |
+|-------|--------|
+| **Use Case ID** | UC-73 |
+| **Use Case Name** | Route Assistance Requests to ResQperation |
+| **Actors** | System, Evacuation Personnel, Evacuation Admin, Super Admin |
+| **Description** | System routes in-center resource shortages and personnel assistance requests directly to the ResQperation response platform for rapid emergency response dispatch. |
+| **Preconditions** | Resource request created with target agency `ResQperation`. |
+| **Postconditions** | Request dispatched to ResQperation webhook/API. |
+| **Main Flow** | 1. Request submitted by Evacuation Personnel or Admin.<br>2. System validates request details.<br>3. System dispatches payload to ResQperation API.<br>4. ResQperation confirms receipt and provides dispatch tracking ID. |
+| **API Endpoint** | `POST /api/integration/resqperation/route-request` |
+
+---
+
+## 5. Use Case Summary Matrix by Actor
+
+| Actor | Accessible Use Cases | Total Count |
+|-------|----------------------|-------------|
+| **Super Admin** | UC-01 to UC-68, UC-71 to UC-73 | 71 |
+| **Evacuation Admin** | UC-01 to UC-68, UC-72 to UC-73 | 70 |
+| **Evacuation Personnel** | UC-01 to UC-05, UC-11 to UC-20, UC-22, UC-25 to UC-27, UC-29 to UC-30, UC-34 to UC-42, UC-46 to UC-61, UC-72 to UC-73 | 55 |
+| **Households / Residents (Secondary)** | UC-34 to UC-37 (verified/tracked), UC-59 (receive SMS/push alerts) | 5 (passive) |
 | **Public User** | UC-69, UC-70 | 2 |
+
+---
+
+## 6. Requirements Traceability Matrix
+
+| Must-Have Requirement | Functional Feature | Mapped Use Cases |
+|-----------------------|--------------------|------------------|
+| SafeTrack Demographics Retrieval | Retrieves household demographics for identification & verification (not visible to households) | UC-13, UC-34, UC-35, UC-72 |
+| Evacuation Status Tracking | Tracks household status as `Evacuated` or `Not Evacuated` | UC-11, UC-36, UC-37 |
+| Auto Center Capacity Updates | Automatically updates center capacity upon household verification/checkout | UC-25, UC-36, UC-37 |
+| Evacuation Demographic Analytics | Computes age (children, adults, elderly), pregnant count, PWD count, gender, total population | UC-17, UC-18, UC-63, UC-65, UC-67 |
+| Alert & Request Routing | Routes alerts to households (SMS / push) and requests to ResQperation | UC-50, UC-59, UC-73 |
+| Evacuation Personnel Workflows | Log in, QR/manual verification, room assignment, monitor stay, report needs, request assistance | UC-01, UC-34, UC-35, UC-36, UC-46, UC-50, UC-73 |
+| Evacuation Admin Workflows | Log in, configure centers & rooms, monitor evacuations & requests, send alerts (SMS/push), assign personnel | UC-01, UC-07, UC-10, UC-21, UC-43, UC-49, UC-59 |
+| Super Admin Full Oversight & Emergency Override | Full operational oversight, generate system reports, emergency override access over all actions | UC-01 to UC-68, UC-71 |
+| Household Alerts & Tracking | Receive SMS/push alerts, verified & tracked by personnel without direct system login | UC-34, UC-35, UC-36, UC-59 |

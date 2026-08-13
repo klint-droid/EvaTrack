@@ -22,6 +22,7 @@ use App\Domains\EvacuationEvents\Controllers\SeverityLevelController;
 use App\Domains\ReferenceData\Controllers\LookupController;
 use App\Domains\Analytics\Controllers\AnalyticsController;
 use App\Domains\EvacuationCenters\Controllers\CenterExportController;
+use App\Domains\EvacuationCenters\Controllers\StatusUpdateController;
 use App\Domains\Analytics\Controllers\AnalyticsExportController;
 
 /*
@@ -149,7 +150,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/accommodation-types', [AccommodationUnitController::class, 'types']);
     Route::get('/centers/{centerId}/units', [AccommodationUnitController::class, 'index']);
     Route::post('/centers/{centerId}/units', [AccommodationUnitController::class, 'store']);
-    Route::patch('/centers/{centerId}/units/{unitId}', [AccommodationUnitController::class, 'update']);
+    Route::match(['put', 'patch'], '/centers/{centerId}/units/{unitId}', [AccommodationUnitController::class, 'update']);
     Route::delete('/centers/{centerId}/units/{unitId}', [AccommodationUnitController::class, 'destroy']);
 });
 
@@ -194,6 +195,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/center-issue-reports/{id}', [CenterIssueReportController::class, 'update']);
     Route::patch('/center-issue-reports/{id}/status', [CenterIssueReportController::class, 'updateStatus']);
     Route::delete('/center-issue-reports/{id}', [CenterIssueReportController::class, 'destroy']);
+    Route::get('/status-updates', [StatusUpdateController::class, 'index']);
 });
 
 /*

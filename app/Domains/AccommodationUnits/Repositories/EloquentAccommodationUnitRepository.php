@@ -24,6 +24,13 @@ class EloquentAccommodationUnitRepository implements AccommodationUnitRepository
         $units->getCollection()->transform(function ($unit) {
             $occupancy = UnitAllocation::where('unit_id', $unit->unit_id)
                 ->join('evacuation_records', 'unit_allocations.evacuation_id', '=', 'evacuation_records.evacuation_id')
+                ->where('evacuation_records.household_status_id', HouseholdStatus::EVACUATED)
+                ->where(function ($q) {
+                    $q->whereNull('evacuation_records.event_id')
+                      ->orWhereHas('evacuationRecord.event', function ($eq) {
+                          $eq->whereNull('ended_at');
+                      });
+                })
                 ->sum('evacuation_records.evacuated_count');
             
             $unit->current_occupancy = $occupancy;
