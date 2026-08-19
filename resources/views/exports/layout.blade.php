@@ -80,9 +80,14 @@
             height: 30px;
             font-size: 8px;
             color: #94a3b8;
-            border-top: 1px solid #e2e8f0;
+            border-top: 2px solid #e2e8f0;
             padding-top: 5px;
-            text-align: center;
+        }
+        .page-number:before {
+            content: counter(page);
+        }
+        .page-count:before {
+            content: counter(pages);
         }
         .text-center {
             text-align: center;
@@ -158,8 +163,9 @@
     <div class="footer">
         <table style="width: 100%;">
             <tr>
-                <td>EvaTrack Emergency Response Platform &copy; {{ date('Y') }}</td>
-                <td class="text-right">Confidential - For Official DRRM Use Only</td>
+                <td style="text-align: left;">EvaTrack Emergency Response Platform &copy; {{ date('Y') }}</td>
+                <td style="text-align: center; font-weight: bold; color: #64748b;">Page <span class="page-number"></span> of <span class="page-count"></span></td>
+                <td style="text-align: right;">Confidential &mdash; For Official DRRM Use Only</td>
             </tr>
         </table>
     </div>
