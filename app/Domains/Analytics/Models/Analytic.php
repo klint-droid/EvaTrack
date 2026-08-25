@@ -31,7 +31,7 @@ class Analytic extends Model
         'recorded_at',
 
         'total_population',
-        'total_household',
+        'total_households',
 
         'children_count',
         'adult_count',

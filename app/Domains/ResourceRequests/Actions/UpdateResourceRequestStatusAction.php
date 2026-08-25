@@ -11,7 +11,7 @@ class UpdateResourceRequestStatusAction
         private ResourceRequestRepositoryInterface $repository
     ) {}
 
-    public function execute(string $id, string $statusKey, int $handlerUserId): ResourceRequest
+    public function execute(string $id, string $statusKey, string $handlerUserId): ResourceRequest
     {
         return $this->repository->updateStatus($id, $statusKey, $handlerUserId);
     }

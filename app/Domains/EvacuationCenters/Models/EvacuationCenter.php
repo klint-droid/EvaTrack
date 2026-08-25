@@ -6,7 +6,6 @@ use App\Domains\EvacuationEvents\Models\DisasterEvent;
 use App\Domains\AccommodationUnits\Models\AccommodationUnit;
 use App\Domains\Evacuations\Models\EvacuationRecord;
 use App\Domains\Notifications\Models\Notification;
-use App\Domains\Analytics\Models\CenterOccupancy;
 use App\Domains\CenterIssueReports\Models\CenterIssueReport;
 use App\Domains\ResourceRequests\Models\ResourceRequest;
 
@@ -76,10 +75,6 @@ class EvacuationCenter extends Model
         return $this->hasMany(Notification::class, 'evacuation_center_id', 'evacuation_center_id');
     }
 
-    public function centerOccupancy()
-    {
-        return $this->hasOne(CenterOccupancy::class, 'evacuation_center_id', 'evacuation_center_id');
-    }
 
     public function issueReports()
     {

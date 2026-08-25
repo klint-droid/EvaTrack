@@ -129,8 +129,7 @@ class EloquentEvacuationRepository implements EvacuationRepositoryInterface
     {
         return EvacuationRecord::where('household_status_id', HouseholdStatus::EVACUATED)
             ->whereHas('evacuatedMembers', function ($query) use ($memberIds) {
-                $query->whereIn('member_id', $memberIds)
-                      ->where('status', 'Inside Center');
+                $query->whereIn('member_id', $memberIds);
             })
             ->pluck('center_id')
             ->unique()

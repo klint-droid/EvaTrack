@@ -11,3 +11,7 @@ Artisan::command('inspire', function () {
 Schedule::command('app:sync-households')
     ->everyMinute()
     ->withoutOverlapping();
+
+Schedule::command('alerts:process-recurring')
+    ->everyMinute()
+    ->withoutOverlapping();

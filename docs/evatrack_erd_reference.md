@@ -221,14 +221,6 @@ erDiagram
 | `is_pwd` | tinyint(1) | default 0 |
 | `is_senior` | tinyint(1) | default 0 |
 | `is_pregnant` | tinyint(1) | default 0 |
-| `name` | varchar(255) | |
-| `sex` | varchar(1) | |
-| `gender` | varchar(20) | |
-| `age` | int unsigned | |
-| `relation` | varchar(50) | |
-| `civil_status` | varchar(50) | |
-| `special_needs` | varchar(50) | |
-| `education_level` | varchar(100) | |
 | `created_at` | timestamp | |
 | `updated_at` | timestamp | |
 | `deleted_at` | timestamp | soft delete |

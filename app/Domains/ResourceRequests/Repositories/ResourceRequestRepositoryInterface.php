@@ -21,7 +21,7 @@ interface ResourceRequestRepositoryInterface
 
     public function createRequest(array $data): ResourceRequest;
 
-    public function updateStatus(string $id, string $statusKey, int $handlerUserId): ResourceRequest;
+    public function updateStatus(string $id, string $statusKey, string $handlerUserId): ResourceRequest;
 
     public function deleteRequest(ResourceRequest $request): void;
 }

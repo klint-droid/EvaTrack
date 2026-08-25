@@ -116,7 +116,7 @@ class EloquentResourceRequestRepository implements ResourceRequestRepositoryInte
         return $requestRecord->load($this->requestRelations());
     }
 
-    public function updateStatus(string $id, string $statusKey, int $handlerUserId): ResourceRequest
+    public function updateStatus(string $id, string $statusKey, string $handlerUserId): ResourceRequest
     {
         $statusIds = $this->getStatusIds();
         

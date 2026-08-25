@@ -433,7 +433,7 @@ class LiveAnalyticsService
 
                 $members->count(),
 
-            'total_household' =>
+            'total_households' =>
 
                 $members
                     ->pluck(
