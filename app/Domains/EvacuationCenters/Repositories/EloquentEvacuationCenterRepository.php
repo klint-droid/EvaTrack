@@ -45,7 +45,25 @@ class EloquentEvacuationCenterRepository implements EvacuationCenterRepositoryIn
     public function create(array $data): EvacuationCenter
     {
         $this->clearCache();
-        return EvacuationCenter::create($data);
+
+        // If an active disaster event is currently ongoing, automatically attach new center
+        if (empty($data['current_event_id'])) {
+            $activeEvent = \App\Domains\EvacuationEvents\Models\DisasterEvent::whereNull('ended_at')->latest('started_at')->first();
+            if ($activeEvent) {
+                $data['current_event_id'] = $activeEvent->event_id;
+            }
+        }
+
+        $center = EvacuationCenter::create($data);
+
+        if (!empty($data['current_event_id'])) {
+            $event = \App\Domains\EvacuationEvents\Models\DisasterEvent::find($data['current_event_id']);
+            if ($event) {
+                $event->historicalCenters()->syncWithoutDetaching([$center->evacuation_center_id]);
+            }
+        }
+
+        return $center;
     }
 
     public function update(EvacuationCenter $center, array $data): EvacuationCenter
