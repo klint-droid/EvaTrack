@@ -21,6 +21,8 @@ class EloquentHouseholdRepository implements HouseholdRepositoryInterface
         'members.relationship',
         'members.civilStatus',
         'members.vulnerableGroupDetails',
+        'members.evacuatedMembers.evacuationRecord.center',
+        'members.evacuatedMembers.evacuationRecord.event',
         'address',
         'currentEvacuation.center',
         'currentEvacuation.event',
