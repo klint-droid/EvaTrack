@@ -63,10 +63,12 @@ class UserController extends Controller
         });
 
         if ($request->filled('q')) {
-            $q = $request->input('q');
+            $q = trim($request->input('q'));
             $query->where(function($sub) use ($q) {
                 $sub->where('first_name', 'like', "%{$q}%")
                     ->orWhere('last_name', 'like', "%{$q}%")
+                    ->orWhere(DB::raw("CONCAT(first_name, ' ', last_name)"), 'like', "%{$q}%")
+                    ->orWhere('user_id', 'like', "%{$q}%")
                     ->orWhere('contact_number', 'like', "%{$q}%");
             });
         }
