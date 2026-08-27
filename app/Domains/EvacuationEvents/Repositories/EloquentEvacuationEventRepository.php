@@ -6,6 +6,7 @@ use App\Domains\EvacuationEvents\Models\DisasterEvent;
 use App\Domains\EvacuationEvents\DTOs\EventFilterDTO;
 use App\Domains\EvacuationCenters\Models\EvacuationCenter;
 use App\Domains\Evacuations\Models\EvacuationRecord;
+use App\Domains\AccommodationUnits\Models\UnitAllocation;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
