@@ -27,53 +27,76 @@ class VerifyManualEvacuationAction
                 throw new NoCenterAssignedException(
                     'Cannot admit household: This evacuation center is not assigned to an active disaster event.'
                 );
+            }
+
             $household = $this->householdRepository->findWithRelations($dto->householdId);
             $hasRegisteredMembers = $household->members->count() > 0;
 
             if ($hasRegisteredMembers) {
                 // If specific members selected, admit those; if none passed, admit all non-evacuated members
-            $admitMemberIds = !empty($dto->memberIds)
-                ? $dto->memberIds
-                : $household->members->pluck('member_id')->toArray();
+                $admitMemberIds = !empty($dto->memberIds)
+                    ? $dto->memberIds
+                    : $household->members->filter(function ($m) {
+                        return !$m->evacuatedMembers()->whereHas('evacuationRecord', function ($er) {
+                            $er->where('household_status_id', HouseholdStatus::EVACUATED);
+                        })->exists();
+                    })->pluck('member_id')->toArray();
 
-            $registeredMemberCount = count($admitMemberIds);
-            $declaredCount = $dto->memberCount ?: max(1, $household->members->count() ?: 1);
-            $totalEvacuatedCount = max($registeredMemberCount, $declaredCount);
-            
-            $eventId = $this->evacuationRepository->resolveEventId($dto->eventId, $dto->centerId);
+                if (empty($admitMemberIds)) {
+                    throw new HouseholdAlreadyEvacuatedException('All members of this household are already evacuated.');
+                }
 
-            if ($registeredMemberCount > 0) {
                 $evacuatedElsewhere = $this->evacuationRepository->getEvacuatedCenterIdsForMembers($admitMemberIds);
                 if (!empty($evacuatedElsewhere)) {
                     throw new MembersAlreadyEvacuatedException(
                         "Some members are already evacuated in center ID(s): " . implode(', ', $evacuatedElsewhere)
                     );
                 }
+
+                $totalEvacuatedCount = count($admitMemberIds);
+            } else {
+                $admitMemberIds = [];
+                $totalEvacuatedCount = max(1, (int) ($dto->memberCount ?: 1));
             }
 
-            $record = $this->evacuationRepository->createRecord([
-                'household_id'        => $dto->householdId,
-                'center_id'           => $dto->centerId,
-                'user_id'             => $dto->userId,
-                'event_id'            => $eventId,
-                'evacuated_count'     => $totalEvacuatedCount,
-                'verified_at'         => now(),
-                'method'              => 'manual',
-                'household_status_id' => HouseholdStatus::EVACUATED,
-            ]);
+            $eventId = $this->evacuationRepository->resolveEventId($dto->eventId, $dto->centerId);
 
-            if ($registeredMemberCount > 0) {
-                $this->evacuationRepository->createEvacuatedMembers($record, $admitMemberIds);
-            }
+            // Check if there is an existing active record for this household at this center
+            $existingRecord = \App\Domains\Evacuations\Models\EvacuationRecord::where('household_id', $dto->householdId)
+                ->where('center_id', $dto->centerId)
+                ->where('household_status_id', HouseholdStatus::EVACUATED)
+                ->first();
 
-            $remainingCount = $totalEvacuatedCount - $registeredMemberCount;
-            if ($remainingCount > 0) {
-                $this->evacuationRepository->createEvacuatedMembersWithCount($record, $remainingCount);
-            }
+            if ($existingRecord) {
+                if (!empty($admitMemberIds)) {
+                    $this->evacuationRepository->createEvacuatedMembers($existingRecord, $admitMemberIds);
+                } else {
+                    $this->evacuationRepository->createEvacuatedMembersWithCount($existingRecord, $totalEvacuatedCount);
+                }
 
-            $currentCount = (int) ($household->member_count ?: 0);
-            if ($totalEvacuatedCount > $currentCount) {
-                $household->update(['member_count' => $totalEvacuatedCount]);
+                $newTotal = $hasRegisteredMembers
+                    ? $existingRecord->evacuatedMembers()->whereNotNull('member_id')->count()
+                    : ($existingRecord->evacuated_count + $totalEvacuatedCount);
+
+                $existingRecord->update(['evacuated_count' => $newTotal]);
+                $record = $existingRecord;
+            } else {
+                $record = $this->evacuationRepository->createRecord([
+                    'household_id'        => $dto->householdId,
+                    'center_id'           => $dto->centerId,
+                    'user_id'             => $dto->userId,
+                    'event_id'            => $eventId,
+                    'evacuated_count'     => $totalEvacuatedCount,
+                    'verified_at'         => now(),
+                    'method'              => 'manual',
+                    'household_status_id' => HouseholdStatus::EVACUATED,
+                ]);
+
+                if (!empty($admitMemberIds)) {
+                    $this->evacuationRepository->createEvacuatedMembers($record, $admitMemberIds);
+                } else {
+                    $this->evacuationRepository->createEvacuatedMembersWithCount($record, $totalEvacuatedCount);
+                }
             }
 
             return [
