@@ -27,14 +27,11 @@ class VerifyManualEvacuationAction
                 throw new NoCenterAssignedException(
                     'Cannot admit household: This evacuation center is not assigned to an active disaster event.'
                 );
-            }
-
-            if ($this->evacuationRepository->isHouseholdEvacuatedAtCenter($dto->householdId, $dto->centerId)) {
-                throw new HouseholdAlreadyEvacuatedException();
-            }
-
             $household = $this->householdRepository->findWithRelations($dto->householdId);
+            $hasRegisteredMembers = $household->members->count() > 0;
 
+            if ($hasRegisteredMembers) {
+                // If specific members selected, admit those; if none passed, admit all non-evacuated members
             $admitMemberIds = !empty($dto->memberIds)
                 ? $dto->memberIds
                 : $household->members->pluck('member_id')->toArray();
