@@ -7,7 +7,7 @@ use App\Domains\Evacuations\Models\EvacuationRecord;
 use App\Domains\Evacuations\Models\EvacuatedMember;
 use App\Domains\Households\Models\HouseholdStatus;
 use App\Domains\EvacuationCenters\Models\EvacuationCenter;
-use App\Exceptions\NoCenterAssignedException;
+use App\Domains\EvacuationEvents\Models\DisasterEvent;
 use Illuminate\Database\Eloquent\Collection;
 
 class EloquentEvacuationRepository implements EvacuationRepositoryInterface
@@ -136,20 +136,26 @@ class EloquentEvacuationRepository implements EvacuationRepositoryInterface
             ->toArray();
     }
 
-    public function resolveEventId(?string $eventId, string $centerId): string
+    public function resolveEventId(?string $eventId, string $centerId): ?string
     {
-        $center = EvacuationCenter::where('evacuation_center_id', $centerId)->firstOrFail();
-
-        if (!$center->current_event_id) {
-            throw new NoCenterAssignedException(
-                'Cannot admit household: This evacuation center is not assigned to an active disaster event.'
-            );
-        }
-
         if ($eventId) {
             return (string) $eventId;
         }
 
-        return (string) $center->current_event_id;
+        $center = EvacuationCenter::where('evacuation_center_id', $centerId)->first();
+
+        if ($center && $center->current_event_id) {
+            return (string) $center->current_event_id;
+        }
+
+        $activeEvent = DisasterEvent::whereNull('ended_at')->latest()->first();
+        if ($activeEvent) {
+            if ($center && !$center->current_event_id) {
+                $center->update(['current_event_id' => $activeEvent->event_id]);
+            }
+            return (string) $activeEvent->event_id;
+        }
+
+        return null;
     }
 }

@@ -12,7 +12,7 @@ class CreateResourceRequestAction
         private ResourceRequestRepositoryInterface $repository
     ) {}
 
-    public function execute(ResourceRequestDTO $dto, int $requesterUserId, ?int $enforcedCenterId = null): ResourceRequest
+    public function execute(ResourceRequestDTO $dto, string $requesterUserId, ?int $enforcedCenterId = null): ResourceRequest
     {
         $data = $dto->toArray();
         $data['requested_by'] = $requesterUserId;

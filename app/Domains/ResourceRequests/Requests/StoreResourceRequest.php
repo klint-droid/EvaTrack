@@ -13,6 +13,15 @@ class StoreResourceRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation()
+    {
+        if (!$this->urgency_id) {
+            $defaultUrgency = UrgencyLevel::where('urgency_key', 'medium')->value('urgency_id') 
+                ?? UrgencyLevel::first()?->urgency_id ?? 1;
+            $this->merge(['urgency_id' => $defaultUrgency]);
+        }
+    }
+
     public function rules(): array
     {
         return [

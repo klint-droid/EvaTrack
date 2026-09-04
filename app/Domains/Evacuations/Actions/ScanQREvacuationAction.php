@@ -8,8 +8,6 @@ use App\Domains\Households\Repositories\HouseholdRepositoryInterface;
 use App\Domains\Households\Models\HouseholdStatus;
 use App\Exceptions\HouseholdAlreadyEvacuatedException;
 use App\Exceptions\MembersAlreadyEvacuatedException;
-use App\Exceptions\NoCenterAssignedException;
-use App\Domains\EvacuationCenters\Models\EvacuationCenter;
 use Illuminate\Support\Facades\DB;
 
 class ScanQREvacuationAction
@@ -22,13 +20,6 @@ class ScanQREvacuationAction
     public function execute(AdmissionDTO $dto): array
     {
         return DB::connection('mysql_v2')->transaction(function () use ($dto) {
-            $center = EvacuationCenter::where('evacuation_center_id', $dto->centerId)->firstOrFail();
-            if (!$center->current_event_id) {
-                throw new NoCenterAssignedException(
-                    'Cannot admit household: This evacuation center is not assigned to an active disaster event.'
-                );
-            }
-
             $household = $this->householdRepository->findWithRelations($dto->householdId);
 
             if ($household->members->count() < 1) {

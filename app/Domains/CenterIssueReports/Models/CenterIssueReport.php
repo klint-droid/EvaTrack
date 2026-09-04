@@ -32,7 +32,19 @@ class CenterIssueReport extends Model
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'reported_by' => 'string',
+        'handled_by'  => 'string',
     ];
+
+    protected $appends = ['attachment_url'];
+
+    public function getAttachmentUrlAttribute(): ?string
+    {
+        if (!empty($this->attachment_path)) {
+            return asset('storage/' . $this->attachment_path);
+        }
+        return null;
+    }
 
     protected static function boot()
     {

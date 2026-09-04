@@ -22,5 +22,5 @@ interface EvacuationRepositoryInterface
     public function isHouseholdEvacuatedAtCenter(string $householdId, string $centerId): bool;
     public function getEvacuatedCenterIdsForMembers(array $memberIds): array;
     
-    public function resolveEventId(?string $eventId, string $centerId): string;
+    public function resolveEventId(?string $eventId, string $centerId): ?string;
 }

@@ -39,7 +39,7 @@ class ResourceRequestController extends BaseApiController
         $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
         
         $user = Auth::user();
-        $enforcedCenterId = $user->isEvacPersonnel() ? $user->assigned_center_id : null;
+        $enforcedCenterId = ($user->isEvacPersonnel() && $user->assigned_center_id !== null) ? (int) $user->assigned_center_id : null;
         
         $filter = ResourceRequestFilterDTO::fromRequest($request);
 
@@ -76,11 +76,11 @@ class ResourceRequestController extends BaseApiController
         $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
 
         $user = Auth::user();
-        $enforcedCenterId = $user->isEvacPersonnel() ? $user->assigned_center_id : null;
+        $enforcedCenterId = ($user->isEvacPersonnel() && $user->assigned_center_id !== null) ? (int) $user->assigned_center_id : null;
 
         $dto = ResourceRequestDTO::fromRequest($request);
 
-        $requestRecord = $action->execute($dto, $user->user_id, $enforcedCenterId);
+        $requestRecord = $action->execute($dto, (string) $user->user_id, $enforcedCenterId);
 
         return response()->json([
             'message' => 'Resource request submitted successfully.',
@@ -104,7 +104,7 @@ class ResourceRequestController extends BaseApiController
         $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
 
         $user = Auth::user();
-        $enforcedCenterId = $user->isEvacPersonnel() ? $user->assigned_center_id : null;
+        $enforcedCenterId = ($user->isEvacPersonnel() && $user->assigned_center_id !== null) ? (int) $user->assigned_center_id : null;
 
         $requestRecord = $action->execute($id, $enforcedCenterId);
 
@@ -174,7 +174,7 @@ class ResourceRequestController extends BaseApiController
         $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
         
         $user = Auth::user();
-        $enforcedCenterId = $user->isEvacPersonnel() ? $user->assigned_center_id : null;
+        $enforcedCenterId = ($user->isEvacPersonnel() && $user->assigned_center_id !== null) ? (int) $user->assigned_center_id : null;
 
         try {
             $action->execute($id, $user, $enforcedCenterId);

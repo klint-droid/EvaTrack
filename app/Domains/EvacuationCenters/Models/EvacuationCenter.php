@@ -10,10 +10,13 @@ use App\Domains\CenterIssueReports\Models\CenterIssueReport;
 use App\Domains\ResourceRequests\Models\ResourceRequest;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class EvacuationCenter extends Model
 {
+    use SoftDeletes;
+
     protected $connection = 'mysql_v2';
 
     protected $primaryKey = 'evacuation_center_id';

@@ -17,16 +17,22 @@ class UserController extends Controller
      */
     private function formatUser($user)
     {
+        // Use getRawOriginal to read the actual DB value before any cast is applied.
+        // The 'integer' cast on assigned_center_id turns null → 0 in PHP ((int)null = 0),
+        // which would make every unassigned user appear as center "0" on the frontend.
+        $rawCenterId = $user->getRawOriginal('assigned_center_id');
+
         return [
-            'user_id' => $user->user_id,
-            'first_name' => $user->first_name,
-            'last_name' => $user->last_name,
-            'name' => $user->name,
-            'role' => $user->role?->role_key,
-            'role_label' => $user->role?->role_name,
-            'assigned_center_id' => $user->assigned_center_id,
-            'contact_number' => $user->contact_number,
-            'profile_photo_url' => $user->profile_photo_url,
+            'user_id'            => $user->user_id,
+            'first_name'         => $user->first_name,
+            'last_name'          => $user->last_name,
+            'name'               => $user->name,
+            'email'              => $user->email,
+            'role'               => $user->role?->role_key,
+            'role_label'         => $user->role?->role_name,
+            'assigned_center_id' => $rawCenterId !== null ? (string) $rawCenterId : null,
+            'contact_number'     => $user->contact_number,
+            'profile_photo_url'  => $user->profile_photo_url,
         ];
     }
 

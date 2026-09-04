@@ -9,8 +9,6 @@ use App\Domains\Households\Repositories\HouseholdRepositoryInterface;
 use App\Domains\Households\Models\Household;
 use App\Exceptions\HouseholdAlreadyEvacuatedException;
 use App\Exceptions\MembersAlreadyEvacuatedException;
-use App\Exceptions\NoCenterAssignedException;
-use App\Domains\EvacuationCenters\Models\EvacuationCenter;
 use Illuminate\Support\Facades\DB;
 use Mockery;
 use Tests\TestCase;
@@ -23,7 +21,7 @@ class ScanQREvacuationActionTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_it_throws_exception_if_center_has_no_active_event()
+    public function test_it_throws_exception_if_household_has_no_members()
     {
         $evacRepo = Mockery::mock(EvacuationRepositoryInterface::class);
         $houseRepo = Mockery::mock(HouseholdRepositoryInterface::class);
@@ -31,23 +29,21 @@ class ScanQREvacuationActionTest extends TestCase
         DB::shouldReceive('connection')->with('mysql_v2')->andReturnSelf();
         DB::shouldReceive('transaction')->andReturnUsing(fn($cb) => $cb());
 
-        $centerMock = Mockery::mock('overload:' . EvacuationCenter::class);
-        $centerMock->shouldReceive('where')->with('evacuation_center_id', 1)->andReturnSelf();
-
-        $centerInstance = new EvacuationCenter();
-        $centerInstance->current_event_id = null;
-        $centerMock->shouldReceive('firstOrFail')->andReturn($centerInstance);
-
         $dto = new AdmissionDTO(
             householdId: 'HH-123',
             centerId: 1,
             userId: 99
         );
 
+        $householdMock = Mockery::mock(Household::class);
+        $householdMock->shouldReceive('getAttribute')->with('members')->andReturn(collect([]));
+
+        $houseRepo->shouldReceive('findWithRelations')->with('HH-123')->andReturn($householdMock);
+
         $action = new ScanQREvacuationAction($evacRepo, $houseRepo);
 
-        $this->expectException(NoCenterAssignedException::class);
-        $this->expectExceptionMessage('Cannot admit household: This evacuation center is not assigned to an active disaster event.');
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('This household has no registered members.');
 
         $action->execute($dto);
     }
@@ -60,31 +56,33 @@ class ScanQREvacuationActionTest extends TestCase
         DB::shouldReceive('connection')->with('mysql_v2')->andReturnSelf();
         DB::shouldReceive('transaction')->andReturnUsing(fn($cb) => $cb());
 
-        $centerMock = Mockery::mock('overload:' . EvacuationCenter::class);
-        $centerMock->shouldReceive('where')->with('evacuation_center_id', 1)->andReturnSelf();
-
-        $centerInstance = new EvacuationCenter();
-        $centerInstance->current_event_id = '10';
-        $centerMock->shouldReceive('firstOrFail')->andReturn($centerInstance);
-
         $dto = new AdmissionDTO(
             householdId: 'HH-123',
             centerId: 1,
-            userId: 99
+            userId: 99,
+            memberIds: []
         );
 
-        $evacRepo->shouldReceive('isHouseholdEvacuatedAtCenter')
-            ->with('HH-123', 1)
-            ->once()
-            ->andReturn(true);
+        $memberMock = Mockery::mock();
+        $relationMock = Mockery::mock();
+        $relationMock->shouldReceive('whereHas')->andReturnSelf();
+        $relationMock->shouldReceive('exists')->andReturn(true); // already evacuated
+        $memberMock->shouldReceive('evacuatedMembers')->andReturn($relationMock);
+
+        $householdMock = Mockery::mock(Household::class);
+        $householdMock->shouldReceive('getAttribute')->with('members')->andReturn(collect([$memberMock]));
+
+        $houseRepo->shouldReceive('findWithRelations')->with('HH-123')->andReturn($householdMock);
 
         $action = new ScanQREvacuationAction($evacRepo, $houseRepo);
 
         $this->expectException(HouseholdAlreadyEvacuatedException::class);
+        $this->expectExceptionMessage('All members of this household are already evacuated.');
+
         $action->execute($dto);
     }
 
-    public function test_it_throws_exception_if_household_has_no_members()
+    public function test_it_throws_exception_if_members_evacuated_elsewhere()
     {
         $evacRepo = Mockery::mock(EvacuationRepositoryInterface::class);
         $houseRepo = Mockery::mock(HouseholdRepositoryInterface::class);
@@ -92,31 +90,28 @@ class ScanQREvacuationActionTest extends TestCase
         DB::shouldReceive('connection')->with('mysql_v2')->andReturnSelf();
         DB::shouldReceive('transaction')->andReturnUsing(fn($cb) => $cb());
 
-        $centerMock = Mockery::mock('overload:' . EvacuationCenter::class);
-        $centerMock->shouldReceive('where')->with('evacuation_center_id', 1)->andReturnSelf();
-
-        $centerInstance = new EvacuationCenter();
-        $centerInstance->current_event_id = '10';
-        $centerMock->shouldReceive('firstOrFail')->andReturn($centerInstance);
-
         $dto = new AdmissionDTO(
             householdId: 'HH-123',
             centerId: 1,
-            userId: 99
+            userId: 99,
+            memberIds: ['M-1']
         );
 
-        $evacRepo->shouldReceive('isHouseholdEvacuatedAtCenter')->andReturn(false);
-        
         $householdMock = Mockery::mock(Household::class);
-        $householdMock->shouldReceive('getAttribute')->with('members')->andReturn(collect([]));
+        $householdMock->shouldReceive('getAttribute')->with('members')->andReturn(collect([
+            (object)['member_id' => 'M-1']
+        ]));
 
         $houseRepo->shouldReceive('findWithRelations')->with('HH-123')->andReturn($householdMock);
 
+        $evacRepo->shouldReceive('getEvacuatedCenterIdsForMembers')
+            ->with(['M-1'])
+            ->andReturn([2]);
+
         $action = new ScanQREvacuationAction($evacRepo, $houseRepo);
 
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('This household has no registered members.');
-        
+        $this->expectException(MembersAlreadyEvacuatedException::class);
+
         $action->execute($dto);
     }
 
@@ -128,22 +123,14 @@ class ScanQREvacuationActionTest extends TestCase
         DB::shouldReceive('connection')->with('mysql_v2')->andReturnSelf();
         DB::shouldReceive('transaction')->andReturnUsing(fn($cb) => $cb());
 
-        $centerMock = Mockery::mock('overload:' . EvacuationCenter::class);
-        $centerMock->shouldReceive('where')->with('evacuation_center_id', 1)->andReturnSelf();
-
-        $centerInstance = new EvacuationCenter();
-        $centerInstance->current_event_id = '10';
-        $centerMock->shouldReceive('firstOrFail')->andReturn($centerInstance);
-
         $dto = new AdmissionDTO(
             householdId: 'HH-123',
             centerId: 1,
             userId: 99,
-            method: 'qr'
+            method: 'qr',
+            memberIds: ['M-1', 'M-2']
         );
 
-        $evacRepo->shouldReceive('isHouseholdEvacuatedAtCenter')->andReturn(false);
-        
         $householdMock = Mockery::mock(Household::class);
         $householdMock->shouldReceive('getAttribute')->with('members')->andReturn(collect([
             (object)['member_id' => 'M-1'],
@@ -152,7 +139,7 @@ class ScanQREvacuationActionTest extends TestCase
         $houseRepo->shouldReceive('findWithRelations')->with('HH-123')->andReturn($householdMock);
 
         $evacRepo->shouldReceive('getEvacuatedCenterIdsForMembers')->andReturn([]);
-        $evacRepo->shouldReceive('resolveEventId')->andReturn(10);
+        $evacRepo->shouldReceive('resolveEventId')->andReturn('10');
 
         $mockRecord = new \App\Domains\Evacuations\Models\EvacuationRecord();
         $mockRecord->evacuation_id = 123;

@@ -68,10 +68,12 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'is_active'  => 'boolean',
-            'created_at' => 'datetime',
-            'deleted_at' => 'datetime',
-            'password'   => 'hashed',
+            'is_active'          => 'boolean',
+            'created_at'         => 'datetime',
+            'deleted_at'         => 'datetime',
+            'password'           => 'hashed',
+            'assigned_center_id' => 'integer',
+            'role_id'            => 'integer',
         ];
     }
 

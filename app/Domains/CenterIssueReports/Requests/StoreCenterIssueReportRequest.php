@@ -11,6 +11,13 @@ class StoreCenterIssueReportRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation()
+    {
+        if (!$this->severity) {
+            $this->merge(['severity' => 'medium']);
+        }
+    }
+
     public function rules(): array
     {
         return [
