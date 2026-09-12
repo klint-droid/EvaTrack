@@ -17,6 +17,8 @@ use App\Domains\ResourceRequests\Repositories\ResourceRequestRepositoryInterface
 use App\Domains\ResourceRequests\Repositories\EloquentResourceRequestRepository;
 use App\Domains\CenterIssueReports\Repositories\CenterIssueReportRepositoryInterface;
 use App\Domains\CenterIssueReports\Repositories\EloquentCenterIssueReportRepository;
+use App\Domains\Authentication\Repositories\UserRepositoryInterface;
+use App\Domains\Authentication\Repositories\EloquentUserRepository;
 
 class RepositoryServiceProvider extends ServiceProvider
 {
@@ -32,6 +34,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(AccommodationUnitRepositoryInterface::class, EloquentAccommodationUnitRepository::class);
         $this->app->bind(ResourceRequestRepositoryInterface::class, EloquentResourceRequestRepository::class);
         $this->app->bind(CenterIssueReportRepositoryInterface::class, EloquentCenterIssueReportRepository::class);
+        $this->app->bind(UserRepositoryInterface::class, EloquentUserRepository::class);
     }
 
     /**

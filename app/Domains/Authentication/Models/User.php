@@ -72,7 +72,7 @@ class User extends Authenticatable
             'created_at'         => 'datetime',
             'deleted_at'         => 'datetime',
             'password'           => 'hashed',
-            'assigned_center_id' => 'integer',
+            'assigned_center_id' => 'string',
             'role_id'            => 'integer',
         ];
     }

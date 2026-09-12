@@ -41,7 +41,7 @@ class ResourceRequest extends Model
         static::creating(function ($model) {
             if (!$model->request_id) {
                 do {
-                    $id = 'RR-' . date('Y') . '-' . strtoupper(Str::random(6));
+                    $id = 'REQ-' . date('Y') . '-' . strtoupper(Str::random(6));
                 } while (self::where('request_id', $id)->exists());
 
                 $model->request_id = $id;

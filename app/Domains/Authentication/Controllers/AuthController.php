@@ -2,6 +2,7 @@
 
 namespace App\Domains\Authentication\Controllers;
 
+use App\Domains\Authentication\Resources\UserResource;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,7 +21,7 @@ class AuthController extends Controller
     public function currentUser(Request $request)
     {
         return response()->json(
-            $request->user()->load(['role', 'assignedCenter'])
+            new UserResource($request->user()->load(['role', 'assignedCenter']))
         );
     }
 
@@ -65,16 +66,7 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $token,
-            'user' => [
-                'user_id' => $user->user_id,
-                'name' => $user->name,
-                'role' => $user->role->role_key,
-                'role_label' => $user->role->role_name,
-                'assigned_center' => $user->assignedCenter ? [
-                    'id' => $user->assignedCenter->evacuation_center_id,
-                    'name' => $user->assignedCenter->name,
-                ] : null,
-            ]
+            'user'  => new UserResource($user->load(['role', 'assignedCenter'])),
         ]);
     }
 

@@ -15,9 +15,9 @@ interface ResourceRequestRepositoryInterface
      * @param int|null $enforcedCenterId If set, scopes the query to this center.
      * @return array ['data' => Collection, 'summary' => array]
      */
-    public function getFilteredRequests(ResourceRequestFilterDTO $filter, ?int $enforcedCenterId = null): array;
+    public function getFilteredRequests(ResourceRequestFilterDTO $filter, ?string $enforcedCenterId = null): array;
 
-    public function getRequestById(string $id, ?int $enforcedCenterId = null): ?ResourceRequest;
+    public function getRequestById(string $id, ?string $enforcedCenterId = null): ?ResourceRequest;
 
     public function createRequest(array $data): ResourceRequest;
 
