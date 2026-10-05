@@ -141,7 +141,7 @@ class EloquentCenterIssueReportRepository implements CenterIssueReportRepository
         return $report->fresh($this->reportRelations());
     }
 
-    public function updateStatus(CenterIssueReport $report, string $statusKey, int $handlerUserId): CenterIssueReport
+    public function updateStatus(CenterIssueReport $report, string $statusKey, int|string $handlerUserId): CenterIssueReport
     {
         $statusId = CenterIssueReportStatus::where('status_key', $statusKey)->value('status_id');
         

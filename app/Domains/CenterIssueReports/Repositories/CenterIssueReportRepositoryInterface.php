@@ -23,7 +23,7 @@ interface CenterIssueReportRepositoryInterface
 
     public function updateReport(CenterIssueReport $report, array $data): CenterIssueReport;
 
-    public function updateStatus(CenterIssueReport $report, string $statusKey, int $handlerUserId): CenterIssueReport;
+    public function updateStatus(CenterIssueReport $report, string $statusKey, int|string $handlerUserId): CenterIssueReport;
 
     public function deleteReport(CenterIssueReport $report): void;
 }

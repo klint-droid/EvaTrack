@@ -47,10 +47,11 @@ class HouseholdController extends BaseApiController
     public function search(Request $request, \App\Domains\Households\Actions\SearchHouseholdsAction $action)
     {
         $query = $request->query('q', '');
+        $type = $request->query('type', 'household');
         if (empty($query)) {
             return response()->json(['data' => []]);
         }
-        return response()->json(['data' => $action->execute($query)]);
+        return response()->json(['data' => $action->execute($query, $type)]);
     }
 
     #[OA\Get(

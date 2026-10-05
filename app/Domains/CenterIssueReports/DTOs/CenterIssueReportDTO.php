@@ -7,7 +7,7 @@ use Illuminate\Foundation\Http\FormRequest;
 class CenterIssueReportDTO
 {
     public function __construct(
-        public readonly ?int $evacuationCenterId,
+        public readonly int|string|null $evacuationCenterId,
         public readonly ?string $category,
         public readonly ?string $title,
         public readonly ?string $description,
@@ -17,7 +17,7 @@ class CenterIssueReportDTO
     public static function fromRequest(FormRequest $request): self
     {
         return new self(
-            evacuationCenterId: $request->has('evacuation_center_id') ? (int) $request->input('evacuation_center_id') : null,
+            evacuationCenterId: $request->input('evacuation_center_id'),
             category:           $request->input('category'),
             title:              $request->input('title'),
             description:        $request->input('description'),

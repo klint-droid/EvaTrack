@@ -59,7 +59,22 @@ class UpdateEvacuatedMemberStatusAction
 
             // Recalculate count of evacuated members
             $newCount = EvacuatedMember::where('evacuation_id', $evacuationId)->count();
-            $evacRecord->update(['evacuated_count' => $newCount]);
+
+            if ($newCount === 0) {
+                // All members checked out: mark evacuation record as checked out
+                $evacRecord->update([
+                    'evacuated_count'     => 0,
+                    'household_status_id' => \App\Domains\Households\Models\HouseholdStatus::CHECKED_OUT,
+                ]);
+
+                // Free up any accommodation unit allocated to this evacuation
+                \App\Domains\AccommodationUnits\Models\UnitAllocation::where('evacuation_id', $evacuationId)->delete();
+            } else {
+                $evacRecord->update([
+                    'evacuated_count'     => $newCount,
+                    'household_status_id' => \App\Domains\Households\Models\HouseholdStatus::EVACUATED,
+                ]);
+            }
 
             return $evacMember;
         });

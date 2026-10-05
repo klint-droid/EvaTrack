@@ -31,7 +31,7 @@ class EloquentResourceRequestRepository implements ResourceRequestRepositoryInte
         ];
     }
 
-    public function getFilteredRequests(ResourceRequestFilterDTO $filter, ?string $enforcedCenterId = null): array
+    public function getFilteredRequests(ResourceRequestFilterDTO $filter, int|string|null $enforcedCenterId = null): array
     {
         $statusIds = $this->getStatusIds();
         $urgencyLevelIds = $this->getUrgencyLevelIds();
@@ -97,7 +97,7 @@ class EloquentResourceRequestRepository implements ResourceRequestRepositoryInte
         ];
     }
 
-    public function getRequestById(string $id, ?string $enforcedCenterId = null): ?ResourceRequest
+    public function getRequestById(string $id, int|string|null $enforcedCenterId = null): ?ResourceRequest
     {
         $query = ResourceRequest::with($this->requestRelations())->where('request_id', $id);
 

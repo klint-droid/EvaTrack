@@ -12,17 +12,17 @@ class SearchHouseholdsAction
         private HouseholdRepositoryInterface $repository
     ) {}
 
-    public function execute(string $query): mixed
+    public function execute(string $query, string $type = 'household'): mixed
     {
         $cleanQuery = trim($query);
-        if (mb_strlen($cleanQuery) < 2) {
+        if (mb_strlen($cleanQuery) < 1) {
             return [];
         }
 
         $tokens = array_values(array_filter(explode(' ', $cleanQuery)));
         $isIdPattern = preg_match('/[0-9\-]/', $cleanQuery) || preg_match('/^(mamb|nhh|hh)/i', $cleanQuery);
 
-        return Household::with([
+        $builder = Household::with([
             'address',
             'members',
             'members.gender',
@@ -39,65 +39,92 @@ class SearchHouseholdsAction
             'currentEvacuations.event',
             'currentEvacuations.unitAllocation.unit',
             'currentEvacuations.evacuatedMembers',
+            'latestEvacuation.center',
+            'latestEvacuation.event',
         ])
-        ->withCount('members')
-        ->where(function ($builder) use ($cleanQuery, $tokens, $isIdPattern) {
-            // Household Name (prefix or word-start)
-            $builder->where('household_name', 'LIKE', "{$cleanQuery}%")
-                ->orWhere('household_name', 'LIKE', "% {$cleanQuery}%");
+        ->withCount('members');
 
-            if (mb_strlen($cleanQuery) >= 3) {
-                $builder->orWhere('household_name', 'LIKE', "%{$cleanQuery}%");
-            }
+        if ($type === 'member') {
+            // Strictly search individual household member names
+            $builder->whereHas('members', function ($q) use ($cleanQuery, $tokens) {
+                $q->where(function ($sub) use ($cleanQuery, $tokens) {
+                    $sub->where('first_name', 'LIKE', "{$cleanQuery}%")
+                        ->orWhere('last_name', 'LIKE', "{$cleanQuery}%")
+                        ->orWhere('first_name', 'LIKE', "% {$cleanQuery}%")
+                        ->orWhere('last_name', 'LIKE', "% {$cleanQuery}%")
+                        ->orWhere(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "{$cleanQuery}%")
+                        ->orWhere(DB::raw("CONCAT(last_name, ' ', first_name)"), 'LIKE', "{$cleanQuery}%")
+                        ->orWhere(DB::raw("CONCAT_WS(' ', first_name, middle_name, last_name)"), 'LIKE', "%{$cleanQuery}%");
 
-            // Household ID only if query looks like an ID / code (prevents 'a' from matching 'MAMB-')
-            if ($isIdPattern) {
-                $builder->orWhere('household_id', 'LIKE', "{$cleanQuery}%")
-                    ->orWhere('household_id', 'LIKE', "%{$cleanQuery}%");
-            }
+                    if (mb_strlen($cleanQuery) >= 3) {
+                        $sub->orWhere('first_name', 'LIKE', "%{$cleanQuery}%")
+                            ->orWhere('last_name', 'LIKE', "%{$cleanQuery}%")
+                            ->orWhere(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "%{$cleanQuery}%");
+                    }
 
-            // Contact Number prefix
-            $builder->orWhere('contact_number', 'LIKE', "{$cleanQuery}%");
-
-            // Member Names (word start or full concat)
-            $builder->orWhereHas('members', function ($q) use ($cleanQuery) {
-                $q->where('first_name', 'LIKE', "{$cleanQuery}%")
-                  ->orWhere('last_name', 'LIKE', "{$cleanQuery}%")
-                  ->orWhere('first_name', 'LIKE', "% {$cleanQuery}%")
-                  ->orWhere('last_name', 'LIKE', "% {$cleanQuery}%")
-                  ->orWhere(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "{$cleanQuery}%")
-                  ->orWhere(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "% {$cleanQuery}%")
-                  ->orWhere(DB::raw("CONCAT(last_name, ' ', first_name)"), 'LIKE', "{$cleanQuery}%")
-                  ->orWhere(DB::raw("CONCAT_WS(' ', first_name, middle_name, last_name)"), 'LIKE', "{$cleanQuery}%");
-
-                if (mb_strlen($cleanQuery) >= 3) {
-                    $q->orWhere('first_name', 'LIKE', "%{$cleanQuery}%")
-                      ->orWhere('last_name', 'LIKE', "%{$cleanQuery}%")
-                      ->orWhere(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "%{$cleanQuery}%");
-                }
-            });
-
-            // Multi-token exact match
-            if (count($tokens) > 1) {
-                $builder->orWhere(function ($subBuilder) use ($tokens) {
-                    foreach ($tokens as $token) {
-                        $subBuilder->where(function ($tokenBuilder) use ($token) {
-                            $tokenBuilder->where('household_name', 'LIKE', "{$token}%")
-                                ->orWhere('household_name', 'LIKE', "% {$token}%")
-                                ->orWhere('contact_number', 'LIKE', "{$token}%")
-                                ->orWhereHas('members', function ($q) use ($token) {
-                                    $q->where('first_name', 'LIKE', "{$token}%")
-                                      ->orWhere('last_name', 'LIKE', "{$token}%")
-                                      ->orWhere('middle_name', 'LIKE', "{$token}%")
-                                      ->orWhere('first_name', 'LIKE', "% {$token}%")
-                                      ->orWhere('last_name', 'LIKE', "% {$token}%");
-                                });
-                        });
+                    if (count($tokens) > 1) {
+                        foreach ($tokens as $token) {
+                            $sub->orWhere('first_name', 'LIKE', "{$token}%")
+                                ->orWhere('last_name', 'LIKE', "{$token}%");
+                        }
                     }
                 });
-            }
-        })
-        ->limit(15)
-        ->get();
+            });
+        } elseif ($type === 'all') {
+            // Both household and member search with household name prioritization
+            $builder->where(function ($b) use ($cleanQuery, $tokens, $isIdPattern) {
+                $b->where('household_name', 'LIKE', "{$cleanQuery}%")
+                    ->orWhere('household_name', 'LIKE', "% {$cleanQuery}%");
+
+                if (mb_strlen($cleanQuery) >= 3) {
+                    $b->orWhere('household_name', 'LIKE', "%{$cleanQuery}%");
+                }
+
+                if ($isIdPattern) {
+                    $b->orWhere('household_id', 'LIKE', "{$cleanQuery}%")
+                        ->orWhere('household_id', 'LIKE', "%{$cleanQuery}%");
+                }
+
+                $b->orWhere('contact_number', 'LIKE', "{$cleanQuery}%");
+
+                $b->orWhereHas('members', function ($q) use ($cleanQuery) {
+                    $q->where('first_name', 'LIKE', "{$cleanQuery}%")
+                      ->orWhere('last_name', 'LIKE', "{$cleanQuery}%")
+                      ->orWhere(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "{$cleanQuery}%")
+                      ->orWhere(DB::raw("CONCAT(last_name, ' ', first_name)"), 'LIKE', "{$cleanQuery}%");
+                });
+            })
+            ->orderByRaw("CASE WHEN household_name LIKE '{$cleanQuery}%' THEN 1 WHEN household_name LIKE '%{$cleanQuery}%' THEN 2 ELSE 3 END");
+        } else {
+            // Default: 'household' -> ONLY search Household Name, Household ID, Contact Number, and Head of Household
+            $builder->where(function ($b) use ($cleanQuery, $tokens, $isIdPattern) {
+                $b->where('household_name', 'LIKE', "{$cleanQuery}%")
+                    ->orWhere('household_name', 'LIKE', "% {$cleanQuery}%");
+
+                if (mb_strlen($cleanQuery) >= 3) {
+                    $b->orWhere('household_name', 'LIKE', "%{$cleanQuery}%");
+                }
+
+                if ($isIdPattern) {
+                    $b->orWhere('household_id', 'LIKE', "{$cleanQuery}%")
+                        ->orWhere('household_id', 'LIKE', "%{$cleanQuery}%");
+                }
+
+                $b->orWhere('contact_number', 'LIKE', "{$cleanQuery}%");
+
+                // Also match head of household if registered as head
+                $b->orWhereHas('members', function ($q) use ($cleanQuery) {
+                    $q->where('is_household_head', 1)
+                      ->where(function ($headQ) use ($cleanQuery) {
+                          $headQ->where('first_name', 'LIKE', "{$cleanQuery}%")
+                                ->orWhere('last_name', 'LIKE', "{$cleanQuery}%")
+                                ->orWhere(DB::raw("CONCAT(first_name, ' ', last_name)"), 'LIKE', "{$cleanQuery}%");
+                      });
+                });
+            })
+            ->orderByRaw("CASE WHEN household_name LIKE '{$cleanQuery}%' THEN 1 WHEN household_name LIKE '%{$cleanQuery}%' THEN 2 ELSE 3 END");
+        }
+
+        return $builder->limit(20)->get();
     }
 }

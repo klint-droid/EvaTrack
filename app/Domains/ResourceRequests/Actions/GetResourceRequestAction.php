@@ -11,7 +11,7 @@ class GetResourceRequestAction
         private ResourceRequestRepositoryInterface $repository
     ) {}
 
-    public function execute(string $id, ?int $enforcedCenterId = null): ?ResourceRequest
+    public function execute(string $id, int|string|null $enforcedCenterId = null): ?ResourceRequest
     {
         return $this->repository->getRequestById($id, $enforcedCenterId);
     }

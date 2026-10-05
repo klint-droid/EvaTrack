@@ -1,24 +1,3 @@
 <?php
 // Scratch file cleaned
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

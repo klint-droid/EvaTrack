@@ -33,6 +33,8 @@ class EloquentHouseholdRepository implements HouseholdRepositoryInterface
         'currentEvacuations.event',
         'currentEvacuations.unitAllocation.unit.type',
         'currentEvacuations.evacuatedMembers',
+        'latestEvacuation.center',
+        'latestEvacuation.event',
     ];
 
     public function findWithRelations(string $id): Household
@@ -49,6 +51,8 @@ class EloquentHouseholdRepository implements HouseholdRepositoryInterface
             'currentEvacuation.center',
             'currentEvacuation.event',
             'currentEvacuation.unitAllocation.unit',
+            'latestEvacuation.center',
+            'latestEvacuation.event',
         ]);
 
         $targetCenterId = $filters->centerId ?? ($assignedCenterId && $filters->status === 'evacuated' ? $assignedCenterId : null);

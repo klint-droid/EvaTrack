@@ -13,7 +13,7 @@ class DeleteResourceRequestAction
         private ResourceRequestRepositoryInterface $repository
     ) {}
 
-    public function execute(string $id, User $user, ?int $enforcedCenterId = null): void
+    public function execute(string $id, User $user, int|string|null $enforcedCenterId = null): void
     {
         $request = $this->repository->getRequestById($id, $enforcedCenterId);
         

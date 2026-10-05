@@ -12,7 +12,7 @@ class UpdateCenterIssueReportStatusAction
         private CenterIssueReportRepositoryInterface $repository
     ) {}
 
-    public function execute(string $id, string $statusKey, int $handlerUserId): CenterIssueReport
+    public function execute(string $id, string $statusKey, int|string $handlerUserId): CenterIssueReport
     {
         $report = $this->repository->getReportById($id);
         

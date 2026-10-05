@@ -99,6 +99,14 @@ class Household extends Model
     }
 
     /**
+     * The most recent evacuation record (active or checked out) for history tracking.
+     */
+    public function latestEvacuation(){
+        return $this->hasOne(EvacuationRecord::class, 'household_id')
+            ->latestOfMany('verified_at');
+    }
+
+    /**
      * All active evacuation records across ALL centers for this household.
      * Supports scattered families where members are split across multiple centers.
      */

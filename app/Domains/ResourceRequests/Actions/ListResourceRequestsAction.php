@@ -11,7 +11,7 @@ class ListResourceRequestsAction
         private ResourceRequestRepositoryInterface $repository
     ) {}
 
-    public function execute(ResourceRequestFilterDTO $filter, ?int $enforcedCenterId = null): array
+    public function execute(ResourceRequestFilterDTO $filter, int|string|null $enforcedCenterId = null): array
     {
         return $this->repository->getFilteredRequests($filter, $enforcedCenterId);
     }
