@@ -250,3 +250,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/analytics/export/issues', [AnalyticsExportController::class, 'centerIssues']);
     Route::get('/analytics/export/daily-intake', [AnalyticsExportController::class, 'dailyIntake']);
 });
+
+use App\Http\Controllers\API\External\ExternalReportController;
+
+Route::prefix('v1/external')->group(function () {
+    
+    // 1. Generate Report Endpoint (Protected by API Key + Rate Limiting 30 req/min)
+    Route::post('/reports/generate', [ExternalReportController::class, 'generate'])
+        ->middleware(['external.api.key', 'throttle:30,1']);
+
+    // 2. Download Endpoint (Protected by Laravel's signed link validator)
+    Route::get('/reports/download/{filename}', [ExternalReportController::class, 'download'])
+        ->name('external.reports.download')
+        ->middleware('signed');
+});
