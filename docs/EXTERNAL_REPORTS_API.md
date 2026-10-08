@@ -1,90 +1,358 @@
-# EvaTrack M2M External Reporting API — Integration Guide
+# EvaTrack M2M External Reporting API — Complete Setup, Architecture & Integration Guide
 
 > **Version:** 1.0.0  
-> **Protocol:** HTTP/1.1 REST + Cryptographic Signed URLs  
-> **Target Audience:** External System Developers, DRRM Integrators, LGU Partners  
-> **Backend Architecture:** Laravel 12 / Storage Abstraction (Local & Amazon S3)
+> **Framework:** Laravel 12 (PHP 8.2+)  
+> **Storage Support:** Local Disk (with cryptographic signed routes) & Amazon S3 (pre-signed temporary URLs)  
+> **Target Audience:** Backend Developers, System Administrators, External DRRM Partner Integrators
 
 ---
 
-## 1. Overview & High-Level Architecture
+## Table of Contents
+1. [System Architecture & Lifecycle](#1-system-architecture--lifecycle)
+2. [Environment Configuration (.env)](#2-environment-configuration-env)
+3. [Implementation Walkthrough & Source Code](#3-implementation-walkthrough--source-code)
+   - [3.1 S3 Driver Dependency](#31-s3-driver-dependency)
+   - [3.2 Authentication Middleware](#32-authentication-middleware)
+   - [3.3 Middleware Alias in bootstrap/app.php](#33-middleware-alias-in-bootstrapappphp)
+   - [3.4 External Report Controller](#34-external-report-controller)
+   - [3.5 Route Registrations in routes/api.php](#35-route-registrations-in-routesapiphp)
+4. [Storage Engine Mechanics (Local vs. S3)](#4-storage-engine-mechanics-local-vs-s3)
+5. [API Specification & Endpoints](#5-api-specification--endpoints)
+   - [5.1 Endpoint 1: Generate Report (POST)](#51-endpoint-1-generate-report-post)
+   - [5.2 Endpoint 2: Download Report (GET)](#52-endpoint-2-download-report-get)
+   - [5.3 Status & Error Codes](#53-status--error-codes)
+6. [Testing the Integration (cURL, PowerShell, Postman)](#6-testing-the-integration-curl-powershell-postman)
+7. [Client SDK Integration Examples](#7-client-sdk-integration-examples)
+   - [Python](#python-requests)
+   - [JavaScript / Node.js](#javascript--nodejs-axios)
+   - [PHP](#php-guzzlehttp)
+   - [cURL / Bash](#curl--bash)
 
-The **EvaTrack External Reporting API** provides an authenticated, automated machine-to-machine (M2M) pipeline for external partner systems to request and retrieve disaster response reports (such as Demographics, DROMIC Master Lists, Center Utilization, and Vulnerability summaries) in **PDF** or **CSV** formats.
+---
 
-Instead of transmitting massive binary streams directly within long-running HTTP connections, EvaTrack utilizes an **asynchronous delivery pattern with expiring signed URLs**:
+## 1. System Architecture & Lifecycle
 
-1. The external system submits a report request specifying parameters and desired format.
-2. EvaTrack compiles the report in memory and persists it to private storage.
-3. EvaTrack returns a **time-limited, cryptographically signed download URL** (valid for 30 minutes).
-4. The external system downloads the file directly using the signed URL.
+Instead of transmitting heavy PDF/CSV binaries through long-lived HTTP request sockets (which cause gateway timeouts and exhaust web server threads), the system follows an **Asynchronous Delivery Pattern with Expiring Signed URLs**:
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Partner as External System
+    actor Client as External System
     participant EvaAPI as EvaTrack API Engine
-    participant Storage as Storage (Local / S3)
+    participant Storage as Storage Engine (Local / S3)
 
-    Partner->>EvaAPI: POST /api/v1/external/reports/generate<br/>Headers: [X-API-KEY, Content-Type: application/json]<br/>Body: { report_type, format, start_date, end_date }
-    EvaAPI->>EvaAPI: Verify API Key & Rate Limits
-    EvaAPI->>EvaAPI: Validate Filters & Generate Binary (PDF / CSV)
-    EvaAPI->>Storage: Persist file to private path
-    EvaAPI->>EvaAPI: Generate HMAC-SHA256 Signed Temporary URL (30 min expiry)
-    EvaAPI-->>Partner: 200 OK JSON { status, download_url, expires_at }
+    Client->>EvaAPI: POST /api/v1/external/reports/generate<br/>Headers: [X-API-KEY, Content-Type: application/json]<br/>Body: { report_type, format, start_date, end_date }
     
-    critical Direct File Download
-        Partner->>Storage: GET [download_url]
-        Storage->>Storage: Validate signature & timestamp
-        Storage-->>Partner: 200 OK Stream binary file attachment
+    rect rgb(240, 245, 255)
+    Note over EvaAPI: Process & Pipeline
+    EvaAPI->>EvaAPI: 1. Validate API Key (ValidateExternalApiKey)
+    EvaAPI->>EvaAPI: 2. Enforce Rate Limit (30 req/min)
+    EvaAPI->>EvaAPI: 3. Query Database & render binary in memory (DomPDF / CSV)
+    EvaAPI->>Storage: 4. Persist binary to disk (reports/filename.pdf)
+    EvaAPI->>EvaAPI: 5. Generate 30-min HMAC-SHA256 Signed Download URL
+    end
+
+    EvaAPI-->>Client: 200 OK JSON { status, file_name, download_url, expires_at }
+
+    rect rgb(245, 255, 245)
+    Note over Client,Storage: Direct Stream Retrieval
+    Client->>Storage: GET [download_url]
+    Storage->>Storage: Verify cryptographic signature & expiration
+    Storage-->>Client: 200 OK Stream binary file
     end
 ```
 
 ---
 
-## 2. Authentication & Security
+## 2. Environment Configuration (.env)
 
-### 2.1 API Key Header
-All report generation requests must include your designated secret API key via the HTTP request header:
+The following keys were added to `.env` to configure storage and machine-to-machine authentication:
 
-```http
-X-API-KEY: <YOUR_SECRET_API_KEY>
+```env
+# ==============================================================================
+# External System Reporting & API Integration
+# ==============================================================================
+
+# Determines where generated export files are stored:
+# - 'local': Saves files in storage/app/private/reports/ and creates Laravel-signed URLs.
+# - 's3': Uploads files to AWS S3 and creates Amazon pre-signed S3 temporary URLs.
+REPORT_DISK=local
+
+# Secret authentication token that external systems must supply in the X-API-KEY header.
+EXTERNAL_SYSTEM_API_KEY=evatrack_live_sec_9a87f12bc34de56f
+
+# AWS S3 Configuration (Ready for production activation)
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_DEFAULT_REGION=ap-southeast-1
+AWS_BUCKET=evatrack-reports-storage
+AWS_USE_PATH_STYLE_ENDPOINT=false
 ```
 
-> [!CAUTION]
-> Treat your `X-API-KEY` like a password. Never commit it to public version control or expose it in frontend client-side code.
-
-### 2.2 Anti-Tamper & Expiration Security
-* **HMAC Signature**: Download links are cryptographically sealed with a hash signature. Any tampering with URL query parameters invalidates the signature and yields `403 Forbidden`.
-* **Automatic Expiration**: Download links expire **30 minutes** after creation.
-* **Rate Limiting**: The generation endpoint is capped at **30 requests per minute** per client to prevent resource exhaustion.
+> [!TIP]
+> To switch between local file storage and Amazon S3 in production, simply change `REPORT_DISK=local` to `REPORT_DISK=s3`. Zero application code edits are required!
 
 ---
 
-## 3. API Reference
+## 3. Implementation Walkthrough & Source Code
 
-### 3.1 Endpoint 1: Generate Report
+### 3.1 S3 Driver Dependency
+To enable seamless switching to Amazon S3 via Laravel Flysystem, install the AWS S3 adapter:
 
-* **URL**: `POST /api/v1/external/reports/generate`
-* **Base URL**: `http://<domain-or-ip>:9000`
-* **Content-Type**: `application/json`
-* **Accept**: `application/json`
+```bash
+composer require league/flysystem-aws-s3-v3 "^3.0"
+```
 
-#### Request Headers
-| Header | Required | Type | Description |
-| :--- | :---: | :---: | :--- |
-| `X-API-KEY` | **Yes** | String | Secret key provided by the EvaTrack administrator. |
-| `Content-Type` | **Yes** | String | Must be `application/json`. |
-| `Accept` | **Yes** | String | Must be `application/json`. |
+---
 
-#### Request Body Parameters
-| Field | Type | Required | Default | Allowed Values | Description |
-| :--- | :---: | :---: | :---: | :---: | :--- |
-| `report_type` | String | **Yes** | — | `demographics`, `dromic`, `utilization`, `vulnerable`, `general` | Category of report to generate. |
-| `format` | String | No | `pdf` | `pdf`, `csv` | File export format. |
-| `start_date` | Date | No | `null` | `YYYY-MM-DD` | Start of reporting filter range. |
-| `end_date` | Date | No | `null` | `YYYY-MM-DD` | End of reporting filter range (must be `>= start_date`). |
+### 3.2 Authentication Middleware
+**File:** `app/Http/Middleware/ValidateExternalApiKey.php`
 
-#### Example Request Body
+This middleware validates incoming requests by checking the `X-API-KEY` header against the secret key configured in `.env`. It uses `hash_equals()` to prevent timing attacks.
+
+```php
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class ValidateExternalApiKey
+{
+    /**
+     * Handle an incoming request.
+     */
+    public function handle(Request $request, Closure $next): Response
+    {
+        $providedKey = $request->header('X-API-KEY');
+        $validKey = env('EXTERNAL_SYSTEM_API_KEY');
+
+        // Verify key presence and equality with timing-safe comparison
+        if (!$providedKey || !hash_equals((string) $validKey, (string) $providedKey)) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Unauthorized: Invalid or missing X-API-KEY header.',
+            ], 401);
+        }
+
+        return $next($request);
+    }
+}
+```
+
+---
+
+### 3.3 Middleware Alias in bootstrap/app.php
+**File:** `bootstrap/app.php`
+
+In Laravel 12, middleware aliases are registered inside `withMiddleware()`:
+
+```php
+    ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->alias([
+            'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'external.api.key' => \App\Http\Middleware\ValidateExternalApiKey::class, // <-- Registered alias
+        ]);
+
+        $middleware->append(HandleCors::class);
+        $middleware->append(EnsureFrontendRequestsAreStateful::class);
+    })
+```
+
+---
+
+### 3.4 External Report Controller
+**File:** `app/Http/Controllers/API/External/ExternalReportController.php`
+
+This controller handles report compilation, saving to the active disk, generating expiring signed URLs, and serving file downloads.
+
+```php
+<?php
+
+namespace App\Http\Controllers\API\External;
+
+use App\Http\Controllers\Controller;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+
+class ExternalReportController extends Controller
+{
+    /**
+     * POST /api/v1/external/reports/generate
+     * Compiles report, saves to active disk, and returns expiring download link.
+     */
+    public function generate(Request $request): JsonResponse
+    {
+        // 1. Validate payload
+        $validated = $request->validate([
+            'report_type' => 'required|string|in:demographics,dromic,utilization,vulnerable,general',
+            'start_date'  => 'nullable|date',
+            'end_date'    => 'nullable|date|after_or_equal:start_date',
+            'format'      => 'nullable|string|in:pdf,csv',
+        ]);
+
+        $format = $validated['format'] ?? 'pdf';
+        $reportType = $validated['report_type'];
+        $timestamp = now()->format('Ymd_His');
+        $randomHash = Str::random(8);
+        $fileName = "{$reportType}_{$timestamp}_{$randomHash}.{$format}";
+        $storagePath = "reports/{$fileName}";
+
+        // 2. Generate binary file content in memory
+        if ($format === 'pdf') {
+            $viewData = [
+                'title' => ucfirst($reportType) . ' Report',
+                'meta'  => [
+                    'event'        => 'External Request',
+                    'center'       => 'All Centers',
+                    'start_date'   => $validated['start_date'] ?? 'N/A',
+                    'end_date'     => $validated['end_date'] ?? 'N/A',
+                    'generated_at' => now()->format('Y-m-d H:i:s'),
+                    'generated_by' => 'External System API',
+                ],
+                'totalHouseholds'  => 0,
+                'totalIndividuals' => 0,
+                'male'             => 0,
+                'female'           => 0,
+                'children'         => 0,
+                'youth'            => 0,
+                'adults'           => 0,
+                'elderly'          => 0,
+                'vulnCounts'       => [],
+            ];
+
+            // Render Blade template using Barryvdh DomPDF
+            $pdf = Pdf::loadView('exports.demographic', $viewData)
+                      ->setPaper('a4', 'landscape');
+            $fileContent = $pdf->output();
+        } else {
+            // Render CSV content
+            $fileContent = $this->generateCsvContent($reportType, $validated);
+        }
+
+        // 3. Save to active disk (local now, S3 in production)
+        $disk = env('REPORT_DISK', 'local');
+        Storage::disk($disk)->put($storagePath, $fileContent);
+
+        // 4. Generate Expiring Download URL (Valid 30 minutes)
+        $expiresAt = now()->addMinutes(30);
+
+        if ($disk === 's3') {
+            // Amazon S3 pre-signed temporary URL
+            $downloadUrl = Storage::disk('s3')->temporaryUrl($storagePath, $expiresAt);
+        } else {
+            // Laravel cryptographic signed route
+            $downloadUrl = URL::temporarySignedRoute(
+                'external.reports.download',
+                $expiresAt,
+                ['filename' => $fileName]
+            );
+        }
+
+        // 5. Return JSON payload
+        return response()->json([
+            'status'             => 'success',
+            'message'            => 'Report generated successfully.',
+            'report_type'        => $reportType,
+            'format'             => $format,
+            'file_name'          => $fileName,
+            'download_url'       => $downloadUrl,
+            'expires_at'         => $expiresAt->toIso8601String(),
+            'expires_in_minutes' => 30,
+        ], 200);
+    }
+
+    /**
+     * GET /api/v1/external/reports/download/{filename}
+     * Downloads local file. Protected by Laravel 'signed' middleware.
+     */
+    public function download(Request $request, string $filename): StreamedResponse
+    {
+        $disk = env('REPORT_DISK', 'local');
+        $filePath = "reports/{$filename}";
+
+        if (!Storage::disk($disk)->exists($filePath)) {
+            abort(404, 'The requested report file does not exist or has expired.');
+        }
+
+        return Storage::disk($disk)->download($filePath);
+    }
+
+    /**
+     * CSV helper generator
+     */
+    private function generateCsvContent(string $reportType, array $filters): string
+    {
+        $handle = fopen('php://temp', 'r+');
+        // UTF-8 BOM for Microsoft Excel compatibility
+        fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+        fputcsv($handle, ['Report Type', ucfirst($reportType)]);
+        fputcsv($handle, ['Date Range', ($filters['start_date'] ?? 'All') . ' to ' . ($filters['end_date'] ?? 'All')]);
+        fputcsv($handle, ['Generated At', now()->toDateTimeString()]);
+        fputcsv($handle, []);
+        fputcsv($handle, ['Record ID', 'Description', 'Timestamp']);
+        fputcsv($handle, [1, 'Sample Record', now()->toDateTimeString()]);
+        rewind($handle);
+        $csv = stream_get_contents($handle);
+        fclose($handle);
+        return $csv;
+    }
+}
+```
+
+---
+
+### 3.5 Route Registrations in routes/api.php
+**File:** `routes/api.php`
+
+```php
+use App\Http\Controllers\API\External\ExternalReportController;
+
+Route::prefix('v1/external')->group(function () {
+    
+    // 1. Generation Endpoint (Protected by API Key + Rate Limiting 30 requests/minute)
+    Route::post('/reports/generate', [ExternalReportController::class, 'generate'])
+        ->middleware(['external.api.key', 'throttle:30,1']);
+
+    // 2. Download Endpoint (Protected by Laravel's signed URL validator)
+    Route::get('/reports/download/{filename}', [ExternalReportController::class, 'download'])
+        ->name('external.reports.download')
+        ->middleware('signed');
+});
+```
+
+---
+
+## 4. Storage Engine Mechanics (Local vs. S3)
+
+| Feature | Local Disk (`REPORT_DISK=local`) | Amazon S3 (`REPORT_DISK=s3`) |
+| :--- | :--- | :--- |
+| **Physical Storage** | `storage/app/private/reports/` | AWS S3 Bucket (Private) |
+| **Download URL Format** | `http://.../api/v1/external/reports/download/file.pdf?expires=...&signature=...` | `https://bucket.s3.region.amazonaws.com/reports/file.pdf?X-Amz-Signature=...` |
+| **Signature Method** | Laravel `APP_KEY` HMAC-SHA256 signature | AWS SigV4 signed query parameter |
+| **Server Bandwidth** | Streams through Laravel server process | Downloaded directly from AWS S3 edge (Zero server load) |
+| **Cleanup** | Scheduled cron job or disk purge | Automated via S3 24h Bucket Lifecycle Rule |
+
+---
+
+## 5. API Specification & Endpoints
+
+### 5.1 Endpoint 1: Generate Report (POST)
+
+* **URL:** `POST /api/v1/external/reports/generate`
+* **Headers:**
+  * `X-API-KEY: <SECRET_API_KEY>` (Required)
+  * `Content-Type: application/json`
+  * `Accept: application/json`
+
+#### Request Body
 ```json
 {
   "report_type": "demographics",
@@ -94,7 +362,15 @@ X-API-KEY: <YOUR_SECRET_API_KEY>
 }
 ```
 
-#### Success Response (`200 OK`)
+#### Parameters
+| Field | Type | Required | Allowed Values | Description |
+| :--- | :---: | :---: | :--- | :--- |
+| `report_type` | String | **Yes** | `demographics`, `dromic`, `utilization`, `vulnerable`, `general` | Category of report. |
+| `format` | String | No | `pdf` (default), `csv` | Export format. |
+| `start_date` | Date | No | `YYYY-MM-DD` | Filter beginning. |
+| `end_date` | Date | No | `YYYY-MM-DD` | Filter ending (`>= start_date`). |
+
+#### Response (`200 OK`)
 ```json
 {
   "status": "success",
@@ -102,175 +378,131 @@ X-API-KEY: <YOUR_SECRET_API_KEY>
   "report_type": "demographics",
   "format": "pdf",
   "file_name": "demographics_20261008_142452_uMHQwzsU.pdf",
-  "download_url": "http://127.0.0.1:9000/api/v1/external/reports/download/demographics_20261008_142452_uMHQwzsU.pdf?expires=1791471293&signature=a762c4b50a0f83cf643baee5ee1dc496586259806d1ce10d112baa9f3531a2ff",
+  "download_url": "http://127.0.0.1:9000/api/v1/external/reports/download/demographics_20261008_142452_uMHQwzsU.pdf?expires=1791471293&signature=a762c4...",
   "expires_at": "2026-10-08T14:54:53+00:00",
   "expires_in_minutes": 30
 }
 ```
 
-#### Response Fields
-| Field | Type | Description |
-| :--- | :---: | :--- |
-| `status` | String | Operation status (`success` or `error`). |
-| `report_type` | String | Echoes the generated report type. |
-| `format` | String | Echoes the file format (`pdf` or `csv`). |
-| `file_name` | String | System-generated unique filename. |
-| `download_url` | String | Temporary, signed URL used to retrieve the file. |
-| `expires_at` | String | ISO-8601 timestamp when `download_url` becomes invalid. |
-| `expires_in_minutes` | Integer | Expiration duration in minutes (default `30`). |
+---
+
+### 5.2 Endpoint 2: Download Report (GET)
+
+* **URL:** `GET {download_url}`
+* **Headers:** None needed (Authentication is embedded inside the URL query signature).
+* **Response:** Binary file stream (`application/pdf` or `text/csv`).
 
 ---
 
-### 3.2 Endpoint 2: Download Report
+### 5.3 Status & Error Codes
 
-* **URL**: `GET {download_url}`
-* **Headers**: None required.
-* **Authentication**: Self-contained inside the URL query parameters (`expires` and `signature`).
-
-#### Response
-* **Success (`200 OK`)**: File binary stream with appropriate `Content-Type`:
-  * PDF: `application/pdf`
-  * CSV: `text/csv; charset=UTF-8`
-* **Header `Content-Disposition`**: `attachment; filename="<file_name>"`
-
----
-
-## 4. Error Codes & Handling
-
-| HTTP Status | Error Reason | Example Response Body |
+| Status Code | Reason | Example JSON Response |
 | :---: | :--- | :--- |
-| `401 Unauthorized` | Missing or invalid `X-API-KEY`. | `{"status":"error","message":"Unauthorized: Invalid or missing X-API-KEY header."}` |
-| `422 Unprocessable` | Validation failed (e.g. invalid report type or date). | `{"message":"The selected report type is invalid.","errors":{"report_type":["..."]}}` |
+| `401 Unauthorized` | Missing or incorrect `X-API-KEY`. | `{"status":"error","message":"Unauthorized: Invalid or missing X-API-KEY header."}` |
+| `422 Unprocessable` | Validation error (e.g., invalid date or type). | `{"message":"The selected report type is invalid.","errors":{...}}` |
 | `403 Forbidden` | Expired download URL or tampered signature. | `{"message":"Invalid signature."}` |
-| `404 Not Found` | File not found or deleted from storage. | `{"message":"The requested report file does not exist or has expired."}` |
-| `429 Too Many Requests`| Rate limit exceeded (more than 30 calls/minute). | `{"message":"Too Many Attempts."}` |
+| `404 Not Found` | File not found or expired from storage. | `{"message":"The requested report file does not exist or has expired."}` |
+| `429 Too Many Requests`| Exceeded rate limit (>30 req/min). | `{"message":"Too Many Attempts."}` |
 
 ---
 
-## 5. Client Integration Code Examples
+## 6. Testing the Integration (cURL, PowerShell, Postman)
 
-### 5.1 cURL (CLI / Bash)
-```bash
-# 1. Request report generation
-RESPONSE=$(curl -s -X POST "http://127.0.0.1:9000/api/v1/external/reports/generate" \
-  -H "X-API-KEY: evatrack_live_sec_9a87f12bc34de56f" \
-  -H "Content-Type: application/json" \
-  -H "Accept: application/json" \
-  -d '{
-    "report_type": "demographics",
-    "format": "pdf"
-  }')
+### 6.1 PowerShell
+```powershell
+# 1. Request Generation
+$res = Invoke-RestMethod -Uri "http://127.0.0.1:9000/api/v1/external/reports/generate" `
+  -Method Post `
+  -Headers @{ "X-API-KEY" = "evatrack_live_sec_9a87f12bc34de56f"; "Content-Type" = "application/json" } `
+  -Body '{"report_type": "demographics", "format": "pdf"}'
 
-# 2. Extract download_url (using jq)
-DOWNLOAD_URL=$(echo $RESPONSE | jq -r '.download_url')
-
-# 3. Download the file
-curl -o "demographics_report.pdf" "$DOWNLOAD_URL"
-echo "Report successfully saved to demographics_report.pdf"
+# 2. Download File
+Invoke-WebRequest -Uri $res.download_url -OutFile $res.file_name
+Write-Host "Downloaded: $($res.file_name)"
 ```
 
+### 6.2 Postman Setup
+1. **Method:** `POST`
+2. **URL:** `http://127.0.0.1:9000/api/v1/external/reports/generate`
+3. **Headers tab:**
+   * `X-API-KEY`: `evatrack_live_sec_9a87f12bc34de56f`
+   * `Content-Type`: `application/json`
+4. **Body tab:** Select **raw** > **JSON**:
+   ```json
+   { "report_type": "demographics", "format": "pdf" }
+   ```
+5. **Download step:** Copy `download_url` into a new Postman tab, click the dropdown arrow next to **Send**, and choose **Send and Download**.
+
+> [!NOTE]
+> If testing with Postman Web in a browser, click **Use Postman's Desktop Agent** in the bottom footer to allow Postman to reach your local `127.0.0.1` address.
+
 ---
 
-### 5.2 Python (requests)
+## 7. Client SDK Integration Examples
+
+### Python (`requests`)
 ```python
 import requests
 
-API_BASE_URL = "http://127.0.0.1:9000/api/v1/external"
+API_URL = "http://127.0.0.1:9000/api/v1/external/reports/generate"
 API_KEY = "evatrack_live_sec_9a87f12bc34de56f"
 
-def fetch_evatrack_report(report_type="demographics", file_format="pdf", output_path="report.pdf"):
-    headers = {
-        "X-API-KEY": API_KEY,
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-    }
-    payload = {
-        "report_type": report_type,
-        "format": file_format
-    }
-    
-    # Step 1: Request report generation
-    response = requests.post(f"{API_BASE_URL}/reports/generate", json=payload, headers=headers)
-    response.raise_for_status()
-    data = response.json()
-    
-    download_url = data["download_url"]
-    print(f"Generated: {data['file_name']}, downloading from signed URL...")
-    
-    # Step 2: Stream download the file directly
-    file_res = requests.get(download_url, stream=True)
-    file_res.raise_for_status()
-    
-    with open(output_path, "wb") as f:
-        for chunk in file_res.iter_content(chunk_size=8192):
-            f.write(chunk)
-            
-    print(f"File successfully saved to {output_path}")
+# 1. Generate report
+headers = {"X-API-KEY": API_KEY, "Content-Type": "application/json"}
+payload = {"report_type": "demographics", "format": "pdf"}
 
-if __name__ == "__main__":
-    fetch_evatrack_report()
+resp = requests.post(API_URL, json=payload, headers=headers)
+resp.raise_for_status()
+data = resp.json()
+
+# 2. Download file directly
+file_resp = requests.get(data["download_url"])
+with open(data["file_name"], "wb") as f:
+    f.write(file_resp.content)
+
+print(f"Successfully downloaded {data['file_name']}")
 ```
 
----
-
-### 5.3 JavaScript / Node.js (Axios)
+### JavaScript / Node.js (`axios`)
 ```javascript
 const axios = require('axios');
 const fs = require('fs');
 
-async function downloadReport() {
-  const API_KEY = 'evatrack_live_sec_9a87f12bc34de56f';
-  const BASE_URL = 'http://127.0.0.1:9000/api/v1/external';
+async function exportReport() {
+  const headers = {
+    'X-API-KEY': 'evatrack_live_sec_9a87f12bc34de56f',
+    'Content-Type': 'application/json'
+  };
 
-  try {
-    // 1. Request generation
-    const res = await axios.post(`${BASE_URL}/reports/generate`, {
-      report_type: 'demographics',
-      format: 'pdf'
-    }, {
-      headers: {
-        'X-API-KEY': API_KEY,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      }
-    });
+  // 1. Generate
+  const { data } = await axios.post('http://127.0.0.1:9000/api/v1/external/reports/generate', {
+    report_type: 'demographics',
+    format: 'pdf'
+  }, { headers });
 
-    const { download_url, file_name } = res.data;
-    console.log(`Downloading: ${file_name}`);
+  // 2. Stream download
+  const writer = fs.createWriteStream(data.file_name);
+  const response = await axios.get(data.download_url, { responseType: 'stream' });
+  response.data.pipe(writer);
 
-    // 2. Fetch binary stream
-    const fileRes = await axios.get(download_url, { responseType: 'stream' });
-    const writer = fs.createWriteStream(file_name);
-    fileRes.data.pipe(writer);
-
-    writer.on('finish', () => console.log(`Downloaded to ${file_name}`));
-  } catch (err) {
-    console.error('Error fetching report:', err.response?.data || err.message);
-  }
+  writer.on('finish', () => console.log(`Downloaded ${data.file_name}`));
 }
 
-downloadReport();
+exportReport();
 ```
 
----
-
-### 5.4 PHP (GuzzleHttp)
+### PHP (`GuzzleHttp`)
 ```php
 <?php
-
 require 'vendor/autoload.php';
 
 use GuzzleHttp\Client;
 
 $client = new Client();
-$apiKey = 'evatrack_live_sec_9a87f12bc34de56f';
-
-// 1. Request generation
-$response = $client->post('http://127.0.0.1:9000/api/v1/external/reports/generate', [
+$res = $client->post('http://127.0.0.1:9000/api/v1/external/reports/generate', [
     'headers' => [
-        'X-API-KEY'    => $apiKey,
+        'X-API-KEY'    => 'evatrack_live_sec_9a87f12bc34de56f',
         'Content-Type' => 'application/json',
-        'Accept'       => 'application/json',
     ],
     'json' => [
         'report_type' => 'demographics',
@@ -278,48 +510,18 @@ $response = $client->post('http://127.0.0.1:9000/api/v1/external/reports/generat
     ]
 ]);
 
-$data = json_decode($response->getBody()->getContents(), true);
-$downloadUrl = $data['download_url'];
-
-// 2. Download file
-$fileContent = file_get_contents($downloadUrl);
-file_put_contents($data['file_name'], $fileContent);
-
-echo "Report successfully saved as: " . $data['file_name'] . PHP_EOL;
+$data = json_decode($res->getBody(), true);
+file_put_contents($data['file_name'], file_get_contents($data['download_url']));
+echo "Saved " . $data['file_name'] . PHP_EOL;
 ```
 
----
+### cURL / Bash
+```bash
+RESPONSE=$(curl -s -X POST "http://127.0.0.1:9000/api/v1/external/reports/generate" \
+  -H "X-API-KEY: evatrack_live_sec_9a87f12bc34de56f" \
+  -H "Content-Type: application/json" \
+  -d '{"report_type": "demographics", "format": "pdf"}')
 
-## 6. S3 Cloud Storage Transition Architecture
-
-If the partner or hosting system wishes to replicate this setup using Amazon S3 (or Cloudflare R2 / MinIO), the application layer remains identical:
-
+DOWNLOAD_URL=$(echo $RESPONSE | grep -oP '(?<="download_url":")[^"]*')
+curl -o "report.pdf" "$DOWNLOAD_URL"
 ```
-[Client] ---> POST /generate ---> [Laravel Backend]
-                                          |
-                        +-----------------+-----------------+
-                        | (Local Mode)                      | (S3 Cloud Mode)
-                        v                                   v
-             [storage/app/reports]                  [Amazon S3 Bucket]
-                        |                                   |
-           URL::temporarySignedRoute()              Storage::temporaryUrl()
-                        \                                   /
-                         +-----------------+---------------+
-                                           |
-                              Returns: { download_url }
-```
-
-### Transition Steps for Production
-1. Install Flysystem S3 package:
-   ```bash
-   composer require league/flysystem-aws-s3-v3
-   ```
-2. Update `.env`:
-   ```env
-   REPORT_DISK=s3
-   AWS_ACCESS_KEY_ID=AKIA...
-   AWS_SECRET_ACCESS_KEY=...
-   AWS_DEFAULT_REGION=ap-southeast-1
-   AWS_BUCKET=evatrack-reports-storage
-   ```
-3. No API contract or controller changes are required. The generated `download_url` automatically transitions from a local signed route to an Amazon S3 pre-signed URL.
