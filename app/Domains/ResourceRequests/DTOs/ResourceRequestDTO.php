@@ -11,7 +11,6 @@ class ResourceRequestDTO
         public readonly string $resourceType,
         public readonly int $quantity,
         public readonly ?string $description,
-        public readonly int $urgencyId,
     ) {}
 
     public static function fromRequest(FormRequest $request): self
@@ -21,7 +20,6 @@ class ResourceRequestDTO
             resourceType:       $request->input('resource_type'),
             quantity:           (int) $request->input('quantity'),
             description:        $request->input('description'),
-            urgencyId:          (int) $request->input('urgency_id'),
         );
     }
     
@@ -32,7 +30,6 @@ class ResourceRequestDTO
             'resource_type'        => $this->resourceType,
             'quantity'             => $this->quantity,
             'description'          => $this->description,
-            'urgency_id'           => $this->urgencyId,
         ], fn($value) => $value !== null);
     }
 }

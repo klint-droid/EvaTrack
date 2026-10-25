@@ -46,12 +46,28 @@ class AnalyticsExportController extends BaseApiController
         return $query;
     }
 
-    private function getFilterMeta(Request $request): array
+    private function getFilterMeta(Request $request, $records = null): array
     {
-        $eventName = 'All Events';
+        $eventName = null;
         if ($request->filled('event_id') && $request->event_id !== 'all') {
             $event = DisasterEvent::find($request->event_id);
             $eventName = $event?->name ?? $request->event_id;
+        }
+
+        // If not explicitly set or 'all', infer event name from evacuated records
+        if (!$eventName && $records && $records->isNotEmpty()) {
+            $eventNames = $records->pluck('event.name')->filter()->unique();
+            if ($eventNames->count() === 1) {
+                $eventName = $eventNames->first();
+            } elseif ($eventNames->count() > 1) {
+                $eventName = $eventNames->implode(', ');
+            }
+        }
+
+        // Fallback to currently active disaster event
+        if (!$eventName) {
+            $activeEvent = DisasterEvent::whereNull('ended_at')->latest('started_at')->first();
+            $eventName = $activeEvent?->name ?? 'Typhoon Klint';
         }
 
         $centerName = 'All Centers';
@@ -70,7 +86,7 @@ class AnalyticsExportController extends BaseApiController
             'start_date' => $request->input('start_date', 'N/A'),
             'end_date' => $request->input('end_date', 'N/A'),
             'generated_at' => now()->format('Y-m-d H:i:s'),
-            'generated_by' => Auth::user()?->name ?? '',
+            'generated_by' => Auth::user()?->name ?? 'EvaTrack Administrator',
         ];
     }
 
@@ -219,14 +235,16 @@ class AnalyticsExportController extends BaseApiController
     public function dromicMasterList(Request $request)
     {
         $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
-        $meta = $this->getFilterMeta($request);
 
         $query = EvacuationRecord::with([
             'household.address.barangay.city.province',
             'household.address.purok', 'household.address.sitio',
             'household.members.gender',
+            'household.members.relationship',
             'household.members.vulnerableGroupDetails',
-            'evacuatedMembers.member',
+            'evacuatedMembers.member.gender',
+            'evacuatedMembers.member.relationship',
+            'evacuatedMembers.member.vulnerableGroupDetails',
             'unitAllocations.unit.type',
             'event', 'verifier', 'center',
         ])->where('household_status_id', 2);
@@ -234,72 +252,149 @@ class AnalyticsExportController extends BaseApiController
         $this->applyFilters($request, $query);
         $records = $query->latest('verified_at')->get();
 
+        $meta = $this->getFilterMeta($request, $records);
+
         $headers = [
-            'No.','Disaster Event','Evacuation Center','Household ID','Family Name',
-            'Contact Number','Home Address','Total Members','Male','Female',
-            'Children (0-12)','Youth (13-17)','Adults (18-59)','Senior (60+)',
-            'PWD','Pregnant','Indigenous','Allocated Unit','Date Admitted','Admitted By',
+            'No.',
+            'Disaster Event',
+            'Household ID',
+            'Family Name',
+            'Member Full Name',
+            'Relationship to Head',
+            'Sex',
+            'Age',
+            'Birthdate',
+            'Special Needs / Vulnerable Sector',
+            'Evacuation Center',
+            'Unit / Room',
+            'Home Address',
+            'Contact No.',
+            'Date Admitted',
         ];
 
         $rows = [];
         $no = 1;
+        $totalHouseholdsCount = $records->count();
+        $male = $female = $children = $youth = $adults = $elderly = $pwd = $pregnant = $indigenous = 0;
+
         foreach ($records as $record) {
             $hh = $record->household;
-            $evacuatedMemberIds = $record->evacuatedMembers->pluck('member_id')->toArray();
-            $members = $hh?->members?->filter(fn($m) => in_array($m->member_id, $evacuatedMemberIds)) ?? collect();
+            $unit = $record->unitAllocations->first();
+            $roomName = $unit?->unit?->name ?? 'Unassigned';
+            $admittedDate = $record->verified_at ? Carbon::parse($record->verified_at)->format('Y-m-d H:i') : '';
+            $contactNo = $hh?->contact_number ?? '';
+            $homeAddress = $hh?->address ? $hh->address->full_address : '';
+            $centerName = $record->center?->name ?? '';
+            $eventName = $record->event?->name ?? $meta['event'];
 
-            $male = $female = $children = $youth = $adults = $elderly = $pwd = $pregnant = $indigenous = 0;
-            foreach ($members as $m) {
-                $gk = $this->getGenderKey($m);
-                if ($gk === 'male') $male++;
-                elseif ($gk === 'female') $female++;
-                $age = $m->birth_date ? Carbon::parse($m->birth_date)->age : null;
-                if ($age !== null) {
-                    if ($age <= 12) $children++;
-                    elseif ($age <= 17) $youth++;
-                    elseif ($age <= 59) $adults++;
-                    else $elderly++;
-                }
-                $vgKeys = $m->vulnerableGroupDetails->pluck('vulnerable_group_key')->toArray();
-                if (in_array('pwd', $vgKeys)) $pwd++;
-                if (in_array('pregnant', $vgKeys)) $pregnant++;
-                if (in_array('indigenous', $vgKeys)) $indigenous++;
+            // Determine evacuated members: if member_ids are linked, use them; otherwise use all household members
+            $evacuatedMemberIds = $record->evacuatedMembers->pluck('member_id')->filter()->toArray();
+            if (!empty($evacuatedMemberIds)) {
+                $members = $hh?->members?->filter(fn($m) => in_array($m->member_id, $evacuatedMemberIds)) ?? collect();
+            } else {
+                $members = $hh?->members ?? collect();
             }
 
-            $unit = $record->unitAllocations->first();
-            $rows[] = [
-                $no++,
-                $record->event?->name ?? '',
-                $record->center?->name ?? '',
-                $record->household_id,
-                $hh?->household_name ?? '',
-                $hh?->contact_number ?? '',
-                $hh?->address ? $hh->address->full_address : '',
-                $record->evacuated_count ?? 0,
-                $male, $female, $children, $youth, $adults, $elderly,
-                $pwd, $pregnant, $indigenous,
-                $unit?->unit?->name ?? 'Unassigned',
-                $record->verified_at ? Carbon::parse($record->verified_at)->format('Y-m-d H:i') : '',
-                $record->verifier?->name ?? '',
-            ];
+            if ($members->isNotEmpty()) {
+                foreach ($members as $m) {
+                    $gk = $this->getGenderKey($m);
+                    if ($gk === 'male') $male++;
+                    elseif ($gk === 'female') $female++;
+
+                    $age = $m->birth_date ? Carbon::parse($m->birth_date)->age : null;
+                    if ($age !== null) {
+                        if ($age <= 12) $children++;
+                        elseif ($age <= 17) $youth++;
+                        elseif ($age <= 59) $adults++;
+                        else $elderly++;
+                    }
+
+                    $vgDetails = $m->vulnerableGroupDetails;
+                    $vgKeys = $vgDetails->pluck('vulnerable_group_key')->toArray();
+                    if (in_array('pwd', $vgKeys)) $pwd++;
+                    if (in_array('pregnant', $vgKeys)) $pregnant++;
+                    if (in_array('indigenous', $vgKeys)) $indigenous++;
+
+                    $vulnLabels = $vgDetails->pluck('vulnerable_group_label')->filter()->values();
+                    $vulnText = $vulnLabels->isNotEmpty() ? $vulnLabels->implode(', ') : 'None';
+
+                    $rel = $m->relationship?->relationship_label 
+                        ?? $m->relationshipDetail?->relationship_label 
+                        ?? ($m->relationship_id == 1 ? 'Head' : 'Member');
+
+                    $fullName = trim($m->last_name . ', ' . $m->first_name . ($m->middle_name ? ' ' . $m->middle_name : ''));
+
+                    $rows[] = [
+                        $no++,
+                        $eventName,
+                        $record->household_id,
+                        $hh?->household_name ?? '',
+                        $fullName,
+                        $rel,
+                        $this->getGenderLabel($m) ?: '—',
+                        $age !== null ? (string)$age : '—',
+                        $m->birth_date ? Carbon::parse($m->birth_date)->format('Y-m-d') : '—',
+                        $vulnText,
+                        $centerName,
+                        $roomName,
+                        $homeAddress,
+                        $contactNo,
+                        $admittedDate,
+                    ];
+                }
+            } else {
+                // If household was registered by headcount without individual member records
+                $rows[] = [
+                    $no++,
+                    $eventName,
+                    $record->household_id,
+                    $hh?->household_name ?? 'Family Head',
+                    $hh?->household_name ? $hh->household_name . ' (Head)' : 'Head of Household',
+                    'Head',
+                    '—',
+                    '—',
+                    '—',
+                    'None',
+                    $centerName,
+                    $roomName,
+                    $homeAddress,
+                    $contactNo,
+                    $admittedDate,
+                ];
+            }
         }
 
+        $totalIndividuals = count($rows);
+
+        $summaryStats = [
+            'totalHouseholds'  => $totalHouseholdsCount,
+            'totalIndividuals' => $totalIndividuals,
+            'totalMale'        => $male,
+            'totalFemale'      => $female,
+            'totalChildren'    => $children,
+            'totalYouth'       => $youth,
+            'totalAdults'      => $adults,
+            'totalSenior'      => $elderly,
+            'totalPwd'         => $pwd,
+            'totalPregnant'    => $pregnant,
+            'totalIndigenous'  => $indigenous,
+        ];
+
         $totalsRows = [
-            ['Total Families',          count($rows)],
-            ['Total Individuals',        array_sum(array_column($rows, 7))],
-            ['Male',                     array_sum(array_column($rows, 8))],
-            ['Female',                   array_sum(array_column($rows, 9))],
-            ['Children (0-12)',          array_sum(array_column($rows, 10))],
-            ['Youth (13-17)',            array_sum(array_column($rows, 11))],
-            ['Adults (18-59)',           array_sum(array_column($rows, 12))],
-            ['Senior Citizens (60+)',    array_sum(array_column($rows, 13))],
-            ['PWD',                      array_sum(array_column($rows, 14))],
-            ['Pregnant',                 array_sum(array_column($rows, 15))],
-            ['Indigenous People',        array_sum(array_column($rows, 16))],
+            ['EXECUTIVE EVACUATION STATISTICAL SUMMARY (TEXT ONLY):'],
+            ['* Total Evacuated Families', $totalHouseholdsCount . ' households'],
+            ['* Total Evacuated Individuals', $totalIndividuals . ' registered members'],
+            ['* Sex Breakdown', "Male: {$male} | Female: {$female}"],
+            ['* Age Demographics', "Children (0-12): {$children} | Youth (13-17): {$youth} | Adults (18-59): {$adults} | Senior Citizens (60+): {$elderly}"],
+            ['* Vulnerable Sectors', "PWD: {$pwd} | Pregnant: {$pregnant} | Indigenous: {$indigenous}"],
         ];
 
         return $this->respond($request, $headers, $rows, 'DROMIC_MasterList', 'exports.dromic', [
-            'meta' => $meta, 'headers' => $headers, 'rows' => $rows, 'title' => 'DROMIC Master List of Evacuees',
+            'meta' => $meta,
+            'headers' => $headers,
+            'rows' => $rows,
+            'title' => 'DROMIC Master List of Evacuees',
+            'summaryStats' => $summaryStats,
         ], $totalsRows);
     }
 
@@ -537,7 +632,7 @@ class AnalyticsExportController extends BaseApiController
         $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
         $meta = $this->getFilterMeta($request);
 
-        $query = ResourceRequest::with(['center', 'requester', 'handler', 'urgencyLevel', 'status']);
+        $query = ResourceRequest::with(['center', 'requester', 'handler', 'status']);
 
         $user = Auth::user();
         if ($user->isEvacPersonnel() && $user->assigned_center_id) {
@@ -552,7 +647,7 @@ class AnalyticsExportController extends BaseApiController
 
         $headers = [
             'Request ID','Evacuation Center','Resource Type','Quantity','Description',
-            'Urgency','Status','Requested By','Handled By','Date Requested','Date Updated',
+            'Status','Requested By','Handled By','Date Requested','Date Updated',
         ];
 
         $rows = [];
@@ -563,7 +658,6 @@ class AnalyticsExportController extends BaseApiController
                 $item->resource_type ?? '',
                 $item->quantity ?? '',
                 $item->description ?? '',
-                $item->urgencyLevel?->urgency_label ?? '',
                 $item->status?->status_label ?? '',
                 $item->requester?->name ?? '',
                 $item->handler?->name ?? '',

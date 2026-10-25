@@ -33,7 +33,7 @@
 | Method | URI | Controller Action | Middleware | Frontend Usage |
 |--------|-----|-------------------|------------|----------------|
 | `GET` | `/api/users` | `UserController@index` | `auth:sanctum`, `role:super_admin,evac_admin` | ✅ [getUsers.ts](file:///c:/CAPSTONE/evatrackfrontend/src/api/users/getUsers.ts) |
-| `POST` | `/api/users` | `UserController@createUser` | `auth:sanctum`, `role:super_admin,evac_admin` | ✅ [createUser.ts](file:///c:/CAPSTONE/evatrackfrontend/src/api/users/createUser.ts) |
+| `POST` | `/api/users` | `UserController@createUser` | `auth:sanctum`, `role:super_admin` | ✅ [createUser.ts](file:///c:/CAPSTONE/evatrackfrontend/src/api/users/createUser.ts) |
 | `PUT` | `/api/users/{id}` | `UserController@updateUser` | `auth:sanctum`, `role:super_admin,evac_admin` | ✅ [updateUser.ts](file:///c:/CAPSTONE/evatrackfrontend/src/api/users/updateUser.ts) |
 | `DELETE` | `/api/users/{id}` | `UserController@deleteUser` | `auth:sanctum`, `role:super_admin,evac_admin` | ✅ [deleteUser.ts](file:///c:/CAPSTONE/evatrackfrontend/src/api/users/deleteUser.ts) |
 | `POST` | `/api/users/{user}/assign-center` | `UserController@assignCenter` | `auth:sanctum`, `role:super_admin,evac_admin` | ✅ [assignCenter.ts](file:///c:/CAPSTONE/evatrackfrontend/src/api/users/assignCenter.ts) |
@@ -84,10 +84,10 @@
 | Method | URI | Controller Action | Middleware | Frontend Usage |
 |--------|-----|-------------------|------------|----------------|
 | `GET` | `/api/evacuation-centers` | `EvacuationCenterController@index` | `auth:sanctum` | ✅ [getCenters.ts](file:///c:/CAPSTONE/evatrackfrontend/src/api/evacuation/getCenters.ts) |
-| `POST` | `/api/evacuation-centers` | `EvacuationCenterController@store` | `auth:sanctum`, `role:super_admin,evac_admin` | ✅ [createCenter.ts](file:///c:/CAPSTONE/evatrackfrontend/src/api/evacuation/createCenter.ts) |
+| `POST` | `/api/evacuation-centers` | `EvacuationCenterController@store` | `auth:sanctum`, `role:evac_admin` | ✅ [createCenter.ts](file:///c:/CAPSTONE/evatrackfrontend/src/api/evacuation/createCenter.ts) |
 | `GET` | `/api/evacuation-centers/{center}` | `EvacuationCenterController@show` | `auth:sanctum` | ✅ [getCenter.ts](file:///c:/CAPSTONE/evatrackfrontend/src/api/evacuation/getCenter.ts) |
-| `PUT` | `/api/evacuation-centers/{center}` | `EvacuationCenterController@update` | `auth:sanctum`, `role:super_admin,evac_admin` | ✅ [updateCenter.ts](file:///c:/CAPSTONE/evatrackfrontend/src/api/evacuation/updateCenter.ts) |
-| `DELETE` | `/api/evacuation-centers/{center}` | `EvacuationCenterController@destroy` | `auth:sanctum`, `role:super_admin,evac_admin` | ✅ [deleteCenter.ts](file:///c:/CAPSTONE/evatrackfrontend/src/api/evacuation/deleteCenter.ts) |
+| `PUT` | `/api/evacuation-centers/{center}` | `EvacuationCenterController@update` | `auth:sanctum`, `role:evac_admin` | ✅ [updateCenter.ts](file:///c:/CAPSTONE/evatrackfrontend/src/api/evacuation/updateCenter.ts) |
+| `DELETE` | `/api/evacuation-centers/{center}` | `EvacuationCenterController@destroy` | `auth:sanctum`, `role:evac_admin` | ✅ [deleteCenter.ts](file:///c:/CAPSTONE/evatrackfrontend/src/api/evacuation/deleteCenter.ts) |
 | `GET` | `/api/evacuation-centers/{center}/capacity` | `EvacuationCenterController@capacity` | `auth:sanctum` | ✅ [getCapacity.ts](file:///c:/CAPSTONE/evatrackfrontend/src/api/evacuation/getCapacity.ts) |
 | `GET` | `/api/evacuation-centers/{center}/export` | `CenterExportController@exportCenterHouseholds` | `auth:sanctum` | ✅ [exportCenterData.ts](file:///c:/CAPSTONE/evatrackfrontend/src/api/evacuationRecords/exportCenterData.ts) |
 

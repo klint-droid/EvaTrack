@@ -5,7 +5,6 @@ namespace App\Domains\ResourceRequests\Repositories;
 use App\Domains\ResourceRequests\Models\ResourceRequest;
 use App\Domains\ResourceRequests\Models\ResourceRequestStatus;
 use App\Domains\ResourceRequests\DTOs\ResourceRequestFilterDTO;
-use App\Domains\Notifications\Models\UrgencyLevel;
 use Exception;
 
 class EloquentResourceRequestRepository implements ResourceRequestRepositoryInterface
@@ -15,18 +14,12 @@ class EloquentResourceRequestRepository implements ResourceRequestRepositoryInte
         return ResourceRequestStatus::pluck('status_id', 'status_key')->toArray();
     }
 
-    private function getUrgencyLevelIds(): array
-    {
-        return UrgencyLevel::pluck('urgency_id', 'urgency_key')->toArray();
-    }
-
     private function requestRelations(): array
     {
         return [
             'center',
             'requester',
             'handler',
-            'urgencyLevel',
             'status',
         ];
     }
@@ -34,7 +27,6 @@ class EloquentResourceRequestRepository implements ResourceRequestRepositoryInte
     public function getFilteredRequests(ResourceRequestFilterDTO $filter, int|string|null $enforcedCenterId = null): array
     {
         $statusIds = $this->getStatusIds();
-        $urgencyLevelIds = $this->getUrgencyLevelIds();
 
         $query = ResourceRequest::with($this->requestRelations());
 
@@ -53,12 +45,6 @@ class EloquentResourceRequestRepository implements ResourceRequestRepositoryInte
             }
         }
 
-        if ($filter->urgencyId !== null) {
-            // Because $filter->urgencyId is already an ID (not a key string like in the controller), 
-            // we can just use it directly.
-            $query->where('urgency_id', $filter->urgencyId);
-        }
-
         if ($filter->q !== null) {
             $search = $filter->q;
             $query->where(function ($q) use ($search) {
@@ -67,8 +53,6 @@ class EloquentResourceRequestRepository implements ResourceRequestRepositoryInte
                   ->orWhere('request_id', 'LIKE', "%{$search}%");
             });
         }
-
-        $urgencyIds = $this->getUrgencyLevelIds();
 
         $summary = [
             'pending'      => (clone $query)->where('status_id', $statusIds[ResourceRequestStatus::PENDING] ?? null)->count(),
@@ -81,10 +65,6 @@ class EloquentResourceRequestRepository implements ResourceRequestRepositoryInte
                     $q->where('evacuation_center_id', $enforcedCenterId);
                 })
                 ->count(),
-            'critical'     => isset($urgencyIds['critical']) ? (clone $query)->where('urgency_id', $urgencyIds['critical'])->count() : 0,
-            'high'         => isset($urgencyIds['high']) ? (clone $query)->where('urgency_id', $urgencyIds['high'])->count() : 0,
-            'medium'       => isset($urgencyIds['medium']) ? (clone $query)->where('urgency_id', $urgencyIds['medium'])->count() : 0,
-            'low'          => isset($urgencyIds['low']) ? (clone $query)->where('urgency_id', $urgencyIds['low'])->count() : 0,
         ];
 
         if ($filter->limit > 0) {

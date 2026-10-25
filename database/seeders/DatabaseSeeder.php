@@ -22,7 +22,6 @@ class DatabaseSeeder extends Seeder
             SuperAdminSeeder::class,
             EvacAdminSeeder::class,
             EvacPersonnelSeeder::class,
-            UrgencyLevelSeeder::class,
             AccommodationTypeSeeder::class,
             RelationshipsTableSeeder::class,
             GendersTableSeeder::class,

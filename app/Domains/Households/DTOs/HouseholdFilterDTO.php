@@ -12,16 +12,18 @@ class HouseholdFilterDTO
         public readonly string  $status = '',
         public readonly ?string $centerId = null,
         public readonly ?string $eventId = null,
+        public readonly bool    $forceSync = false,
     ) {}
 
     public static function fromRequest(Request $request): self
     {
         return new self(
-            page:     (int) $request->query('page', 1),
-            search:   $request->query('q', ''),
-            status:   $request->query('status', ''),
-            centerId: $request->query('center_id') ? (string) $request->query('center_id') : null,
-            eventId:  $request->query('event_id') ? (string) $request->query('event_id') : null,
+            page:      (int) $request->query('page', 1),
+            search:    $request->query('q', ''),
+            status:    $request->query('status', ''),
+            centerId:  $request->query('center_id') ? (string) $request->query('center_id') : null,
+            eventId:   $request->query('event_id') ? (string) $request->query('event_id') : null,
+            forceSync: (bool) ($request->query('sync') || $request->query('refresh') || $request->query('force_sync') || $request->query('forceSync')),
         );
     }
 }

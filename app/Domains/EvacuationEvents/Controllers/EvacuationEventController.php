@@ -90,11 +90,11 @@ class EvacuationEventController extends Controller
     #[OA\RequestBody(
         required: true,
         content: new OA\JsonContent(
-            required: ['name', 'type_id', 'severity_id'],
+            required: ['name', 'type_id'],
             properties: [
                 new OA\Property(property: 'name', type: 'string'),
                 new OA\Property(property: 'type_id', type: 'integer'),
-                new OA\Property(property: 'severity_id', type: 'integer'),
+                new OA\Property(property: 'severity_id', type: 'integer', nullable: true),
             ]
         )
     )]

@@ -3,7 +3,6 @@
 namespace App\Console\Commands;
 
 use App\Domains\Notifications\Models\Notification;
-use App\Domains\Notifications\Models\UrgencyLevel;
 use App\Jobs\SendScheduledNotification;
 use Illuminate\Console\Command;
 
@@ -17,18 +16,9 @@ class TestRecurringAlert extends Command
         $minutes = (int) $this->option('minutes');
         $message = (string) $this->option('message');
 
-        $urgency = UrgencyLevel::first();
-        if (!$urgency) {
-            $urgency = UrgencyLevel::create([
-                'urgency_key' => 'low',
-                'urgency_label' => 'Low',
-            ]);
-        }
-
         $notification = Notification::create([
             'message'          => "[TEST RECURRING] {$message} (" . now()->toTimeString() . ")",
             'sent_by'          => 1,
-            'urgency_level_id' => $urgency->urgency_id,
             'channel'          => 'both',
             'status'           => 'scheduled',
             'target_filter'    => 'all',

@@ -14,7 +14,7 @@ class StoreUserRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // Authorized via route middleware: role:super_admin,evac_admin
+        return $this->user()?->isSuperAdmin() ?? false;
     }
 
     public function rules(): array

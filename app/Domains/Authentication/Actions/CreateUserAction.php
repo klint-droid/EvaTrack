@@ -22,18 +22,12 @@ class CreateUserAction
 
     public function execute(User $authUser, CreateUserDTO $dto): User
     {
-        // Default role is evac_personnel
-        $roleKey = 'evac_personnel';
-
-        // Super admins can assign any allowed role
-        if ($authUser->isSuperAdmin() && $dto->roleKey) {
-            $roleKey = $dto->roleKey;
+        if (!$authUser->isSuperAdmin()) {
+            abort(403, 'Only Super Admin can create accounts.');
         }
 
-        // Evac admins can only create evac_personnel
-        if ($authUser->isEvacAdmin()) {
-            $roleKey = 'evac_personnel';
-        }
+        // Super admins can assign any allowed role (defaults to evac_personnel)
+        $roleKey = $dto->roleKey ?: 'evac_personnel';
 
         $role = Role::where('role_key', $roleKey)->firstOrFail();
 

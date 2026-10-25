@@ -14,11 +14,16 @@ class Address extends Model
     public $timestamps = true;
 
     protected $fillable = [
+        'address_id',
         'street_address', 
+        'street',
         'barangay_id', 
+        'barangay_name',
         'sitio_id', 
+        'purok_sitio',
         'purok_id', 
-        'zipcode_id'
+        'zipcode_id',
+        'full_address',
     ];
 
     protected $dates = ['created_at', 'updated_at', 'deleted_at'];

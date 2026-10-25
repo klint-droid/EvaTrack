@@ -6,10 +6,13 @@ use App\Domains\Households\Repositories\HouseholdRepositoryInterface;
 use App\Domains\Households\Models\Household;
 use Illuminate\Support\Facades\DB;
 
+use App\Domains\Households\Services\ExternalHouseholdService;
+
 class SearchHouseholdsAction
 {
     public function __construct(
-        private HouseholdRepositoryInterface $repository
+        private HouseholdRepositoryInterface $repository,
+        private ?ExternalHouseholdService $externalHouseholdService = null
     ) {}
 
     public function execute(string $query, string $type = 'household'): mixed
@@ -24,6 +27,9 @@ class SearchHouseholdsAction
 
         $builder = Household::with([
             'address',
+            'address.barangay',
+            'address.sitio',
+            'address.purok',
             'members',
             'members.gender',
             'members.relationship',
@@ -125,6 +131,15 @@ class SearchHouseholdsAction
             ->orderByRaw("CASE WHEN household_name LIKE '{$cleanQuery}%' THEN 1 WHEN household_name LIKE '%{$cleanQuery}%' THEN 2 ELSE 3 END");
         }
 
-        return $builder->limit(20)->get();
+        $results = $builder->limit(20)->get();
+
+        if ($results->isEmpty() && $this->externalHouseholdService && mb_strlen($cleanQuery) >= 3) {
+            $synced = $this->externalHouseholdService->syncSingleHousehold($cleanQuery);
+            if ($synced) {
+                return $builder->limit(20)->get();
+            }
+        }
+
+        return $results;
     }
 }

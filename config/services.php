@@ -43,4 +43,11 @@ return [
         'device_id' => env('TEXTBEE_DEVICE_ID'),
     ],
 
+    'external_households' => [
+        'host'    => env('EXTERNAL_HOUSEHOLDS_HOST', 'http://192.168.110.201:8000'),
+        'url'     => env('EXTERNAL_HOUSEHOLDS_URL', 'http://192.168.110.201:8000/api/external/households'),
+        'api_key' => env('EXTERNAL_HOUSEHOLDS_API_KEY', 'evatrack_live_sec_9a87f12bc34de56f'),
+        'timeout' => (int) env('EXTERNAL_HOUSEHOLDS_TIMEOUT', 5),
+    ],
+
 ];

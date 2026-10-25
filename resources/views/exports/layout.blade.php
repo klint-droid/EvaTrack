@@ -134,6 +134,14 @@
                 </td>
             </tr>
         </table>
+
+        @if(!empty($meta['event']) && strtolower($meta['event']) !== 'all events')
+        <div style="margin-top: 6px; margin-bottom: 2px;">
+            <span style="background-color: #1e3a5f; color: #ffffff; font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 3px; letter-spacing: 0.5px; text-transform: uppercase;">
+                EVENT: {{ strtoupper($meta['event']) }}
+            </span>
+        </div>
+        @endif
         <div class="report-title">{{ $title }}</div>
         
         <table class="meta-table">

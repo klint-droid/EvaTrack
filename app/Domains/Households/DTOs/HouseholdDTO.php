@@ -17,11 +17,15 @@ class HouseholdDTO
         public readonly ?string $province = null,
         public readonly ?string $fullAddress = null,
         public readonly ?int    $memberCount = null,
+        public readonly ?array  $members = null,
     ) {}
 
     public static function fromRequest(FormRequest $request): self
     {
         $data = $request->validated();
+
+        $members = $data['members'] ?? null;
+        $memberCount = !empty($members) ? count($members) : (isset($data['member_count']) ? (int) $data['member_count'] : null);
 
         return new self(
             householdName:  $data['household_name'] ?? '',
@@ -33,7 +37,8 @@ class HouseholdDTO
             city:           $data['city'] ?? null,
             province:       $data['province'] ?? null,
             fullAddress:    $data['full_address'] ?? null,
-            memberCount:    isset($data['member_count']) ? (int) $data['member_count'] : null,
+            memberCount:    $memberCount,
+            members:        $members,
         );
     }
 }

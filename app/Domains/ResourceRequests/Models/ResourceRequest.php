@@ -4,7 +4,6 @@ namespace App\Domains\ResourceRequests\Models;
 
 use App\Domains\EvacuationCenters\Models\EvacuationCenter;
 use App\Domains\Authentication\Models\User;
-use App\Domains\Notifications\Models\UrgencyLevel;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -24,7 +23,6 @@ class ResourceRequest extends Model
         'resource_type',
         'quantity',
         'description',
-        'urgency_id',
         'status_id',
     ];
 
@@ -62,11 +60,6 @@ class ResourceRequest extends Model
     public function handler()
     {
         return $this->belongsTo(User::class, 'handled_by', 'user_id');
-    }
-
-    public function urgencyLevel()
-    {
-        return $this->belongsTo(UrgencyLevel::class, 'urgency_id', 'urgency_id');
     }
 
     public function status()

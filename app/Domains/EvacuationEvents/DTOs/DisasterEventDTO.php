@@ -9,7 +9,7 @@ class DisasterEventDTO
     public function __construct(
         public readonly string $name,
         public readonly int $typeId,
-        public readonly int $severityId,
+        public readonly ?int $severityId = null,
     ) {}
 
     public static function fromRequest(FormRequest $request): self
@@ -17,7 +17,7 @@ class DisasterEventDTO
         return new self(
             name:       $request->input('name'),
             typeId:     (int) $request->input('type_id'),
-            severityId: (int) $request->input('severity_id'),
+            severityId: $request->filled('severity_id') ? (int) $request->input('severity_id') : null,
         );
     }
     

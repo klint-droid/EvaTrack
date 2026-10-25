@@ -14,7 +14,6 @@ use App\Domains\ResourceRequests\Actions\CreateResourceRequestAction;
 use App\Domains\ResourceRequests\Actions\GetResourceRequestAction;
 use App\Domains\ResourceRequests\Actions\UpdateResourceRequestStatusAction;
 use App\Domains\ResourceRequests\Actions\DeleteResourceRequestAction;
-use App\Domains\ResourceRequests\Actions\ListUrgencyLevelsAction;
 use OpenApi\Attributes as OA;
 use Exception;
 
@@ -28,7 +27,6 @@ class ResourceRequestController extends BaseApiController
     )]
     #[OA\Parameter(name: 'center_id', in: 'query', description: 'Filter by evacuation center ID', required: false, schema: new OA\Schema(type: 'integer'))]
     #[OA\Parameter(name: 'status', in: 'query', description: 'Filter by status key (pending, acknowledged, approved, rejected, delivered)', required: false, schema: new OA\Schema(type: 'string'))]
-    #[OA\Parameter(name: 'urgency_id', in: 'query', description: 'Filter by urgency ID', required: false, schema: new OA\Schema(type: 'integer'))]
     #[OA\Parameter(name: 'q', in: 'query', description: 'Search query', required: false, schema: new OA\Schema(type: 'string'))]
     #[OA\Parameter(name: 'limit', in: 'query', description: 'Limit number of results', required: false, schema: new OA\Schema(type: 'integer'))]
     #[OA\Response(response: 200, description: 'Success')]
@@ -57,13 +55,12 @@ class ResourceRequestController extends BaseApiController
     #[OA\RequestBody(
         required: true,
         content: new OA\JsonContent(
-            required: ['resource_type', 'quantity', 'urgency_id'],
+            required: ['resource_type', 'quantity'],
             properties: [
                 new OA\Property(property: 'evacuation_center_id', type: 'integer', nullable: true),
                 new OA\Property(property: 'resource_type', type: 'string'),
                 new OA\Property(property: 'quantity', type: 'integer'),
                 new OA\Property(property: 'description', type: 'string', nullable: true),
-                new OA\Property(property: 'urgency_id', type: 'integer'),
             ]
         )
     )]
@@ -142,7 +139,9 @@ class ResourceRequestController extends BaseApiController
     #[OA\Response(response: 422, description: 'Invalid status')]
     public function updateStatus(UpdateResourceRequestStatusRequest $request, $id, UpdateResourceRequestStatusAction $action)
     {
-        $this->authorizeRole('super_admin', 'evac_admin');
+        if (Auth::user()?->isEvacAdmin() || Auth::user()?->isSuperAdmin()) {
+            abort(403, 'Resource request status cannot be updated manually by admins. Status updates are managed by external response systems.');
+        }
 
         try {
             $requestRecord = $action->execute($id, $request->validated('status'), Auth::id());
@@ -185,20 +184,5 @@ class ResourceRequestController extends BaseApiController
             $status = in_array($e->getCode(), [400, 403, 404]) ? $e->getCode() : 400;
             return response()->json(['message' => $e->getMessage()], $status);
         }
-    }
-
-    #[OA\Get(
-        path: '/urgency-levels',
-        summary: 'Get all urgency levels',
-        security: [['bearerAuth' => []]],
-        tags: ['Support Requests']
-    )]
-    #[OA\Response(response: 200, description: 'Success')]
-    #[OA\Response(response: 401, description: 'Unauthenticated')]
-    public function urgencyLevels(ListUrgencyLevelsAction $action)
-    {
-        return response()->json([
-            'data' => $action->execute()
-        ]);
     }
 }

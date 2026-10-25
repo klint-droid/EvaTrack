@@ -14,6 +14,7 @@ use App\Domains\ReferenceData\Models\VulnerableGroup;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class HouseholdMember extends Model
 {
@@ -24,21 +25,44 @@ class HouseholdMember extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'member_id',
         'household_id',
         'first_name',
         'middle_name',
         'last_name',
+        'name',
         'birth_date',
         'gender_id',
+        'gender',
+        'sex',
         'relationship_id',
+        'relation',
         'civil_status_id',
+        'civil_status',
+        'is_household_head',
+        'can_report_for_household',
+        'is_senior',
+        'is_pwd',
+        'is_pregnant',
+        'contact_number',
+        'occupation',
+        'education_level_id',
+        'education_level',
+        'is_graduate',
+        'religion',
+        'special_needs',
     ];
 
-    protected $appends = ['vulnerable_groups'];
+    protected $appends = ['vulnerable_groups', 'age'];
 
     protected $casts = [
         'birth_date' => 'date',
     ];
+
+    public function getAgeAttribute(): ?int
+    {
+        return $this->birth_date ? Carbon::parse($this->birth_date)->age : null;
+    }
 
     protected static function boot()
     {

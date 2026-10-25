@@ -7,7 +7,6 @@ use App\Domains\Households\Models\Household;
 use App\Domains\Notifications\Models\Notification;
 use App\Domains\Notifications\Models\NotificationLog;
 use App\Domains\Notifications\Models\NotificationRecipient;
-use App\Domains\Notifications\Models\UrgencyLevel;
 use App\Domains\Notifications\Services\NotificationService;
 use App\Domains\CenterIssueReports\Models\CenterIssueReport;
 use App\Domains\ResourceRequests\Models\ResourceRequest;
@@ -32,11 +31,10 @@ class NotificationController extends Controller
     #[OA\RequestBody(
         required: true,
         content: new OA\JsonContent(
-            required: ['title', 'message', 'urgency_id', 'target_filter'],
+            required: ['title', 'message', 'target_filter'],
             properties: [
                 new OA\Property(property: 'title', type: 'string'),
                 new OA\Property(property: 'message', type: 'string'),
-                new OA\Property(property: 'urgency_id', type: 'integer'),
                 new OA\Property(property: 'target_filter', type: 'string', enum: ['all', 'evacuated', 'not_evacuated']),
                 new OA\Property(property: 'evacuation_center_id', type: 'integer', nullable: true),
                 new OA\Property(property: 'evacuation_event_id', type: 'integer', nullable: true),
@@ -78,7 +76,7 @@ class NotificationController extends Controller
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function index(Request $request): JsonResponse
     {
-        $query = Notification::with(['sender', 'urgencyLevel', 'event', 'center'])
+        $query = Notification::with(['sender', 'event', 'center'])
             ->withCount('recipients')
             ->orderByDesc('created_at');
 
@@ -105,7 +103,6 @@ class NotificationController extends Controller
     {
         $notification = Notification::with([
             'sender',
-            'urgencyLevel',
             'event',
             'center',
             'recipients.household',
@@ -283,21 +280,6 @@ class NotificationController extends Controller
 
         return response()->json([
             'recipient_count' => $query->count(),
-        ]);
-    }
-
-    #[OA\Get(
-        path: '/notifications/urgency-levels',
-        summary: 'Get all urgency levels for alerts',
-        security: [['bearerAuth' => []]],
-        tags: ['Notifications']
-    )]
-    #[OA\Response(response: 200, description: 'Success')]
-    #[OA\Response(response: 401, description: 'Unauthenticated')]
-    public function urgencyLevels(): JsonResponse
-    {
-        return response()->json([
-            'data' => UrgencyLevel::all()
         ]);
     }
 }

@@ -45,7 +45,11 @@ class Household extends Model
     }
 
     protected $fillable = [
+        'household_id',
+        'household_code',
+        'household_number',
         'household_name',
+        'email',
         'address_id',
         'contact_number',
         'emergency_contact',

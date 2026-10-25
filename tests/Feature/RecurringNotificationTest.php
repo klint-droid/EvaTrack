@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Console\Commands\TestRecurringAlert;
 use App\Domains\Notifications\Models\Notification;
-use App\Domains\Notifications\Models\UrgencyLevel;
 use App\Domains\Notifications\Services\NotificationService;
 use App\Jobs\SendScheduledNotification;
 use Illuminate\Support\Facades\Queue;
@@ -15,14 +14,6 @@ class RecurringNotificationTest extends TestCase
     public function test_artisan_command_dispatches_1_minute_recurring_notification(): void
     {
         Queue::fake();
-
-        $urgency = UrgencyLevel::first();
-        if (!$urgency) {
-            $urgency = UrgencyLevel::create([
-                'urgency_key' => 'low',
-                'urgency_label' => 'Low',
-            ]);
-        }
 
         $this->artisan('test:recurring-alert', ['--minutes' => 1])
             ->assertExitCode(0);
@@ -39,18 +30,11 @@ class RecurringNotificationTest extends TestCase
 
     public function test_send_scheduled_notification_job_handles_recurring_cycle(): void
     {
-        $urgency = UrgencyLevel::first();
-        if (!$urgency) {
-            $urgency = UrgencyLevel::create([
-                'urgency_key' => 'low',
-                'urgency_label' => 'Low',
-            ]);
-        }
+        Queue::fake();
 
         $notification = Notification::create([
             'message'          => 'Unit Test Recurring Job Cycle',
             'sent_by'          => 1,
-            'urgency_level_id' => $urgency->urgency_id,
             'channel'          => 'push',
             'status'           => 'scheduled',
             'target_filter'    => 'all',

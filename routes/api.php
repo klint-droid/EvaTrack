@@ -10,6 +10,7 @@ use App\Domains\Evacuations\Controllers\EvacuationController;
 use App\Http\Controllers\API\SmsWebhookController;
 use App\Http\Controllers\API\Admin\UserAssignmentController;
 use App\Domains\Notifications\Controllers\NotificationController;
+use App\Domains\Notifications\Controllers\UserNotificationController;
 use App\Domains\EvacuationEvents\Controllers\EvacuationEventController;
 use App\Domains\AccommodationUnits\Controllers\AccommodationUnitController;
 use App\Domains\AccommodationUnits\Controllers\UnitAllocationController;
@@ -54,9 +55,14 @@ Route::middleware('auth:sanctum')->group(function () {
 |--------------------------------------------------------------------------
 */
 
+// User creation is exclusively restricted to Super Admin
+Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
+    Route::post('/users', [UserController::class, 'createUser']);
+});
+
+// User listing, updating, deleting, and center assignment
 Route::middleware(['auth:sanctum', 'role:super_admin,evac_admin'])->group(function () {
     Route::get('/users', [UserController::class, 'index']);
-    Route::post('/users', [UserController::class, 'createUser']);
     Route::put('/users/{id}', [UserController::class, 'updateUser']);
     Route::delete('/users/{id}', [UserController::class, 'deleteUser']);
     Route::post('/users/{user}/assign-center', [UserController::class, 'assignCenter']);
@@ -71,6 +77,7 @@ Route::middleware(['auth:sanctum', 'role:super_admin,evac_admin'])->group(functi
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/households', [HouseholdController::class, 'index']);
     Route::get('/households/search', [HouseholdController::class, 'search']);
+    Route::post('/households/sync', [HouseholdController::class, 'sync']);
     Route::get('/households/{id}', [HouseholdController::class, 'show']);
     Route::post('/households', [HouseholdController::class, 'store']);
     Route::patch('/households/{id}', [HouseholdController::class, 'update']);
@@ -92,9 +99,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('evacuations/search-household', [HouseholdController::class, 'search']);
-    Route::post('evacuations/process-scan', [EvacuationController::class, 'scan']);
-    Route::post('evacuations/verify-manual', [EvacuationController::class, 'verifyManual']);
-    Route::post('evacuations/admit', [EvacuationController::class, 'admit']);
     Route::post('evacuations/{evacuationId}/checkout', [EvacuationController::class, 'checkout']);
     Route::patch(
         'evacuations/{evacuationId}/members/{memberId}/status',
@@ -103,6 +107,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/evacuations/{evacuationId}', [EvacuationController::class, 'deleteRecord']);
     Route::apiResource('evacuations', EvacuationController::class)
         ->only(['index', 'show']);
+
+    Route::middleware('role:evac_personnel')->group(function () {
+        Route::post('evacuations/process-scan', [EvacuationController::class, 'scan']);
+        Route::post('evacuations/verify-manual', [EvacuationController::class, 'verifyManual']);
+        Route::post('evacuations/admit', [EvacuationController::class, 'admit']);
+    });
 });
 
 /*
@@ -118,7 +128,7 @@ Route::prefix('evacuation-centers')
         Route::get('/{center}/capacity', [EvacuationCenterController::class, 'capacity']);
         Route::get('/{center}/export', [CenterExportController::class, 'exportCenterHouseholds']);
 
-        Route::middleware('role:super_admin,evac_admin')->group(function () {
+        Route::middleware('role:evac_admin')->group(function () {
             Route::post('/', [EvacuationCenterController::class, 'store']);
             Route::put('/{center}', [EvacuationCenterController::class, 'update']);
             Route::delete('/{center}', [EvacuationCenterController::class, 'destroy']);
@@ -174,7 +184,6 @@ Route::middleware('auth:sanctum')->group(function () {
 */
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/urgency-levels', [ResourceRequestController::class, 'urgencyLevels']);
     Route::get('/resource-requests', [ResourceRequestController::class, 'index']);
     Route::post('/resource-requests', [ResourceRequestController::class, 'store']);
     Route::get('/resource-requests/{id}', [ResourceRequestController::class, 'show']);
@@ -214,14 +223,19 @@ Route::prefix('notifications')
         // List all
         Route::get('/', [NotificationController::class, 'index']);
         
-        // Urgency levels lookup
-        Route::get('/urgency-levels', [NotificationController::class, 'urgencyLevels']);
-        
         // Single notification actions
         Route::get('/{notification}', [NotificationController::class, 'show']);
         Route::get('/{notification}/logs', [NotificationController::class, 'logs']);
         Route::post('/{notification}/acknowledge', [NotificationController::class, 'acknowledge']);
         Route::delete('/{notification}', [NotificationController::class, 'cancel']);
+    });
+
+Route::prefix('user-notifications')
+    ->middleware('auth:sanctum')
+    ->group(function () {
+        Route::get('/', [UserNotificationController::class, 'index']);
+        Route::patch('/{id}/read', [UserNotificationController::class, 'markAsRead']);
+        Route::post('/mark-all-read', [UserNotificationController::class, 'markAllAsRead']);
     });
 
 Route::get('/barangays', [AddressController::class, 'barangays']);

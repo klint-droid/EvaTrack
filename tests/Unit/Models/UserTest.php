@@ -56,6 +56,30 @@ class UserTest extends TestCase
         $this->assertFalse($evacPersonnel->canManageUsers());
     }
 
+    public function test_can_create_users_only_allows_super_admin()
+    {
+        $superAdmin = new User(['role_id' => User::ROLE_SUPER_ADMIN_ID]);
+        $this->assertTrue($superAdmin->canCreateUsers());
+
+        $evacAdmin = new User(['role_id' => User::ROLE_EVAC_ADMIN_ID]);
+        $this->assertFalse($evacAdmin->canCreateUsers());
+
+        $evacPersonnel = new User(['role_id' => User::ROLE_EVAC_PERSONNEL_ID]);
+        $this->assertFalse($evacPersonnel->canCreateUsers());
+    }
+
+    public function test_can_verify_households_only_allows_evac_personnel()
+    {
+        $superAdmin = new User(['role_id' => User::ROLE_SUPER_ADMIN_ID]);
+        $this->assertFalse($superAdmin->canVerifyHouseholds());
+
+        $evacAdmin = new User(['role_id' => User::ROLE_EVAC_ADMIN_ID]);
+        $this->assertFalse($evacAdmin->canVerifyHouseholds());
+
+        $evacPersonnel = new User(['role_id' => User::ROLE_EVAC_PERSONNEL_ID]);
+        $this->assertTrue($evacPersonnel->canVerifyHouseholds());
+    }
+
     public function test_has_center_access_allows_admins_anywhere_and_personnel_if_assigned()
     {
         // Admin gets access anywhere

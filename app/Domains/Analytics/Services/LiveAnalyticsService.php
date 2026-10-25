@@ -12,7 +12,6 @@ use App\Domains\EvacuationEvents\Models\DisasterEvent;
 use App\Domains\Households\Models\HouseholdStatus;
 use App\Domains\ResourceRequests\Models\ResourceRequest;
 use App\Domains\ResourceRequests\Models\ResourceRequestStatus;
-use App\Domains\Notifications\Models\UrgencyLevel;
 use App\Domains\CenterIssueReports\Models\CenterIssueReport;
 use App\Domains\CenterIssueReports\Models\CenterIssueReportStatus;
 use App\Domains\EvacuationEvents\Models\SeverityLevel;
@@ -591,22 +590,6 @@ class LiveAnalyticsService
             ];
         })->values();
 
-        // Urgency counts
-        $urgencyCounts = $query->clone()
-            ->select('urgency_id', DB::raw('COUNT(*) as count'))
-            ->groupBy('urgency_id')
-            ->get();
-
-        $urgencies = UrgencyLevel::all()->keyBy('urgency_id');
-        $urgencyData = $urgencyCounts->map(function ($row) use ($urgencies) {
-            $u = $urgencies->get($row->urgency_id);
-            return [
-                'urgency_key'   => $u?->urgency_key ?? 'unknown',
-                'urgency_label' => $u?->urgency_label ?? 'Unknown',
-                'count'        => (int) $row->count,
-            ];
-        })->values();
-
         // Top requested types
         $typeCounts = $query->clone()
             ->select('resource_type', DB::raw('COUNT(*) as count'), DB::raw('SUM(quantity) as total_qty'))
@@ -624,7 +607,6 @@ class LiveAnalyticsService
 
         return [
             'status_distribution'  => $statusData,
-            'urgency_distribution' => $urgencyData,
             'top_types'            => $typeCounts,
         ];
     }

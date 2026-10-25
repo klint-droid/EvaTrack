@@ -2,199 +2,147 @@
 
 @section('content')
 
-{{-- ── Summary KPI strip ──────────────────────────────────────── --}}
-@php
-    $totalHouseholds = count($rows);
-    $totalMembers    = array_sum(array_column($rows, 7));
-    $totalMale       = array_sum(array_column($rows, 8));
-    $totalFemale     = array_sum(array_column($rows, 9));
-    $totalChildren   = array_sum(array_column($rows, 10));
-    $totalYouth      = array_sum(array_column($rows, 11));
-    $totalAdults     = array_sum(array_column($rows, 12));
-    $totalSenior     = array_sum(array_column($rows, 13));
-    $totalPwd        = array_sum(array_column($rows, 14));
-    $totalPregnant   = array_sum(array_column($rows, 15));
-    $totalIndigenous = array_sum(array_column($rows, 16));
-@endphp
-
 <style>
-    .kpi-strip { width: 100%; margin-bottom: 14px; }
-    .kpi-strip td {
-        text-align: center;
-        padding: 8px 6px;
-        border: 1px solid #bfdbfe;
-        background-color: #eff6ff;
+    .event-headline-banner {
+        background-color: #1e3a5f;
+        color: #ffffff;
+        font-size: 11px;
+        font-weight: 800;
+        padding: 4px 12px;
         border-radius: 4px;
-        font-size: 9px;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+        display: inline-block;
     }
-    .kpi-strip .kpi-num  { font-size: 16px; font-weight: 800; color: #1d4ed8; display: block; }
-    .kpi-strip .kpi-lbl  { color: #1e40af; font-weight: 600; text-transform: uppercase; font-size: 7.5px; letter-spacing: 0.5px; }
-    .kpi-strip .kpi-warn { background-color: #fef9c3; border-color: #fde047; }
-    .kpi-strip .kpi-warn .kpi-num { color: #92400e; }
-    .kpi-strip .kpi-warn .kpi-lbl { color: #78350f; }
-    .kpi-strip .kpi-rose { background-color: #fff1f2; border-color: #fca5a5; }
-    .kpi-strip .kpi-rose .kpi-num { color: #be123c; }
-    .kpi-strip .kpi-rose .kpi-lbl { color: #9f1239; }
+    .summary-text-box {
+        background-color: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-left: 4px solid #1e3a5f;
+        padding: 8px 14px;
+        margin-bottom: 12px;
+        font-size: 8.5px;
+    }
+    .summary-title {
+        font-size: 9px;
+        font-weight: 800;
+        color: #1e293b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 5px;
+        padding-bottom: 3px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .summary-bullets {
+        margin: 0;
+        padding-left: 16px;
+        color: #334155;
+        line-height: 1.6;
+    }
+    .summary-bullets li {
+        margin-bottom: 2px;
+    }
+    .summary-bullets li strong {
+        color: #0f172a;
+    }
     .section-label {
-        font-size: 8px;
+        font-size: 8.5px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.8px;
-        color: #94a3b8;
+        color: #475569;
         padding: 4px 0 2px 0;
-        border-bottom: 1px solid #e2e8f0;
+        border-bottom: 1px solid #cbd5e1;
         margin-bottom: 6px;
-    }
-    table.data-table th.th-group {
-        background-color: #1e3a5f;
-        color: #fff;
-        text-align: center;
-        padding: 4px 6px;
-        font-size: 8px;
-        letter-spacing: 0.5px;
-        border: 1px solid #1e3a5f;
     }
     table.data-table tr.totals-row td {
         background-color: #1e293b;
         color: #f1f5f9;
         font-weight: bold;
-        font-size: 8.5px;
+        font-size: 8px;
         border: 1px solid #334155;
     }
     table.data-table tr.totals-row td.text-center { text-align: center; }
 </style>
 
-{{-- Summary KPI strip --}}
-<div class="section-label">Evacuation Summary</div>
-<table class="kpi-strip" cellspacing="3" cellpadding="0">
-    <tr>
-        <td>
-            <span class="kpi-num">{{ number_format($totalHouseholds) }}</span>
-            <span class="kpi-lbl">Total Families</span>
-        </td>
-        <td>
-            <span class="kpi-num">{{ number_format($totalMembers) }}</span>
-            <span class="kpi-lbl">Total Individuals</span>
-        </td>
-        <td>
-            <span class="kpi-num">{{ number_format($totalMale) }}</span>
-            <span class="kpi-lbl">Male</span>
-        </td>
-        <td>
-            <span class="kpi-num">{{ number_format($totalFemale) }}</span>
-            <span class="kpi-lbl">Female</span>
-        </td>
-        <td>
-            <span class="kpi-num">{{ number_format($totalChildren + $totalYouth) }}</span>
-            <span class="kpi-lbl">Minors (0–17)</span>
-        </td>
-        <td>
-            <span class="kpi-num">{{ number_format($totalSenior) }}</span>
-            <span class="kpi-lbl">Senior Citizens</span>
-        </td>
-        <td class="kpi-warn">
-            <span class="kpi-num">{{ number_format($totalPwd) }}</span>
-            <span class="kpi-lbl">PWD</span>
-        </td>
-        <td class="kpi-rose">
-            <span class="kpi-num">{{ number_format($totalPregnant) }}</span>
-            <span class="kpi-lbl">Pregnant</span>
-        </td>
-        <td class="kpi-warn">
-            <span class="kpi-num">{{ number_format($totalIndigenous) }}</span>
-            <span class="kpi-lbl">Indigenous</span>
-        </td>
-    </tr>
-</table>
+{{-- ── Event Headline Banner ──────────────────────────────── --}}
+@if(!empty($meta['event']))
+<div class="event-headline-banner">
+    DISASTER EVENT: {{ strtoupper($meta['event']) }}
+</div>
+@endif
 
-{{-- Main data table --}}
-<div class="section-label" style="margin-top: 10px;">Master List of Evacuated Families</div>
+{{-- ── Text-Only Statistical Executive Summary ────────────── --}}
+<div class="summary-text-box">
+    <div class="summary-title">Executive Evacuation Statistics Summary</div>
+    <ul class="summary-bullets">
+        <li><strong>Total Evacuated Families:</strong> {{ number_format($summaryStats['totalHouseholds'] ?? 0) }} families / households registered</li>
+        <li><strong>Total Evacuated Individuals:</strong> {{ number_format($summaryStats['totalIndividuals'] ?? count($rows)) }} individual members listed in master roster</li>
+        <li><strong>Sex Disaggregation:</strong> {{ number_format($summaryStats['totalMale'] ?? 0) }} Male &bull; {{ number_format($summaryStats['totalFemale'] ?? 0) }} Female</li>
+        <li><strong>Age Group Demographics:</strong> {{ number_format($summaryStats['totalChildren'] ?? 0) }} Children (0–12 yrs) &bull; {{ number_format($summaryStats['totalYouth'] ?? 0) }} Youth (13–17 yrs) &bull; {{ number_format($summaryStats['totalAdults'] ?? 0) }} Adults (18–59 yrs) &bull; {{ number_format($summaryStats['totalSenior'] ?? 0) }} Senior Citizens (60+ yrs)</li>
+        <li><strong>Vulnerable & Special Needs Sectors:</strong> {{ number_format($summaryStats['totalPwd'] ?? 0) }} Persons with Disability (PWD) &bull; {{ number_format($summaryStats['totalPregnant'] ?? 0) }} Pregnant / Lactating &bull; {{ number_format($summaryStats['totalIndigenous'] ?? 0) }} Indigenous Peoples (IP)</li>
+    </ul>
+</div>
+
+{{-- ── Master List Data Table (All Evacuated Members) ────────── --}}
+<div class="section-label">Master List of Evacuated Members (Individual Member Roster)</div>
 
 <table class="data-table">
     <thead>
-        {{-- Column group header row --}}
-        <tr>
-            <th class="th-group" colspan="2">Reference</th>
-            <th class="th-group" colspan="3">Household Identification</th>
-            <th class="th-group" colspan="8">Population Breakdown</th>
-            <th class="th-group" colspan="3">Vulnerable Groups</th>
-            <th class="th-group" colspan="2">Accommodation</th>
-        </tr>
-        {{-- Actual column headers --}}
         <tr>
             <th style="width: 3%;">No.</th>
-            <th style="width: 8%;">Event</th>
-            <th style="width: 10%;">Center</th>
             <th style="width: 8%;">Household ID</th>
-            <th style="width: 10%;">Family Name</th>
-            <th style="width: 8%;">Contact No.</th>
-            <th style="width: 13%;">Home Address</th>
-            <th style="width: 4%;" class="text-center">Total</th>
-            <th style="width: 3%;" class="text-center">Male</th>
-            <th style="width: 3%;" class="text-center">Female</th>
-            <th style="width: 3%;" class="text-center">Children (0–12)</th>
-            <th style="width: 3%;" class="text-center">Youth (13–17)</th>
-            <th style="width: 3%;" class="text-center">Adults (18–59)</th>
-            <th style="width: 3%;" class="text-center">Senior (60+)</th>
-            <th style="width: 3%;" class="text-center">PWD</th>
-            <th style="width: 3%;" class="text-center">Pregnant</th>
-            <th style="width: 3%;" class="text-center">Indigenous</th>
-            <th style="width: 6%;">Unit / Room</th>
-            <th style="width: 10%;">Date Admitted</th>
+            <th style="width: 9%;">Family Name</th>
+            <th style="width: 14%;">Member Full Name</th>
+            <th style="width: 8%;">Relationship</th>
+            <th style="width: 5%;" class="text-center">Sex</th>
+            <th style="width: 4%;" class="text-center">Age</th>
+            <th style="width: 7%;" class="text-center">Birthdate</th>
+            <th style="width: 12%;">Special Needs / Sector</th>
+            <th style="width: 11%;">Evacuation Center</th>
+            <th style="width: 6%;">Room / Unit</th>
+            <th style="width: 8%;">Origin Address</th>
+            <th style="width: 5%;">Date Admitted</th>
         </tr>
     </thead>
     <tbody>
         @forelse($rows as $row)
         <tr>
             <td>{{ $row[0] }}</td>
-            <td>{{ $row[1] }}</td>
-            <td>{{ $row[2] }}</td>
-            <td><code style="font-size: 7.5px;">{{ $row[3] }}</code></td>
-            <td class="font-bold">{{ $row[4] }}</td>
+            <td><code style="font-size: 7.5px;">{{ $row[2] }}</code></td>
+            <td class="font-bold">{{ $row[3] }}</td>
+            <td class="font-bold" style="color: #1e3a5f;">{{ $row[4] }}</td>
             <td>{{ $row[5] }}</td>
-            <td style="font-size: 8px;">{{ $row[6] }}</td>
-            <td class="text-center font-bold">{{ $row[7] }}</td>
-            <td class="text-center">{{ $row[8] ?: '—' }}</td>
-            <td class="text-center">{{ $row[9] ?: '—' }}</td>
-            <td class="text-center">{{ $row[10] ?: '—' }}</td>
-            <td class="text-center">{{ $row[11] ?: '—' }}</td>
-            <td class="text-center">{{ $row[12] ?: '—' }}</td>
-            <td class="text-center">{{ $row[13] ?: '—' }}</td>
-            <td class="text-center {{ $row[14] > 0 ? 'font-bold' : '' }}" style="{{ $row[14] > 0 ? 'color:#1d4ed8;' : '' }}">
-                {{ $row[14] > 0 ? $row[14] : '—' }}
+            <td class="text-center">{{ $row[6] }}</td>
+            <td class="text-center">{{ $row[7] }}</td>
+            <td class="text-center" style="font-size: 7.5px;">{{ $row[8] }}</td>
+            <td>
+                @if($row[9] !== 'None' && $row[9] !== '—')
+                    <span style="color: #be123c; font-weight: bold;">{{ $row[9] }}</span>
+                @else
+                    <span style="color: #94a3b8;">None</span>
+                @endif
             </td>
-            <td class="text-center {{ $row[15] > 0 ? 'font-bold' : '' }}" style="{{ $row[15] > 0 ? 'color:#be123c;' : '' }}">
-                {{ $row[15] > 0 ? $row[15] : '—' }}
-            </td>
-            <td class="text-center {{ $row[16] > 0 ? 'font-bold' : '' }}">
-                {{ $row[16] > 0 ? $row[16] : '—' }}
-            </td>
-            <td style="font-size: 8px;">{{ $row[17] }}</td>
-            <td style="font-size: 8px;">{{ $row[18] }}</td>
+            <td>{{ $row[10] }}</td>
+            <td>{{ $row[11] }}</td>
+            <td style="font-size: 7.5px;">{{ $row[12] }}</td>
+            <td style="font-size: 7.5px;">{{ $row[14] }}</td>
         </tr>
         @empty
         <tr>
-            <td colspan="19" class="text-center" style="padding: 20px; color: #94a3b8;">
-                No evacuated family records match the selected filter criteria.
+            <td colspan="13" class="text-center" style="padding: 20px; color: #94a3b8;">
+                No evacuated member records match the selected filter criteria.
             </td>
         </tr>
         @endforelse
 
-        {{-- TOTALS row --}}
         @if(count($rows) > 0)
         <tr class="totals-row">
-            <td colspan="7" style="padding: 6px 8px; font-size: 8.5px;">TOTALS — {{ $totalHouseholds }} {{ Str::plural('Family', $totalHouseholds) }}</td>
-            <td class="text-center">{{ $totalMembers }}</td>
-            <td class="text-center">{{ $totalMale }}</td>
-            <td class="text-center">{{ $totalFemale }}</td>
-            <td class="text-center">{{ $totalChildren }}</td>
-            <td class="text-center">{{ $totalYouth }}</td>
-            <td class="text-center">{{ $totalAdults }}</td>
-            <td class="text-center">{{ $totalSenior }}</td>
-            <td class="text-center">{{ $totalPwd }}</td>
-            <td class="text-center">{{ $totalPregnant }}</td>
-            <td class="text-center">{{ $totalIndigenous }}</td>
-            <td colspan="2"></td>
+            <td colspan="5" style="padding: 6px 8px; font-size: 8px;">
+                TOTAL REGISTERED EVACUEES: {{ count($rows) }} {{ Str::plural('Member', count($rows)) }} (across {{ $summaryStats['totalHouseholds'] ?? 0 }} {{ Str::plural('Family', $summaryStats['totalHouseholds'] ?? 0) }})
+            </td>
+            <td class="text-center">{{ $summaryStats['totalMale'] ?? 0 }} M / {{ $summaryStats['totalFemale'] ?? 0 }} F</td>
+            <td colspan="7"></td>
         </tr>
         @endif
     </tbody>

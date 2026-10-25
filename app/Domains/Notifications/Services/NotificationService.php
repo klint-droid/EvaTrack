@@ -69,7 +69,6 @@ class NotificationService
             $notification = Notification::create([
                 'message'              => $payload['message'],
                 'sent_by'              => $payload['sent_by'],
-                'urgency_level_id'     => $payload['urgency_level_id'],
                 'evacuation_event_id'  => $payload['evacuation_event_id']  ?? null,
                 'evacuation_center_id' => $payload['evacuation_center_id'] ?? null,
                 'scheduled_at'         => $payload['scheduled_at']         ?? null,

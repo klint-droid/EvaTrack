@@ -9,7 +9,6 @@ class ResourceRequestFilterDTO
     public function __construct(
         public readonly ?string $centerId,
         public readonly ?string $status,
-        public readonly ?int $urgencyId,
         public readonly ?string $q,
         public readonly int $limit,
     ) {}
@@ -19,7 +18,6 @@ class ResourceRequestFilterDTO
         return new self(
             centerId:  $request->has('center_id') ? (string) $request->query('center_id') : null,
             status:    $request->query('status'),
-            urgencyId: $request->has('urgency_id') ? (int) $request->query('urgency_id') : null,
             q:         $request->query('q'),
             limit:     (int) $request->query('limit', 0),
         );

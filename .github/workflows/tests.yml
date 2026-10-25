@@ -1,0 +1,63 @@
+name: Automated Tests
+
+on:
+  push:
+    branches: [ main, master, dev, development ]
+  pull_request:
+    branches: [ main, master, dev, development ]
+
+jobs:
+  laravel-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: klint_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo, pdo_mysql, bcmath, ctype, json, openssl, tokenizer, xml
+          coverage: none
+
+      - name: Copy .env
+        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+
+      - name: Install Dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: Generate Application Key
+        run: php artisan key:generate
+
+      - name: Run Database Migrations
+        env:
+          DB_CONNECTION: mysql_v2
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_V2_DATABASE: klint_test
+          DB_DATABASE: klint_test
+          DB_USERNAME: root
+          DB_PASSWORD: password
+        run: php artisan migrate --force
+
+      - name: Execute Tests via PHPUnit
+        env:
+          DB_CONNECTION: mysql_v2
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_V2_DATABASE: klint_test
+          DB_DATABASE: klint_test
+          DB_USERNAME: root
+          DB_PASSWORD: password
+        run: php -d memory_limit=512M vendor/bin/phpunit

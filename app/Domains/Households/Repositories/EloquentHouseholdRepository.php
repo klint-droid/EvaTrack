@@ -24,6 +24,9 @@ class EloquentHouseholdRepository implements HouseholdRepositoryInterface
         'members.evacuatedMembers.evacuationRecord.center',
         'members.evacuatedMembers.evacuationRecord.event',
         'address',
+        'address.barangay',
+        'address.sitio',
+        'address.purok',
         'currentEvacuation.center',
         'currentEvacuation.event',
         'currentEvacuation.unitAllocation.unit.type', 
@@ -47,7 +50,9 @@ class EloquentHouseholdRepository implements HouseholdRepositoryInterface
     public function getFilteredList(HouseholdFilterDTO $filters, ?string $assignedCenterId): LengthAwarePaginator
     {
         $query = Household::withCount('members')->with([
-            'address',
+            'address.barangay',
+            'address.sitio',
+            'address.purok',
             'currentEvacuation.center',
             'currentEvacuation.event',
             'currentEvacuation.unitAllocation.unit',

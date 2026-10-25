@@ -8,6 +8,10 @@ class UpdateResourceRequestStatusRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        if ($this->user()?->isEvacAdmin() || $this->user()?->isSuperAdmin()) {
+            return false;
+        }
+
         return true;
     }
 

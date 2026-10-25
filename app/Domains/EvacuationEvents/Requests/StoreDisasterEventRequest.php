@@ -16,7 +16,7 @@ class StoreDisasterEventRequest extends FormRequest
         return [
             'name'        => 'required|string|max:100',
             'type_id'     => 'required|exists:disaster_types,type_id',
-            'severity_id' => 'required|exists:severity_levels,severity_id',
+            'severity_id' => 'nullable|exists:severity_levels,severity_id',
         ];
     }
 }

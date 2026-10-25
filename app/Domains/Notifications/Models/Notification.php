@@ -20,7 +20,6 @@ class Notification extends Model
         'sent_by',
         'evacuation_event_id',
         'evacuation_center_id',
-        'urgency_level_id',
         'scheduled_at',
         'is_recurring',
         'recurrence_type_id',
@@ -61,11 +60,6 @@ class Notification extends Model
     public function center()
     {
         return $this->belongsTo(EvacuationCenter::class, 'evacuation_center_id', 'evacuation_center_id');
-    }
-
-    public function urgencyLevel()
-    {
-        return $this->belongsTo(UrgencyLevel::class, 'urgency_level_id', 'urgency_id');
     }
 
     public function recurrenceType()

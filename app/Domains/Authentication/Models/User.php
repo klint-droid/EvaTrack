@@ -134,6 +134,16 @@ class User extends Authenticatable
         return $this->isSuperAdmin() || $this->isEvacAdmin();
     }
 
+    public function canCreateUsers(): bool
+    {
+        return $this->isSuperAdmin();
+    }
+
+    public function canVerifyHouseholds(): bool
+    {
+        return $this->isEvacPersonnel();
+    }
+
     public function getAuthIdentifierName()
     {
         return 'user_id';
@@ -145,7 +155,7 @@ class User extends Authenticatable
             return true;
         }
 
-        return $this->assigned_center_id === $centerId;
+        return (string) $this->assigned_center_id === (string) $centerId;
     }
 
     public function isAssigned()
@@ -180,5 +190,10 @@ class User extends Authenticatable
     public function notificationsSent()
     {
         return $this->hasMany(Notification::class, 'sent_by', 'user_id');
+    }
+
+    public function userNotifications()
+    {
+        return $this->hasMany(\App\Domains\Notifications\Models\UserNotification::class, 'user_id', 'user_id');
     }
 }

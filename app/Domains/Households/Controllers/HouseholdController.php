@@ -64,9 +64,32 @@ class HouseholdController extends BaseApiController
     #[OA\Response(response: 200, description: 'Success')]
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     #[OA\Response(response: 404, description: 'Household not found')]
-    public function show(string $id, HouseholdRepositoryInterface $repository)
+    public function show(
+        string $id, 
+        HouseholdRepositoryInterface $repository, 
+        \App\Domains\Households\Services\ExternalHouseholdService $externalService
+    ) {
+        try {
+            return response()->json(['data' => $repository->findWithRelations($id)]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            $synced = $externalService->syncSingleHousehold($id);
+            if ($synced) {
+                return response()->json(['data' => $repository->findWithRelations($id)]);
+            }
+            throw $e;
+        }
+    }
+
+    #[OA\Post(
+        path: '/households/sync',
+        summary: 'Synchronize households from external partner system',
+        security: [['bearerAuth' => []]],
+        tags: ['Households']
+    )]
+    public function sync(Request $request, \App\Domains\Households\Services\ExternalHouseholdService $externalService)
     {
-        return response()->json(['data' => $repository->findWithRelations($id)]);
+        $result = $externalService->syncHouseholds(force: true);
+        return response()->json($result);
     }
 
     #[OA\Post(

@@ -56,7 +56,7 @@ class EvacuationCenterController extends BaseApiController
     #[OA\Response(response: 403, description: 'Forbidden')]
     public function store(StoreEvacuationCenterRequest $request, CreateEvacuationCenterAction $action)
     {
-        $this->authorizeRole('super_admin', 'evac_admin');
+        $this->authorizeRole('evac_admin');
 
         $dto = EvacuationCenterDTO::fromRequest($request);
         $center = $action->execute($dto);
@@ -109,7 +109,7 @@ class EvacuationCenterController extends BaseApiController
     #[OA\Response(response: 404, description: 'Center not found')]
     public function update(UpdateEvacuationCenterRequest $request, EvacuationCenter $center, UpdateEvacuationCenterAction $action)
     {
-        $this->authorizeRole('super_admin', 'evac_admin');
+        $this->authorizeRole('evac_admin');
 
         $dto = EvacuationCenterDTO::fromRequest($request);
         $updatedCenter = $action->execute($center, $dto);
@@ -133,7 +133,7 @@ class EvacuationCenterController extends BaseApiController
     #[OA\Response(response: 404, description: 'Center not found')]
     public function destroy(EvacuationCenter $center, DeleteEvacuationCenterAction $action)
     {
-        $this->authorizeRole('super_admin', 'evac_admin');
+        $this->authorizeRole('evac_admin');
 
         $action->execute($center);
 

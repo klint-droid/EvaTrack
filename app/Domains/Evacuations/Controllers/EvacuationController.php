@@ -106,7 +106,7 @@ class EvacuationController extends BaseApiController
     #[OA\Response(response: 403, description: 'Forbidden')]
     public function scan(StoreEvacuationRequest $request, ScanQREvacuationAction $action)
     {
-        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
+        $this->authorizeRole('evac_personnel');
         
         $centerId = $this->resolveUserCenterId($request);
         $dto = AdmissionDTO::fromRequest($request, $centerId, Auth::id(), 'qr');
@@ -144,7 +144,7 @@ class EvacuationController extends BaseApiController
     #[OA\Response(response: 403, description: 'Forbidden')]
     public function verifyManual(VerifyManualEvacuationRequest $request, VerifyManualEvacuationAction $action)
     {
-        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
+        $this->authorizeRole('evac_personnel');
 
         $centerId = $this->resolveUserCenterId($request);
         $dto = AdmissionDTO::fromRequest($request, $centerId, Auth::id(), 'manual');
@@ -184,7 +184,7 @@ class EvacuationController extends BaseApiController
     public function admit(Request $request, VerifyManualEvacuationAction $action)
     {
         // Admission behaves the exact same way as verifyManual now
-        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
+        $this->authorizeRole('evac_personnel');
 
         $centerId = $this->resolveUserCenterId($request);
         $dto = AdmissionDTO::fromRequest($request, $centerId, Auth::id(), 'manual');
