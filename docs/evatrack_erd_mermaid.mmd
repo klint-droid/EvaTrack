@@ -1,6 +1,6 @@
 %% EvaTrack – Strict Entity Relationship Diagram
 %% Paste this entire code into https://mermaid.live
-%% NOTE: This diagram contains ONLY the tables and attributes actively used by the EvaTrack system models.
+%% NOTE: This diagram contains ONLY the tables and attributes actively used by the EvaTrack system models and database (mysql_v2 / shared_db).
 
 erDiagram
 
@@ -12,6 +12,9 @@ erDiagram
         varchar user_id PK
         varchar first_name
         varchar last_name
+        varchar name
+        varchar username
+        varchar email
         varchar password
         int role_id FK
         varchar contact_number
@@ -19,6 +22,9 @@ erDiagram
         varchar household_id FK
         boolean is_active
         varchar profile_photo
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
     }
 
     roles {
@@ -27,16 +33,35 @@ erDiagram
         varchar role_name
     }
 
+    user_notifications {
+        bigint id PK
+        varchar user_id FK
+        varchar type
+        varchar title
+        text message
+        json data
+        datetime read_at
+        datetime created_at
+        datetime updated_at
+    }
+
     %% ══════════════════════════════════════════
     %% HOUSEHOLDS & MEMBERS
     %% ══════════════════════════════════════════
 
     households {
         varchar household_id PK
+        varchar household_code
+        varchar household_number
         varchar household_name
+        varchar email
         int address_id FK
         varchar contact_number
         varchar emergency_contact
+        int member_count
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
     }
 
     household_members {
@@ -49,6 +74,16 @@ erDiagram
         int gender_id FK
         int relationship_id FK
         int civil_status_id FK
+        boolean is_household_head
+        boolean can_report_for_household
+        boolean is_senior
+        boolean is_pwd
+        boolean is_pregnant
+        varchar contact_number
+        varchar occupation
+        int education_level_id
+        varchar religion
+        text special_needs
     }
 
     household_statuses {
@@ -63,17 +98,28 @@ erDiagram
         int vulnerable_group_id FK
     }
 
+    vulnerable_groups {
+        int vulnerable_group_id PK
+        varchar vulnerable_group_key UK
+        varchar vulnerable_group_label
+    }
+
     %% ══════════════════════════════════════════
     %% ADDRESS / LOCATION HIERARCHY
     %% ══════════════════════════════════════════
 
     addresses {
         int address_id PK
-        int street_address
-        int barangay_id FK
-        int sitio_id FK
+        text street_address
         int purok_id FK
+        int sitio_id FK
+        int barangay_id FK
+        int city_id FK
+        int province_id FK
+        int region_id FK
         int zipcode_id FK
+        datetime created_at
+        datetime updated_at
     }
 
     regions {
@@ -114,7 +160,7 @@ erDiagram
         varchar purok_name
         int sitio_id FK
     }
-    
+
     zipcodes {
         int zipcode_id PK
         varchar zipcode
@@ -132,6 +178,8 @@ erDiagram
         int severity_level_id FK
         datetime started_at
         datetime ended_at
+        datetime created_at
+        datetime updated_at
     }
 
     disaster_types {
@@ -187,9 +235,11 @@ erDiagram
         varchar center_id FK
         int household_status_id FK
         int evacuated_count
-        enum method
+        varchar method
         varchar verified_by FK
         datetime verified_at
+        datetime created_at
+        datetime updated_at
     }
 
     evacuated_members {
@@ -240,6 +290,8 @@ erDiagram
         int severity_id FK
         int status_id FK
         varchar attachment_path
+        datetime created_at
+        datetime updated_at
     }
 
     center_issue_categories {
@@ -268,6 +320,8 @@ erDiagram
         text description
         int urgency_id FK
         int status_id FK
+        datetime created_at
+        datetime updated_at
     }
 
     resource_request_status {
@@ -276,8 +330,14 @@ erDiagram
         varchar status_label
     }
 
+    urgency_levels {
+        int urgency_id PK
+        varchar urgency_key
+        varchar urgency_label
+    }
+
     %% ══════════════════════════════════════════
-    %% NOTIFICATIONS
+    %% NOTIFICATIONS & COMMUNICATIONS
     %% ══════════════════════════════════════════
 
     notifications {
@@ -295,6 +355,7 @@ erDiagram
         varchar channel
         varchar status
         varchar target_filter
+        datetime created_at
     }
 
     notification_recipients {
@@ -341,7 +402,7 @@ erDiagram
     }
 
     %% ══════════════════════════════════════════
-    %% ANALYTICS
+    %% ANALYTICS & MONITORING
     %% ══════════════════════════════════════════
 
     analytics {
@@ -351,7 +412,7 @@ erDiagram
         varchar snapshot_type
         datetime recorded_at
         int total_population
-        int total_household
+        int total_households
         int children_count
         int adult_count
         int elderly_count
@@ -363,7 +424,7 @@ erDiagram
 
     analytics_job_logs {
         int job_id PK
-        int status_id
+        int status_id FK
         datetime started_at
         datetime finished_at
         text message
@@ -397,25 +458,14 @@ erDiagram
         varchar relationship_label
     }
 
-    vulnerable_groups {
-        int vulnerable_group_id PK
-        varchar vulnerable_group_key UK
-        varchar vulnerable_group_label
-    }
-
-    urgency_levels {
-        int urgency_id PK
-        varchar urgency_key
-        varchar urgency_label
-    }
-
     %% ══════════════════════════════════════════
-    %% RELATIONSHIPS
+    %% RELATIONSHIPS & CARDINALITY
     %% ══════════════════════════════════════════
 
     users }o--|| roles : "role_id"
     users }o--o| evacuation_centers : "assigned_center_id"
     users }o--o| households : "household_id"
+    users ||--o{ user_notifications : "user_id"
 
     households }o--o| addresses : "address_id"
     households ||--|{ household_members : "household_id"
@@ -432,9 +482,12 @@ erDiagram
 
     member_vulnerable_groups }o--|| vulnerable_groups : "vulnerable_group_id"
 
-    addresses }o--o| barangays : "barangay_id"
-    addresses }o--o| sitios : "sitio_id"
     addresses }o--o| puroks : "purok_id"
+    addresses }o--o| sitios : "sitio_id"
+    addresses }o--o| barangays : "barangay_id"
+    addresses }o--o| cities : "city_id"
+    addresses }o--o| provinces : "province_id"
+    addresses }o--o| regions : "region_id"
     addresses }o--o| zipcodes : "zipcode_id"
 
     regions ||--|{ provinces : "region_id"
@@ -449,6 +502,7 @@ erDiagram
     disaster_events ||--|{ evacuation_records : "event_id"
     disaster_events ||--|{ notifications : "evacuation_event_id"
     disaster_events ||--|{ disaster_event_types : "event_id"
+    disaster_events ||--|{ analytics : "evacuation_event_id"
     disaster_event_types }o--|| disaster_types : "type_id"
 
     evacuation_centers }o--o| disaster_events : "current_event_id"
@@ -510,5 +564,4 @@ erDiagram
 
     device_tokens }o--|| households : "household_id"
 
-    analytics }o--o| disaster_events : "evacuation_event_id"
-    analytics }o--o| evacuation_centers : "evacuation_center_id"
+    analytics_job_logs }o--|| analytics_job_status : "status_id"
