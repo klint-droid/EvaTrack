@@ -68,7 +68,7 @@ CREATE TABLE `_archive_orphan_household_status_logs` (
 -- ----------------------------------------------------------------------------
 DROP TABLE IF EXISTS `accommodation_types`;
 CREATE TABLE `accommodation_types` (
-  `type_id` int NOT NULL,
+  `type_id` int NOT NULL AUTO_INCREMENT,
   `type_key` varchar(50) DEFAULT NULL,
   `type_label` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`type_id`),

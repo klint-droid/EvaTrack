@@ -72,7 +72,14 @@ class AccommodationUnitController extends BaseApiController
     #[OA\Response(response: 422, description: 'Capacity limit exceeded')]
     public function store(StoreAccommodationUnitRequest $request, string $centerId, CreateAccommodationUnitAction $action)
     {
-        $this->authorizeRole('super_admin', 'evac_admin');
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
+
+        $user = auth()->user();
+        if ($user && $user->isEvacPersonnel()) {
+            if ((string) $user->assigned_center_id !== (string) $centerId) {
+                abort(403, 'You are only authorized to manage accommodation units in your assigned evacuation center.');
+            }
+        }
 
         $dto = AccommodationUnitDTO::fromRequest($request);
 
@@ -112,7 +119,14 @@ class AccommodationUnitController extends BaseApiController
     #[OA\Response(response: 422, description: 'Capacity limit exceeded')]
     public function update(UpdateAccommodationUnitRequest $request, string $centerId, int $unitId, UpdateAccommodationUnitAction $action)
     {
-        $this->authorizeRole('super_admin', 'evac_admin');
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
+
+        $user = auth()->user();
+        if ($user && $user->isEvacPersonnel()) {
+            if ((string) $user->assigned_center_id !== (string) $centerId) {
+                abort(403, 'You are only authorized to manage accommodation units in your assigned evacuation center.');
+            }
+        }
 
         $dto = AccommodationUnitDTO::fromRequest($request);
 
@@ -142,7 +156,14 @@ class AccommodationUnitController extends BaseApiController
     #[OA\Response(response: 404, description: 'Unit not found')]
     public function destroy(string $centerId, int $unitId, DeleteAccommodationUnitAction $action)
     {
-        $this->authorizeRole('super_admin', 'evac_admin');
+        $this->authorizeRole('super_admin', 'evac_admin', 'evac_personnel');
+
+        $user = auth()->user();
+        if ($user && $user->isEvacPersonnel()) {
+            if ((string) $user->assigned_center_id !== (string) $centerId) {
+                abort(403, 'You are only authorized to manage accommodation units in your assigned evacuation center.');
+            }
+        }
 
         try {
             $action->execute($unitId, $centerId);
