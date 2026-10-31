@@ -1,177 +1,202 @@
 # EvaTrack – Use Case Diagram & Detailed Use Cases
 
-**Project Title:** EVATRACK: Streamlined Evacuation Processes and Coordination Platform Integrating SafeTrack Demographics and ResQperation Response Support
-**Proponents:** Klint M. Ruales, Danica Gelbolingo, Anna Rhea Villadolid, Vhenz Cernal
+**Project Title:** EVATRACK: Streamlined Evacuation Processes and Coordination Platform Integrating SafeTrack Demographics and ResQperation Response Support  
+**Proponents:** Klint M. Ruales, Danica Gelbolingo, Anna Rhea Villadolid, Vhenz Cernal  
+**Institution:** School of Computer Studies, University of San Jose-Recoletos (USJ-R)  
+**Adviser:** Mr. Stefan A.D. Flores | **Project Coordinator:** Mr. Roderick A. Bandalan  
+**Date:** October 2026 (Version 1.1 - Verified Against Production Architecture)
 
 ---
 
 ## 1. System Overview & Must-Haves Alignment
 
-EvaTrack streamlines evacuation operations, real-time center occupancy tracking, demographic analytics, and response coordination by integrating with **SafeTrack** (for household demographic data retrieval used solely for verification — never visible to households) and **ResQperation** (for emergency response support and push notification dispatch).
+EvaTrack streamlines evacuation operations, real-time center occupancy tracking, demographic analytics, in-center incident triage, and multi-agency response coordination by integrating with:
+1. **SafeTrack System:** Ingests household demographic records solely for on-site personnel identity verification, demographic breakdown, and needs prioritization. This sensitive demographic data is strictly isolated from public/household view.
+2. **ResQperation System:** Interoperates for emergency response logistics dispatch (routing resource shortages and personnel demands) and multi-channel push notification broadcasting to citizens.
 
-### Core Must-Have System Requirements:
-
-1. **SafeTrack Demographics Integration:** Retrieves household demographic data from SafeTrack for identification and verification during evacuation. This data is not visible to households and is used exclusively for verification and analytics purposes.
-2. **Evacuation Status Tracking:** Real-time tracking of household evacuation status as `Evacuated` or `Not Evacuated`.
-3. **Auto Capacity Updates:** Automatically updates evacuation center capacity and occupancy counts when a household is verified and admitted at that center.
-4. **Demographic Analytics Computation:** Automatically computes evacuation analytics from demographic data captured through personnel updates, including age distribution (children, adults, elderly), pregnant women count, PWD count, gender distribution, and total affected population.
-5. **Alert & Assistance Routing:** Routes emergency evacuation alerts to households via SMS and push notifications via ResQperation. Routes resource/personnel requests to ResQperation.
+### Core Must-Have System Capabilities:
+1. **SafeTrack Demographics Integration:** Rapid ingestion and verification of family rosters via QR code and manual fallback without exposing data to residents.
+2. **Real-Time Evacuation Status Tracking:** Discrete tracking of households and individuals (`Evacuated` [Status ID: 2] vs. `Not Evacuated` [Status ID: 1]).
+3. **Automated Shelter Capacity & Room Allocation:** Automatic real-time increments and decrements of shelter occupancy and remaining bed capacity upon admission and checkout.
+4. **Demographic Intelligence & Vulnerability Analytics:** Automated aggregation of children (0–17), adults (18–59), elderly (60+), pregnant women, Persons with Disabilities (PWD), gender ratios, and affected populations.
+5. **In-Center Incident & Health Condition Reporting:** Real-time triage, severity assessment (`low`, `medium`, `high`, `critical`), photographic evidence uploads, and Jira-style Kanban monitoring of shelter issues.
+6. **Resource Logistics & ResQperation Routing:** Automated demand logging and status transition for food, potable water, medical kits, and response personnel.
+7. **Multi-Channel Emergency Alerts:** Scheduled, instant, and recurring broadcast dispatch through cellular SMS (for offline residents) and ResQperation push notifications.
 
 ---
 
 ## 2. System Actors
 
-| Actor | Role Type | Description |
-|-------|-----------|-------------|
-| **Super Admin** | Primary System Actor | Full system oversight across all centers and roles. Generates and retrieves system-wide reports and evacuation analytics. Holds emergency override access over all Evacuation Admin and Evacuation Personnel actions for emergency intervention or troubleshooting — not for routine use. |
-| **Evacuation Admin** | Primary System Actor | Creates and configures evacuation centers and rooms. Monitors ongoing evacuations across centers (status, occupancy, personnel activity). Monitors ongoing requests per center. Sends evacuation alerts (SMS; push via ResQperation). Assigns personnel, edits household/room records, checks evacuation statuses. Inherits all Evacuation Personnel capabilities. |
-| **Evacuation Personnel** | Primary System Actor | Assigned to a specific evacuation center. Logs in, verifies arriving households via QR code scanning or manual household input (when QR unavailable). Updates household info post-verification (assigns rooms, monitors household stay, updates evacuation status). Reports in-center needs and requests assistance from ResQperation. |
-| **Households / Residents** | Secondary Actor | No direct system access. Receives evacuation alerts via SMS or ResQperation push notifications. Verified by QR code or manual input and tracked by evacuation personnel. |
-| **SafeTrack System** | External System | Provides verified household demographic data for identification, verification, and analytics. Data never exposed to households. |
-| **ResQperation System** | External System | Receives resource/personnel assistance requests routed from EvaTrack and dispatches push notifications to households with the app. |
+| Actor | Role Type | Description & System Scope |
+|-------|-----------|-----------------------------|
+| **Super Admin** | Primary System Actor | Full system oversight across all municipal shelters and administrative jurisdictions. **Exclusively authorized to register new user accounts** (`POST /api/users`). Retains emergency override access over all Evac Admin and Personnel actions for crisis intervention. |
+| **Evacuation Admin** | Primary System Actor | Coordinates center operations across assigned evacuation shelters. Configures shelters and accommodation units, assigns personnel to centers, monitors ongoing resource requests and issue reports, broadcasts emergency SMS and push alerts, and manages disaster events. |
+| **Evacuation Personnel** | Primary System Actor | Stationed at an assigned evacuation center. Performs rapid intake verification via QR scanning or demographic search, admits households, allocates rooms/units, logs in-center incident/health reports, requests resource supplies, and processes departures/checkouts. |
+| **Households / Residents** | Secondary Actor (Passive) | Displaced citizens. Possess no interactive system credentials. Receive SMS/Push warnings, present official SafeTrack QR codes or identification upon arrival, and receive shelter allocations. |
+| **SafeTrack System** | External Integration | Authoritative demographic repository. Provides pre-registered household rosters, addresses, and vulnerability tags for verification and analytics. |
+| **ResQperation System** | External Integration | Emergency response coordination engine. Receives forwarded resource/personnel aid requests from EvaTrack and serves as the push notification gateway for smartphone alerts. |
 
-## 3. Use Case Diagram
+---
+
+## 3. High-Fidelity Use Case Diagram
 
 ```mermaid
 flowchart LR
+    %% Actors
     SA["👤 Super Admin"]
     EA["👤 Evacuation Admin"]
     EP["👤 Evacuation Personnel"]
-    HH["📱 Households (Secondary)"]
-    ST["🌐 SafeTrack"]
-    RQ["🌐 ResQperation"]
+    HH["📱 Households (Passive)"]
+    ST["🌐 SafeTrack System"]
+    RQ["🌐 ResQperation System"]
 
-    subgraph UC_AUTH["🔐 Authentication"]
+    %% Subsystems / Packages
+    subgraph UC_AUTH["🔐 1. Authentication & Profile"]
         direction TB
-        UC1["UC-01: Login"]
-        UC2["UC-02: Logout"]
-        UC3["UC-03: View & Update Profile"]
-        UC4["UC-04: Change Password"]
+        UC01["UC-01: Login with Credentials / OTP"]
+        UC02["UC-02: Logout & Revoke Session"]
+        UC03["UC-03: View & Update Profile"]
+        UC04["UC-04: Change Password"]
     end
 
-    subgraph UC_USERMGT["👥 User Management"]
+    subgraph UC_USERMGT["👥 2. User & Personnel Management"]
         direction TB
-        UC5["UC-05: List Users"]
-        UC6["UC-06: Create User Account"]
-        UC7["UC-07: Update User Account"]
-        UC8["UC-08: Deactivate / Delete User"]
-        UC9["UC-09: Assign Personnel to Center"]
+        UC05["UC-05: List System Users"]
+        UC06["UC-06: Register User Account (Super Admin Only)"]
+        UC07["UC-07: Update User Profile & Role"]
+        UC08["UC-08: Deactivate / Soft-Delete User"]
+        UC09["UC-09: Assign Personnel to Center Station"]
     end
 
-    subgraph UC_CENTER["🏛️ Evacuation Center Management"]
+    subgraph UC_CENTER["🏛️ 3. Evacuation Center & Room Configuration"]
         direction TB
-        UC10["UC-10: Create & Configure Center"]
-        UC11["UC-11: Configure Rooms within Center"]
-        UC12["UC-12: Update Center Details"]
-        UC13["UC-13: Monitor Center Status & Occupancy"]
-        UC14["UC-14: Auto-Update Center Capacity"]
-        UC15["UC-15: Assign Centers to Disaster Event"]
+        UC10["UC-10: Create Evacuation Center"]
+        UC11["UC-11: Configure Accommodation Units (Rooms/Halls)"]
+        UC12["UC-12: Update Center Details & Operational Status"]
+        UC13["UC-13: Monitor Center Capacity & Occupancy Rates"]
+        UC14["UC-14: Auto-Update Shelter Capacity Count"]
+        UC15["UC-15: Assign Shelters to Disaster Umbrella"]
     end
 
-    subgraph UC_EVAC["🚨 Evacuation Operations & Tracking"]
+    subgraph UC_EVAC["🚨 4. Evacuation Operations, Intake & Tracking"]
         direction TB
-        UC16["UC-16: Verify Household via QR Code Scan"]
-        UC17["UC-17: Verify Household via Manual Input"]
-        UC18["UC-18: Admit Household & Update Status"]
-        UC19["UC-19: Assign Household to Room"]
-        UC20["UC-20: Monitor Household Stay at Center"]
-        UC21["UC-21: Update Evacuation Status"]
-        UC22["UC-22: Checkout Household"]
-        UC23["UC-23: View Evacuation Records"]
+        UC16["UC-16: Verify Household via QR Code Scanner"]
+        UC17["UC-17: Verify Household via Demographic Search"]
+        UC18["UC-18: Admit Household & Update Status to Evacuated"]
+        UC19["UC-19: Allocate Accommodation Unit / Room"]
+        UC20["UC-20: Monitor In-Center Stay Duration"]
+        UC21["UC-21: Update Member-Level Evacuation Status"]
+        UC22["UC-22: Process Household Checkout & Release Unit"]
+        UC23["UC-23: View Live & Historical Evacuation Records"]
     end
 
-    subgraph UC_SAFETRACK["🔗 SafeTrack Demographics Integration"]
+    subgraph UC_SAFETRACK["🔗 5. SafeTrack Demographics & Privacy Isolation"]
         direction TB
-        UC24["UC-24: Retrieve Household Demographics from SafeTrack"]
-        UC25["UC-25: Use Demographics for Personnel Verification Only"]
+        UC24["UC-24: Sync Master Demographics from SafeTrack"]
+        UC25["UC-25: Restrict Demographic Data to Personnel Only"]
     end
 
-    subgraph UC_ANALYTICS["📊 Evacuation Analytics & Reports"]
+    subgraph UC_ANALYTICS["📊 6. Evacuation Analytics & Intelligence"]
         direction TB
-        UC26["UC-26: Compute Analytics from Demographic Data"]
-        UC27["UC-27: View Age Distribution (Children/Adults/Elderly)"]
-        UC28["UC-28: View Pregnant Women Count"]
-        UC29["UC-29: View PWD Count"]
-        UC30["UC-30: View Gender Distribution"]
-        UC31["UC-31: View Total Affected Population"]
-        UC32["UC-32: Generate & Export System-Wide Reports"]
+        UC26["UC-26: Compute Real-Time Vulnerability Metrics"]
+        UC27["UC-27: View Age Cohorts (Children / Adults / Elderly)"]
+        UC28["UC-28: View Pregnant & Lactating Women Count"]
+        UC29["UC-29: View PWD & Special Needs Count"]
+        UC30["UC-30: View Gender Demographics"]
+        UC31["UC-31: View Total Population Affected"]
+        UC32["UC-32: Export Analytics & System-Wide Summaries"]
     end
 
-    subgraph UC_RESOURCE["📦 Resource & Personnel Requests"]
+    subgraph UC_ISSUES["🛠️ 7. Center Incident & Condition Reporting"]
         direction TB
-        UC33["UC-33: Report In-Center Resource Shortages"]
-        UC34["UC-34: Request Additional Response Personnel"]
-        UC35["UC-35: Route Request to ResQperation"]
-        UC36["UC-36: Monitor Requests per Center"]
-        UC37["UC-37: Update Request Status"]
+        UC33["UC-33: Report Facility / Medical / Safety Incident"]
+        UC34["UC-34: Upload Photo / Evidence Attachment"]
+        UC35["UC-35: Monitor Shelter Health via Issues Kanban"]
+        UC36["UC-36: Triage & Transition Issue Status & Severity"]
+        UC37["UC-37: Resolve or Delete Incident Report"]
     end
 
-    subgraph UC_NOTIF["📢 Evacuation Alerts & Notifications"]
+    subgraph UC_RESOURCE["📦 8. Resource Requests & Response Routing"]
         direction TB
-        UC38["UC-38: Send SMS Alerts (No Internet Households)"]
-        UC39["UC-39: Send Push Notifications via ResQperation"]
-        UC40["UC-40: Preview Alert Recipients"]
-        UC41["UC-41: View Alert History"]
+        UC38["UC-38: File In-Center Resource Supply Request"]
+        UC39["UC-39: Monitor Requests via Kanban / List Board"]
+        UC40["UC-40: Update Logistics Request Status"]
+        UC41["UC-41: Route Supply / Personnel Aid to ResQperation"]
     end
 
-    subgraph UC_EVENT["⚡ Disaster Event Management"]
+    subgraph UC_NOTIF["📢 9. SMS & Mobile Push Alerts"]
         direction TB
-        UC42["UC-42: Create Disaster Event"]
-        UC43["UC-43: View Active & Historical Events"]
-        UC44["UC-44: End Disaster Event"]
+        UC42["UC-42: Broadcast SMS Alerts (Offline Citizens)"]
+        UC43["UC-43: Dispatch Mobile Push Alerts (ResQperation)"]
+        UC44["UC-44: Configure Recurring Broadcast Dispatches"]
+        UC45["UC-45: Preview Target Audience & Recipient Count"]
+        UC46["UC-46: Monitor Dispatch Logs & Delivery Success Rates"]
+        UC47["UC-47: Cancel / Abort Scheduled Broadcast"]
     end
 
-    subgraph UC_OVERRIDE["🛡️ Emergency Intervention (Super Admin Only)"]
+    subgraph UC_EVENT["⚡ 10. Disaster Event Coordination"]
         direction TB
-        UC45["UC-45: Override Evacuation Admin Actions"]
-        UC46["UC-46: Override Evacuation Personnel Actions"]
-        UC47["UC-47: Full System Oversight & Audit"]
+        UC48["UC-48: Declare Disaster Event"]
+        UC49["UC-49: Track Active & Historical Disaster Scenarios"]
+        UC50["UC-50: Terminate Disaster Event"]
     end
 
-    %% ── Actor → Use Case Connections ──
-    %% Links 0–9: Super Admin (blue)
+    subgraph UC_OVERRIDE["🛡️ 11. Emergency Intervention & Oversight"]
+        direction TB
+        UC51["UC-51: Emergency Override of Evac Admin Decisions"]
+        UC52["UC-52: Emergency Override of Personnel Actions"]
+        UC53["UC-53: Global System Oversight & Audit Inspection"]
+    end
+
+    %% Actor Connections
+    %% Super Admin (Blue)
     SA --> UC_AUTH
     SA --> UC_USERMGT
     SA --> UC_CENTER
     SA --> UC_EVAC
     SA --> UC_SAFETRACK
     SA --> UC_ANALYTICS
+    SA --> UC_ISSUES
     SA --> UC_RESOURCE
     SA --> UC_NOTIF
     SA --> UC_EVENT
     SA --> UC_OVERRIDE
 
-    %% Links 10–18: Evacuation Admin (orange)
+    %% Evacuation Admin (Orange)
     EA --> UC_AUTH
-    EA --> UC_USERMGT
+    EA --> UC05
+    EA --> UC07
+    EA --> UC08
+    EA --> UC09
     EA --> UC_CENTER
     EA --> UC_EVAC
     EA --> UC_SAFETRACK
     EA --> UC_ANALYTICS
+    EA --> UC_ISSUES
     EA --> UC_RESOURCE
     EA --> UC_NOTIF
     EA --> UC_EVENT
 
-    %% Links 19–22: Evacuation Personnel (green)
+    %% Evacuation Personnel (Green)
     EP --> UC_AUTH
     EP --> UC_EVAC
     EP --> UC_SAFETRACK
-    EP --> UC_RESOURCE
+    EP --> UC_ISSUES
+    EP --> UC38
+    EP --> UC39
 
-    %% Links 23–26: Households (gray dashed — passive/secondary)
-    HH -.->|"Receives SMS alert"| UC38
-    HH -.->|"Receives push notification"| UC39
-    HH -.->|"Verified & tracked by Personnel"| UC16
-    HH -.->|"Verified & tracked by Personnel"| UC17
+    %% Passive Secondary Actors
+    HH -.->|"Receives Emergency SMS"| UC42
+    HH -.->|"Receives Mobile Push"| UC43
+    HH -.->|"Presents QR / ID for Admission"| UC16
+    HH -.->|"Presents QR / ID for Admission"| UC17
 
-    %% Link 27: SafeTrack integration (indigo)
-    UC24 <-->|"Fetch demographic data"| ST
+    %% External Systems
+    UC24 <-->|"Ingest Household Roster"| ST
+    UC41 -->|"Forward Logistics Demand"| RQ
+    UC43 -->|"Push Gateway Dispatch"| RQ
 
-    %% Links 28–29: ResQperation integration (rose)
-    UC35 -->|"Route resource/personnel request"| RQ
-    UC39 -->|"Dispatch push notification"| RQ
-
-    %% ── Actor Node Styles ──
+    %% Node Styling
     classDef superAdmin    fill:#1d4ed8,stroke:#1e40af,stroke-width:2px,color:#fff,font-weight:bold
     classDef evacAdmin     fill:#ea580c,stroke:#c2410c,stroke-width:2px,color:#fff,font-weight:bold
     classDef evacPersonnel fill:#16a34a,stroke:#15803d,stroke-width:2px,color:#fff,font-weight:bold
@@ -185,624 +210,389 @@ flowchart LR
     class HH household
     class ST safetrack
     class RQ resqop
-
-    %% ── Arrow / Link Colors ──
-    %% Super Admin arrows — blue
-    linkStyle 0,1,2,3,4,5,6,7,8,9 stroke:#3b82f6,stroke-width:2px
-
-    %% Evacuation Admin arrows — orange
-    linkStyle 10,11,12,13,14,15,16,17,18 stroke:#f97316,stroke-width:2px
-
-    %% Evacuation Personnel arrows — green
-    linkStyle 19,20,21,22 stroke:#22c55e,stroke-width:2px
-
-    %% Households arrows — gray dashed
-    linkStyle 23,24,25,26 stroke:#94a3b8,stroke-width:1.5px,stroke-dasharray:5 5
-
-    %% SafeTrack arrow — indigo
-    linkStyle 27 stroke:#818cf8,stroke-width:2px
-
-    %% ResQperation arrows — rose
-    linkStyle 28,29 stroke:#f43f5e,stroke-width:2px
 ```
 
-> **Color Legend**
->
-> | Color | Actor |
-> |-------|-------|
-> | 🔵 Blue arrows + blue node | Super Admin |
-> | 🟠 Orange arrows + orange node | Evacuation Admin |
-> | 🟢 Green arrows + green node | Evacuation Personnel |
-> | ⚫ Gray dashed arrows + dark node | Households / Residents (Secondary — passive) |
-> | 🟣 Indigo arrows + indigo node | SafeTrack System |
-> | 🔴 Rose arrows + red node | ResQperation System |
+---
+
+## 4. Detailed Use Case Narratives
+
+### Package 1: Authentication & Account Security
+
+#### UC-01: User Login & Session Establishment
+* **Actors:** Super Admin, Evacuation Admin, Evacuation Personnel
+* **Description:** User authenticates into EvaTrack using registered credentials (Username, Mobile Number, or Email) and password, establishing an encrypted Sanctum bearer token session.
+* **Preconditions:** Account exists and has `is_active = 1`.
+* **Postconditions:** Bearer token generated in `personal_access_tokens`; user redirected to role-tailored dashboard.
+* **Main Flow:**
+  1. User navigates to `/login` and provides identifier (e.g., `09888888888` or `EPE-2026-PERS1`) and password.
+  2. System validates input against Bcrypt hash in `users.password`.
+  3. System loads assigned role (`roles`) and station (`evacuation_centers`).
+  4. System issues API token and sets local session store.
+* **Alternative Flows:**
+  * Invalid password → Rejection prompt with failed attempt notice.
+  * Inactive account (`is_active = 0`) → Displays "Account deactivated. Contact Administrator."
+* **API Endpoint & DB Tables:** `POST /api/login` | `users`, `roles`, `personal_access_tokens`.
+
+#### UC-02: User Logout
+* **Actors:** All Authenticated Users
+* **Description:** User terminates their current operational session; the system revokes the active personal access token.
+* **API Endpoint & DB Tables:** `POST /api/logout` | `personal_access_tokens`.
+
+#### UC-03: View & Update Profile
+* **Actors:** All Authenticated Users
+* **Description:** Operator updates their personal information (name, contact phone number, profile avatar).
+* **API Endpoint & DB Tables:** `GET /api/user`, `PUT /api/user/profile` | `users`.
+
+#### UC-04: Password Change & Security Reset
+* **Actors:** All Authenticated Users
+* **Description:** Operator updates password by validating their old password or through OTP SMS verification.
+* **API Endpoint & DB Tables:** `PUT /api/user/password`, `POST /api/forgot-password/*` | `users`.
 
 ---
 
-## 4. Detailed Use Cases
+### Package 2: User & Personnel Management
 
-### UC-01: Login
+#### UC-05: List System Users
+* **Actors:** Super Admin, Evacuation Admin
+* **Description:** Displays a paginated roster of system accounts with role filters, station assignments, and contact details.
+* **API Endpoint & DB Tables:** `GET /api/users` | `users`, `roles`, `evacuation_centers`.
 
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-01 |
-| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
-| **Description** | Authorized user logs in using credentials to access role-specific features. |
-| **Preconditions** | User has a valid active account. |
-| **Postconditions** | User authenticated; Sanctum session token issued; redirected to role dashboard. |
-| **Main Flow** | 1. User enters email and password. 2. System validates credentials. 3. System issues token. 4. System redirects to role-based dashboard. |
-| **Alternative Flow** | Invalid credentials → error displayed. Deactivated account → "Account deactivated" message. |
-| **API Endpoint** | `POST /api/login` |
+#### UC-06: Register User Account (Super Admin Exclusive)
+* **Actors:** Super Admin
+* **Description:** Super Admin creates new Evacuation Admin or Evacuation Personnel accounts. The system enforces business rules, hashes passwords, maps roles, and generates standard UIDs (`SUP-`, `EAD-`, `EPE-`).
+* **Preconditions:** Authenticated user is `super_admin`.
+* **Main Flow:**
+  1. Super Admin opens User Management modal and inputs First Name, Last Name, Password, Role, Contact Number, and optional Email.
+  2. Frontend sends payload to `POST /api/users`.
+  3. Backend validates uniqueness of contact/email via `StoreUserRequest`.
+  4. `CreateUserAction` resolves role, hashes password, and creates row in `users`.
+  5. `User::boot()` assigns prefixed UID (e.g., `EPE-2026-XXXXXX`).
+* **API Endpoint & DB Tables:** `POST /api/users` | `users`, `roles`.
 
----
+#### UC-07: Update User Profile & Role
+* **Actors:** Super Admin, Evacuation Admin (for Personnel only)
+* **Description:** Modifies official user parameters, contact numbers, or role designations.
+* **API Endpoint & DB Tables:** `PUT /api/users/{id}` | `users`, `roles`.
 
-### UC-02: Logout
+#### UC-08: Deactivate / Delete User Account
+* **Actors:** Super Admin, Evacuation Admin (Personnel only)
+* **Description:** Executes a soft-delete (`deleted_at`) or flips `is_active = 0` to immediately block login access.
+* **API Endpoint & DB Tables:** `DELETE /api/users/{id}` | `users`.
 
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-02 |
-| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
-| **Description** | User logs out; session token is revoked. |
-| **Preconditions** | User is authenticated. |
-| **Postconditions** | Token revoked; redirected to Login page. |
-| **API Endpoint** | `POST /api/logout` |
-
----
-
-### UC-03: View & Update Profile
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-03 |
-| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
-| **Description** | User views and updates their profile (name, contact number, assigned center). |
-| **API Endpoint** | `GET /api/user`, `PUT /api/user/profile` |
+#### UC-09: Assign Personnel to Center Station
+* **Actors:** Super Admin, Evacuation Admin
+* **Description:** Associates an Evacuation Personnel operator with a specific physical shelter.
+* **Postconditions:** `users.assigned_center_id` updated to target `evacuation_center_id`.
+* **API Endpoint & DB Tables:** `POST /api/users/{user}/assign-center` | `users`, `evacuation_centers`.
 
 ---
 
-### UC-04: Change Password
+### Package 3: Evacuation Center & Room Configuration
 
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-04 |
-| **Actors** | Super Admin, Evacuation Admin, Evacuation Personnel |
-| **Description** | User changes their password by providing current and new password. |
-| **API Endpoint** | `PUT /api/user/password` |
+#### UC-10: Create Evacuation Center
+* **Actors:** Evacuation Admin, Super Admin
+* **Description:** Registers a new shelter facility with official name, capacity, GPS coordinates, and OpenStreetMap address.
+* **API Endpoint & DB Tables:** `POST /api/evacuation-centers` | `evacuation_centers`.
 
----
+#### UC-11: Configure Accommodation Units (Rooms / Spaces)
+* **Actors:** Evacuation Admin, Super Admin
+* **Description:** Subdivides a center into discrete accommodation units (e.g. Room 101, Gym Sector A) with individual capacities.
+* **API Endpoint & DB Tables:** `POST /api/centers/{centerId}/units` | `accommodation_units`, `accommodation_types`.
 
-### UC-05: List Users
+#### UC-12: Update Center Details & Operational Status
+* **Actors:** Evacuation Admin, Super Admin
+* **Description:** Adjusts total shelter capacity, GPS tags, contact persons, or sets facility status (`active`, `full`, `inactive`).
+* **API Endpoint & DB Tables:** `PUT /api/evacuation-centers/{center}` | `evacuation_centers`.
 
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-05 |
-| **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin views paginated list of all system users with roles and assigned centers. |
-| **API Endpoint** | `GET /api/users` |
+#### UC-13: Monitor Center Capacity & Occupancy Rates
+* **Actors:** Evacuation Admin, Super Admin
+* **Description:** Real-time visualization of occupancy metrics, available headcounts, and percentage capacity utilized.
+* **API Endpoint & DB Tables:** `GET /api/evacuation-centers/{center}/capacity` | `evacuation_centers`, `evacuation_records`.
 
----
+#### UC-14: Auto-Update Shelter Capacity Count
+* **Actors:** System Automated Trigger
+* **Description:** Internal database transaction that increments `current_occupancy` during intake and decrements during checkout.
+* **DB Tables:** `evacuation_centers.current_occupancy`.
 
-### UC-06: Create User Account
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-06 |
-| **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin creates a new Evacuation Admin or Evacuation Personnel account. System generates ID prefix (e.g., `ADM-`, `PER-`) and sets `must_change_password = true`. |
-| **API Endpoint** | `POST /api/users` |
-
----
-
-### UC-07: Update User Account
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-07 |
-| **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin updates user details, role, or active status. |
-| **API Endpoint** | `PUT /api/users/{id}` |
+#### UC-15: Assign Shelters to Disaster Umbrella
+* **Actors:** Evacuation Admin, Super Admin
+* **Description:** Links multiple operational centers to an active disaster event (e.g., Typhoon Typhoon Carina).
+* **API Endpoint & DB Tables:** `PATCH /api/events/{id}/assign-centers` | `evacuation_centers.current_event_id`.
 
 ---
 
-### UC-08: Deactivate / Delete User
+### Package 4: Evacuation Operations, Intake & Tracking
 
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-08 |
-| **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin soft-deletes or deactivates a user account (`deleted_at` timestamp set). |
-| **API Endpoint** | `DELETE /api/users/{id}` |
+#### UC-16: Verify Household via QR Code Scanner
+* **Actors:** Evacuation Personnel, Evacuation Admin
+* **Description:** Personnel scans the household's official QR code via device camera. The system reads the encrypted household token, matches the local/SafeTrack database, and extracts family members for intake.
+* **API Endpoint & DB Tables:** `POST /api/evacuations/process-scan` | `households`, `household_members`.
 
----
+#### UC-17: Verify Household via Demographic Search (Fallback)
+* **Actors:** Evacuation Personnel, Evacuation Admin
+* **Description:** Fallback when QR is damaged or unavailable. Personnel searches by household head surname or street.
+* **API Endpoint & DB Tables:** `POST /api/evacuations/verify-manual` | `households`, `household_members`.
 
-### UC-09: Assign Personnel to Center
+#### UC-18: Admit Household & Update Status to Evacuated
+* **Actors:** Evacuation Personnel, Evacuation Admin
+* **Description:** Personnel checks off arriving members and confirms admission. Creates an admission record, sets household status to `Evacuated` (`household_status_id = 2`), and triggers automated center capacity increment.
+* **API Endpoint & DB Tables:** `POST /api/evacuations/admit` | `evacuation_records`, `evacuated_members`, `evacuation_centers`.
 
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-09 |
-| **Actors** | Super Admin, Evacuation Admin |
-| **Description** | Admin assigns an Evacuation Personnel user to a specific evacuation center (updates `assigned_center_id`). |
-| **API Endpoint** | `POST /api/users/{user}/assign-center` |
+#### UC-19: Allocate Accommodation Unit / Room
+* **Actors:** Evacuation Personnel, Evacuation Admin
+* **Description:** Assigns admitted household to a designated room or space inside the shelter.
+* **API Endpoint & DB Tables:** `POST /api/units/{unitId}/allocations` | `unit_allocations`, `accommodation_units`.
 
----
+#### UC-20: Monitor In-Center Stay Duration
+* **Actors:** Evacuation Personnel, Evacuation Admin, Super Admin
+* **Description:** Tracks length of stay, admission timestamps, and medical/dietary requirements for current shelter occupants.
+* **API Endpoint & DB Tables:** `GET /api/evacuations` | `evacuation_records`.
 
-### UC-10: Create & Configure Evacuation Center
+#### UC-21: Update Member-Level Evacuation Status
+* **Actors:** Evacuation Personnel, Evacuation Admin
+* **Description:** Updates status of individual family members (e.g. transferred to hospital, verified missing, returned home).
+* **API Endpoint & DB Tables:** `PATCH /api/evacuations/{evacuationId}/members/{memberId}/status` | `evacuated_members`.
 
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-10 |
-| **Actors** | Evacuation Admin, Super Admin |
-| **Description** | Admin creates a new evacuation center with name, address, max capacity, GPS coordinates, and contact details. |
-| **Postconditions** | New center record created and active. |
-| **API Endpoint** | `POST /api/evacuation-centers` |
+#### UC-22: Process Household Checkout & Release Unit
+* **Actors:** Evacuation Personnel, Evacuation Admin
+* **Description:** Formally releases a family departing the shelter. Records checkout timestamp, frees up allocated room space, and decrements shelter occupancy.
+* **API Endpoint & DB Tables:** `POST /api/evacuations/{evacuationId}/checkout` | `evacuation_records`, `unit_allocations`, `evacuation_centers`.
 
----
-
-### UC-11: Configure Rooms within Evacuation Center
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-11 |
-| **Actors** | Evacuation Admin, Super Admin |
-| **Description** | Admin creates and configures accommodation units (rooms/halls) within a center, specifying type and capacity. |
-| **Preconditions** | Evacuation center exists. |
-| **Postconditions** | Room records created and linked to the center. |
-| **API Endpoint** | `POST /api/evacuation-centers/{center}/rooms` |
+#### UC-23: View Live & Historical Evacuation Records
+* **Actors:** Evacuation Personnel, Evacuation Admin, Super Admin
+* **Description:** Browse and filter master logs of current evacuees and completed evacuations across centers.
+* **API Endpoint & DB Tables:** `GET /api/evacuations` | `evacuation_records`.
 
 ---
 
-### UC-12: Update Center Details
+### Package 5: SafeTrack Demographics & Privacy Isolation
 
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-12 |
-| **Actors** | Evacuation Admin, Super Admin |
-| **Description** | Admin edits center parameters (capacity, operational status, location). |
-| **API Endpoint** | `PUT /api/evacuation-centers/{center}` |
+#### UC-24: Sync Master Demographics from SafeTrack
+* **Actors:** Super Admin, Evacuation Admin, System
+* **Description:** Synchronizes verified household demographic baselines, street locations, and vulnerability flags from SafeTrack.
+* **API Endpoint & DB Tables:** `POST /api/households/sync` | `households`, `household_members`, `addresses`.
 
----
-
-### UC-13: Monitor Center Status & Occupancy
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-13 |
-| **Actors** | Evacuation Admin, Super Admin |
-| **Description** | Admin monitors real-time status of all centers including occupancy levels, evacuee roster, personnel activity, and ongoing requests. |
-| **API Endpoint** | `GET /api/evacuation-centers`, `GET /api/evacuation-centers/{center}` |
+#### UC-25: Restrict Demographic Data to Personnel Only
+* **Actors:** System Security Boundary
+* **Description:** Enforces architectural data isolation ensuring resident demographics are strictly consumed by authorized staff during intake and NEVER exposed to public portals or resident screens.
+* **Policy Rule:** RBAC middleware filtering on all household demographic endpoints.
 
 ---
 
-### UC-14: Auto-Update Center Capacity
+### Package 6: Evacuation Analytics & Demographic Intelligence
 
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-14 |
-| **Actors** | System (triggered by admission or checkout) |
-| **Description** | System automatically increments or decrements center occupancy and remaining capacity when a household is admitted (UC-18) or checked out (UC-22). |
-| **Postconditions** | `current_occupancy` updated in real time; remaining capacity percentage recalculated. |
-| **API Endpoint** | `GET /api/evacuation-centers/{center}/capacity` |
+#### UC-26: Compute Real-Time Vulnerability Metrics
+* **Actors:** System Automated Analytics Engine
+* **Description:** Aggregates verified intake data to compute live demographic totals across active shelters.
+* **API Endpoint & DB Tables:** `GET /api/analytics` | `analytics`, `evacuation_records`, `household_members`.
 
----
+#### UC-27: View Age Cohorts (Children / Adults / Elderly)
+* **Actors:** Evacuation Admin, Super Admin
+* **Description:** Inspects age breakdowns: Minors/Children (0–17), Productive Adults (18–59), and Senior Citizens (60+).
 
-### UC-15: Assign Centers to Disaster Event
+#### UC-28: View Pregnant & Lactating Women Count
+* **Actors:** Evacuation Admin, Super Admin
+* **Description:** Visualizes total expectant mothers present across centers to prioritize maternal and pediatric aid.
 
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-15 |
-| **Actors** | Evacuation Admin, Super Admin |
-| **Description** | Admin assigns active evacuation centers to an ongoing disaster event. |
-| **API Endpoint** | `PATCH /api/events/{id}/assign-centers` |
+#### UC-29: View PWD & Special Needs Count
+* **Actors:** Evacuation Admin, Super Admin
+* **Description:** Visualizes evacuees tagged with physical or mental disabilities requiring accessible shelter amenities.
 
----
+#### UC-30: View Gender Demographics
+* **Actors:** Evacuation Admin, Super Admin
+* **Description:** Displays male-to-female ratios to evaluate sanitation and gender-separated quarters requirements.
 
-### UC-16: Verify Household via QR Code Scan
+#### UC-31: View Total Population Affected
+* **Actors:** Evacuation Admin, Super Admin
+* **Description:** High-level summary of total displaced households vs. total displaced individuals.
 
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-16 |
-| **Actors** | Evacuation Personnel, Evacuation Admin, Super Admin |
-| **Description** | Personnel scans household QR code on arrival. System decodes QR, retrieves household demographic data from SafeTrack (UC-24) for personnel-side verification only — never visible to households — and prepares record for admission. |
-| **Alternative Flow** | Camera scan fails or QR unavailable → fallback to Manual Input (UC-17). |
-| **API Endpoint** | `POST /api/evacuations/process-scan` |
-
----
-
-### UC-17: Verify Household via Manual Input
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-17 |
-| **Actors** | Evacuation Personnel, Evacuation Admin, Super Admin |
-| **Description** | Fallback when QR unavailable. Personnel searches household by name/ID. System retrieves SafeTrack demographics (UC-24) for verification. Personnel selects arriving members. |
-| **API Endpoint** | `POST /api/evacuations/verify-manual` |
+#### UC-32: Export Analytics & System-Wide Summaries
+* **Actors:** Super Admin
+* **Description:** Exports consolidated demographic intelligence into formal CSV/PDF reports for municipal DRRMO and council briefing.
+* **API Endpoint & DB Tables:** `GET /api/analytics/export` | `analytics`, `evacuation_centers`.
 
 ---
 
-### UC-18: Admit Household & Update Status to Evacuated
+### Package 7: Center Incident & Condition Reporting
 
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-18 |
-| **Actors** | Evacuation Personnel, Evacuation Admin, Super Admin |
-| **Description** | Personnel confirms admission of verified household into the center. Status updated to `Evacuated`. Auto-triggers center capacity update (UC-14). |
-| **Preconditions** | Household verified via UC-16 or UC-17. |
-| **Postconditions** | Evacuation record created; status = `Evacuated`; center occupancy auto-incremented. |
-| **API Endpoint** | `POST /api/evacuations/admit` |
+#### UC-33: Report Facility / Medical / Safety Incident
+* **Actors:** Evacuation Personnel, Evacuation Admin
+* **Description:** On-site personnel logs an immediate facility issue (water outage, broken latrine), security threat, or medical emergency.
+* **Input Payload:** `evacuation_center_id`, `category` (incident, facility_issue, health_issue, safety_issue, other), `title`, `description`, `severity` (low, medium, high, critical).
+* **API Endpoint & DB Tables:** `POST /api/center-issue-reports` | `center_issue_reports`, `center_issue_categories`, `severity_levels`.
 
----
+#### UC-34: Upload Photo / Evidence Attachment
+* **Actors:** Evacuation Personnel, Evacuation Admin
+* **Description:** Attaches photographic evidence (`image/jpeg, png, max 5MB`) to validate structural damage or health hazards.
+* **API Endpoint & DB Tables:** Handled within `POST /api/center-issue-reports` (multipart/form-data) | `center_issue_reports.attachment_path`.
 
-### UC-19: Assign Household to Room
+#### UC-35: Monitor Shelter Health via Issues Kanban
+* **Actors:** Evacuation Personnel, Evacuation Admin, Super Admin
+* **Description:** Visualizes facility problems across an interactive Kanban board (`Open`, `In Progress`, `Resolved`, `Closed`).
+* **API Endpoint & DB Tables:** `GET /api/center-issue-reports` | `center_issue_reports`.
 
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-19 |
-| **Actors** | Evacuation Personnel, Evacuation Admin, Super Admin |
-| **Description** | Personnel assigns an admitted household to a specific room/accommodation unit where rooms are available. |
-| **Preconditions** | Household admitted (UC-18); rooms configured (UC-11). |
-| **API Endpoint** | `POST /api/evacuations/{evacuationId}/assign-room` |
+#### UC-36: Triage & Transition Issue Status & Severity
+* **Actors:** Evacuation Admin, Super Admin
+* **Description:** Admin assigns personnel, adjusts severity, or moves report cards between workflow lanes as repairs proceed.
+* **API Endpoint & DB Tables:** `PATCH /api/center-issue-reports/{id}/status` | `center_issue_reports`.
 
----
-
-### UC-20: Monitor Household Stay at Center
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-20 |
-| **Actors** | Evacuation Personnel, Evacuation Admin, Super Admin |
-| **Description** | Personnel monitors duration and status of each household's stay, including tracking admission time and computing stay duration. |
-| **API Endpoint** | `GET /api/evacuation-centers/{center}/evacuees` |
+#### UC-37: Resolve or Delete Incident Report
+* **Actors:** Evacuation Admin, Super Admin
+* **Description:** Archives or removes false/resolved incident records once center integrity is restored.
+* **API Endpoint & DB Tables:** `DELETE /api/center-issue-reports/{id}` | `center_issue_reports`.
 
 ---
 
-### UC-21: Update Evacuation Status
+### Package 8: Resource Requests & Response Routing
 
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-21 |
-| **Actors** | Evacuation Personnel, Evacuation Admin, Super Admin |
-| **Description** | Personnel updates a household's evacuation status (e.g., `Evacuated` / `Not Evacuated`) or updates member-level status. |
-| **API Endpoint** | `PATCH /api/evacuations/{evacuationId}/status` |
+#### UC-38: File In-Center Resource Supply Request
+* **Actors:** Evacuation Personnel, Evacuation Admin
+* **Description:** Logs urgent resource deficits for drinking water, hygiene kits, food packs, or response manpower.
+* **Input Payload:** `evacuation_center_id`, `resource_type`, `quantity`, `description`.
+* **API Endpoint & DB Tables:** `POST /api/resource-requests` | `resource_requests`, `resource_request_statuses`.
 
----
+#### UC-39: Monitor Requests via Kanban / List Board
+* **Actors:** Evacuation Personnel, Evacuation Admin, Super Admin
+* **Description:** Interactive status tracking (`pending` → `acknowledged` → `approved` / `rejected` → `delivered`).
+* **API Endpoint & DB Tables:** `GET /api/resource-requests` | `resource_requests`.
 
-### UC-22: Checkout Household
+#### UC-40: Update Logistics Request Status
+* **Actors:** Evacuation Admin, Super Admin
+* **Description:** Admin reviews demand, adjusts approved quantities, and advances dispatch milestones.
+* **API Endpoint & DB Tables:** `PATCH /api/resource-requests/{id}/status` | `resource_requests`.
 
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-22 |
-| **Actors** | Evacuation Personnel, Evacuation Admin, Super Admin |
-| **Description** | Personnel checks out a household leaving the center. Status updated to `Not Evacuated` / `Checked Out`. Auto-triggers center occupancy decrement (UC-14). |
-| **Postconditions** | `checkout_at` timestamp set; center occupancy auto-decremented. |
-| **API Endpoint** | `POST /api/evacuations/{evacuationId}/checkout` |
-
----
-
-### UC-23: View Evacuation Records
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-23 |
-| **Actors** | Evacuation Personnel, Evacuation Admin, Super Admin |
-| **Description** | View all evacuation records (current and historical) per center or event, including household status, member counts, and timestamps. |
-| **API Endpoint** | `GET /api/evacuations` |
+#### UC-41: Route Supply / Personnel Aid to ResQperation
+* **Actors:** System Automated Gateway / Evac Admin
+* **Description:** Forwards critical resource or search-and-rescue demands directly to the ResQperation incident command system.
+* **External Integration:** ResQperation REST API bridge.
 
 ---
 
-### UC-24: Retrieve Household Demographics from SafeTrack
+### Package 9: SMS & Mobile Push Alerts
 
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-24 |
-| **Actors** | System (invoked during UC-16 and UC-17) |
-| **External System** | SafeTrack |
-| **Description** | EvaTrack retrieves verified household demographic data from SafeTrack for personnel-side identification and verification. **This data is never exposed to households or residents.** Data is also used as input for analytics computation (UC-26). |
-| **Main Flow** | 1. Personnel initiates QR scan or manual search. 2. System sends household ID to SafeTrack API. 3. SafeTrack returns demographic record (member roster, age groups, gender, vulnerable groups). 4. System displays data to personnel for verification. 5. Data logged for analytics (UC-26). |
-| **Alternative Flow** | SafeTrack unavailable → use local demographic snapshot if available; otherwise notify personnel. |
+#### UC-42: Broadcast SMS Alerts (Offline Citizens)
+* **Actors:** Evacuation Admin, Super Admin
+* **Description:** Dispatches critical disaster advisories and evacuation orders over GSM cellular networks directly to resident phones.
+* **API Endpoint & DB Tables:** `POST /api/notifications` | `notifications`, `notification_logs`.
 
----
+#### UC-43: Dispatch Mobile Push Alerts (ResQperation)
+* **Actors:** Evacuation Admin, Super Admin
+* **Description:** Sends high-priority push notifications with sound alerts to citizens using the ResQperation mobile app.
+* **API Endpoint & DB Tables:** `POST /api/notifications` | `notifications`, `notification_logs`.
 
-### UC-25: Use Demographics for Personnel Verification Only
+#### UC-44: Configure Recurring Broadcast Dispatches
+* **Actors:** Evacuation Admin, Super Admin
+* **Description:** Automates repeating announcements (e.g. hourly weather updates) with designated cutoff dates.
+* **Input Payload:** `is_recurring = true`, `recurrence_type` (`hourly`, `daily`, `weekly`), `recurrence_end_at`.
+* **API Endpoint & DB Tables:** `POST /api/notifications` | `notifications`.
 
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-25 |
-| **Actors** | Evacuation Personnel, Evacuation Admin, Super Admin |
-| **Description** | Personnel uses retrieved SafeTrack demographic data to confirm arriving members. This view is restricted to system users — households never see this data. |
-| **Preconditions** | UC-24 completed successfully. |
-| **Postconditions** | Verification confirmed; household ready for admission. |
+#### UC-45: Preview Target Audience & Recipient Count
+* **Actors:** Evacuation Admin, Super Admin
+* **Description:** Queries target criteria (`all`, `evacuated`, `not_evacuated`, or specific center) to inspect recipient volume before firing broadcast.
+* **API Endpoint & DB Tables:** `GET /api/notifications/preview` | `notifications`, `households`.
 
----
+#### UC-46: Monitor Dispatch Logs & Delivery Success Rates
+* **Actors:** Evacuation Admin, Super Admin
+* **Description:** Inspects individual recipient delivery statuses (`sent`, `failed`, `pending`) and computes delivery success percentages.
+* **API Endpoint & DB Tables:** `GET /api/notifications/{notification}/logs` | `notification_logs`.
 
-### UC-26: Compute Analytics from Demographic Data
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-26 |
-| **Actors** | System (auto-triggered on admission or member update) |
-| **Description** | System computes evacuation analytics from demographic data captured through personnel updates. Includes: children / adult / elderly counts, pregnant women count, PWD count, gender distribution, total affected population. |
-| **Postconditions** | Analytics snapshot stored; dashboard reflects updated figures. |
-
----
-
-### UC-27: View Age Distribution
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-27 |
-| **Actors** | Evacuation Admin, Super Admin |
-| **Description** | View computed age distribution of evacuated population: children (0–17), adults (18–59), elderly (60+). |
+#### UC-47: Cancel / Abort Scheduled Broadcast
+* **Actors:** Evacuation Admin, Super Admin
+* **Description:** Immediately terminates recurring dispatches or cancels scheduled alerts prior to transmission.
+* **API Endpoint & DB Tables:** `DELETE /api/notifications/{notification}` | `notifications`.
 
 ---
 
-### UC-28: View Pregnant Women Count
+### Package 10: Disaster Event Coordination
 
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-28 |
-| **Actors** | Evacuation Admin, Super Admin |
-| **Description** | View count of pregnant women among the evacuated population, derived from member demographic data. |
+#### UC-48: Declare Disaster Event
+* **Actors:** Evacuation Admin, Super Admin
+* **Description:** Initializes a new emergency umbrella (typhoon, flood, landslide, earthquake) with disaster type, severity, and operational jurisdiction.
+* **API Endpoint & DB Tables:** `POST /api/events` | `disaster_events`, `disaster_types`.
 
----
+#### UC-49: Track Active & Historical Disaster Scenarios
+* **Actors:** Evacuation Personnel, Evacuation Admin, Super Admin
+* **Description:** Monitors live operational events and reviews completed past disaster operations.
+* **API Endpoint & DB Tables:** `GET /api/events/active`, `GET /api/events/history` | `disaster_events`.
 
-### UC-29: View PWD Count
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-29 |
-| **Actors** | Evacuation Admin, Super Admin |
-| **Description** | View count of evacuees tagged as Persons with Disabilities from demographic data. |
-
----
-
-### UC-30: View Gender Distribution
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-30 |
-| **Actors** | Evacuation Admin, Super Admin |
-| **Description** | View gender breakdown (male / female) of the evacuated population. |
+#### UC-50: Terminate Disaster Event
+* **Actors:** Evacuation Admin, Super Admin
+* **Description:** Formally concludes the disaster operational phase, setting `ended_at` and archiving associated center deployments.
+* **API Endpoint & DB Tables:** `PATCH /api/events/{id}/end` | `disaster_events`.
 
 ---
 
-### UC-31: View Total Affected Population
+### Package 11: Emergency Intervention & Oversight
 
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-31 |
-| **Actors** | Evacuation Admin, Super Admin |
-| **Description** | View total individuals evacuated and total households affected. |
+#### UC-51: Emergency Override of Evac Admin Decisions
+* **Actors:** Super Admin Only
+* **Description:** Protocol-level override power to countermand center closures, re-allocate critical assets, or modify administrative settings during catastrophic contingencies.
 
----
+#### UC-52: Emergency Override of Personnel Actions
+* **Actors:** Super Admin Only
+* **Description:** Direct administrative override to correct intake data, adjust erroneous allocations, or remediate shelter discrepancies.
 
-### UC-32: Generate & Export System-Wide Reports
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-32 |
-| **Actors** | Super Admin |
-| **Description** | Super Admin generates and retrieves system-wide reports: evacuation analytics, center-level summaries, system-wide summaries, and demographic breakdowns. |
-| **API Endpoint** | `GET /api/reports/system-wide`, `GET /api/analytics/export` |
-
----
-
-### UC-33: Report In-Center Resource Shortages
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-33 |
-| **Actors** | Evacuation Personnel, Evacuation Admin, Super Admin |
-| **Description** | Personnel reports shortages of essential resources (food, water, medicine) within the center. Creates resource request record with urgency level. |
-| **Postconditions** | Resource request created with status `Pending`; routable to ResQperation (UC-35). |
-| **API Endpoint** | `POST /api/resource-requests` |
-
----
-
-### UC-34: Request Additional Response Personnel
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-34 |
-| **Actors** | Evacuation Personnel, Evacuation Admin, Super Admin |
-| **Description** | Personnel requests additional response personnel (medical staff, security) via a resource request. |
-| **Postconditions** | Personnel request created; routable to ResQperation (UC-35). |
-| **API Endpoint** | `POST /api/resource-requests` |
-
----
-
-### UC-35: Route Request to ResQperation
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-35 |
-| **Actors** | System (triggered from UC-33 or UC-34); Evacuation Admin, Super Admin |
-| **External System** | ResQperation |
-| **Description** | EvaTrack routes an in-center resource shortage or personnel request to the ResQperation platform for response dispatch. |
-| **Postconditions** | Request forwarded to ResQperation; external reference ID logged; request status updated to `Routed`. |
-
----
-
-### UC-36: Monitor Ongoing Requests per Center
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-36 |
-| **Actors** | Evacuation Admin, Super Admin |
-| **Description** | Admin monitors the list of open and ongoing resource/personnel requests across evacuation centers. |
-| **API Endpoint** | `GET /api/resource-requests` |
-
----
-
-### UC-37: Update Request Status
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-37 |
-| **Actors** | Evacuation Admin, Super Admin |
-| **Description** | Admin updates the status of a resource/personnel request (Pending → In Progress → Resolved). |
-| **API Endpoint** | `PATCH /api/resource-requests/{id}/status` |
-
----
-
-### UC-38: Send SMS Alerts to Households (No Internet)
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-38 |
-| **Actors** | Evacuation Admin, Super Admin |
-| **Description** | Admin sends evacuation alerts via SMS to households without internet access. |
-| **Postconditions** | SMS dispatched to target household contact numbers; notification log updated. |
-| **API Endpoint** | `POST /api/notifications/send` |
-
----
-
-### UC-39: Send Push Notifications via ResQperation
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-39 |
-| **Actors** | Evacuation Admin, Super Admin |
-| **External System** | ResQperation |
-| **Description** | Admin sends evacuation alerts as push notifications to households with the ResQperation app, routed through the ResQperation platform. |
-| **Postconditions** | Push notifications dispatched via ResQperation; delivery logged. |
-| **API Endpoint** | `POST /api/notifications/send` |
-
----
-
-### UC-40: Preview Alert Recipients
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-40 |
-| **Actors** | Evacuation Admin, Super Admin |
-| **Description** | Admin previews target household list before sending alert to verify targeting accuracy. |
-| **API Endpoint** | `POST /api/notifications/preview` |
-
----
-
-### UC-41: View Alert History
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-41 |
-| **Actors** | Evacuation Admin, Super Admin |
-| **Description** | View log of all sent evacuation alerts including channel (SMS / push), recipients, and delivery status. |
-| **API Endpoint** | `GET /api/notifications` |
-
----
-
-### UC-42: Create Disaster Event
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-42 |
-| **Actors** | Evacuation Admin, Super Admin |
-| **Description** | Admin creates a new disaster event (typhoon, flood, etc.) with type, severity, and start date. |
-| **API Endpoint** | `POST /api/events` |
-
----
-
-### UC-43: View Active & Historical Events
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-43 |
-| **Actors** | Evacuation Personnel, Evacuation Admin, Super Admin |
-| **Description** | View the currently active disaster event and browse completed historical events. |
-| **API Endpoint** | `GET /api/events/active`, `GET /api/events/history` |
-
----
-
-### UC-44: End Disaster Event
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-44 |
-| **Actors** | Evacuation Admin, Super Admin |
-| **Description** | Admin closes an active disaster event. Sets `ended_at` timestamp and closes event status. |
-| **API Endpoint** | `PATCH /api/events/{id}/end` |
-
----
-
-### UC-45: Override Evacuation Admin Actions
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-45 |
-| **Actors** | Super Admin |
-| **Description** | Super Admin holds emergency override access to all Evacuation Admin actions — for emergency intervention or troubleshooting **only**, not routine use. |
-
----
-
-### UC-46: Override Evacuation Personnel Actions
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-46 |
-| **Actors** | Super Admin |
-| **Description** | Super Admin holds emergency override access to all Evacuation Personnel actions — for emergency intervention or troubleshooting **only**, not routine use. |
-
----
-
-### UC-47: Full System Oversight & Audit
-
-| Field | Detail |
-|-------|--------|
-| **Use Case ID** | UC-47 |
-| **Actors** | Super Admin |
-| **Description** | Super Admin maintains full oversight of all system operations across all centers and roles. Generates and retrieves system-wide reports, evacuation analytics, center-level and system-wide summaries. |
-| **API Endpoint** | `GET /api/reports/system-wide` |
+#### UC-53: Global System Oversight & Audit Inspection
+* **Actors:** Super Admin Only
+* **Description:** Continuous monitoring across all system metrics, user actions, and error logs for accountability and governance compliance.
+* **API Endpoint & DB Tables:** `GET /api/reports/system-wide` | System-wide audit inspection.
 
 ---
 
 ## 5. Role-to-Use-Case Traceability Matrix
 
-| Use Case | Super Admin | Evac Admin | Evac Personnel | Households | SafeTrack | ResQperation |
-|----------|:-----------:|:----------:|:--------------:|:----------:|:---------:|:------------:|
-| UC-01 Login | ✓ | ✓ | ✓ | | | |
-| UC-02 Logout | ✓ | ✓ | ✓ | | | |
-| UC-03 View/Update Profile | ✓ | ✓ | ✓ | | | |
-| UC-04 Change Password | ✓ | ✓ | ✓ | | | |
-| UC-05 List Users | ✓ | ✓ | | | | |
-| UC-06 Create User | ✓ | ✓ | | | | |
-| UC-07 Update User | ✓ | ✓ | | | | |
-| UC-08 Deactivate/Delete User | ✓ | ✓ | | | | |
-| UC-09 Assign Personnel to Center | ✓ | ✓ | | | | |
-| UC-10 Create & Configure Center | ✓ | ✓ | | | | |
-| UC-11 Configure Rooms | ✓ | ✓ | | | | |
-| UC-12 Update Center Details | ✓ | ✓ | | | | |
-| UC-13 Monitor Center Status | ✓ | ✓ | | | | |
-| UC-14 Auto-Update Capacity | System | System | System | | | |
-| UC-15 Assign Centers to Event | ✓ | ✓ | | | | |
-| UC-16 Verify via QR Code | ✓ | ✓ | ✓ | | → UC-24 | |
-| UC-17 Verify via Manual Input | ✓ | ✓ | ✓ | | → UC-24 | |
-| UC-18 Admit Household | ✓ | ✓ | ✓ | | | |
-| UC-19 Assign Household to Room | ✓ | ✓ | ✓ | | | |
-| UC-20 Monitor Household Stay | ✓ | ✓ | ✓ | | | |
-| UC-21 Update Evacuation Status | ✓ | ✓ | ✓ | | | |
-| UC-22 Checkout Household | ✓ | ✓ | ✓ | | | |
-| UC-23 View Evacuation Records | ✓ | ✓ | ✓ | | | |
-| UC-24 Retrieve SafeTrack Demographics | System | | | | ✓ | |
-| UC-25 Use Demographics for Verification | ✓ | ✓ | ✓ | ✗ hidden | ✓ | |
-| UC-26 Compute Analytics | System | ✓ | | | | |
-| UC-27 View Age Distribution | ✓ | ✓ | | | | |
-| UC-28 View Pregnant Women Count | ✓ | ✓ | | | | |
-| UC-29 View PWD Count | ✓ | ✓ | | | | |
-| UC-30 View Gender Distribution | ✓ | ✓ | | | | |
-| UC-31 View Total Affected Population | ✓ | ✓ | | | | |
-| UC-32 Generate System-Wide Reports | ✓ | | | | | |
-| UC-33 Report Resource Shortages | ✓ | ✓ | ✓ | | | |
-| UC-34 Request Additional Personnel | ✓ | ✓ | ✓ | | | |
-| UC-35 Route Request to ResQperation | System | ✓ | | | | ✓ |
-| UC-36 Monitor Requests per Center | ✓ | ✓ | | | | |
-| UC-37 Update Request Status | ✓ | ✓ | | | | |
-| UC-38 Send SMS Alerts | ✓ | ✓ | | ← Receives | | |
-| UC-39 Send Push Notifications | ✓ | ✓ | | ← Receives | | ✓ |
-| UC-40 Preview Alert Recipients | ✓ | ✓ | | | | |
-| UC-41 View Alert History | ✓ | ✓ | | | | |
-| UC-42 Create Disaster Event | ✓ | ✓ | | | | |
-| UC-43 View Events | ✓ | ✓ | ✓ | | | |
-| UC-44 End Disaster Event | ✓ | ✓ | | | | |
-| UC-45 Override Admin Actions | ✓ | | | | | |
-| UC-46 Override Personnel Actions | ✓ | | | | | |
-| UC-47 Full System Oversight | ✓ | | | | | |
+| Use Case ID & Title | Super Admin | Evac Admin | Evac Personnel | Households | SafeTrack | ResQperation |
+|:---|:---:|:---:|:---:|:---:|:---:|:---:|
+| **UC-01 Login with Credentials** | ✓ | ✓ | ✓ | — | — | — |
+| **UC-02 Logout & Revoke Session** | ✓ | ✓ | ✓ | — | — | — |
+| **UC-03 View & Update Profile** | ✓ | ✓ | ✓ | — | — | — |
+| **UC-04 Change Password** | ✓ | ✓ | ✓ | — | — | — |
+| **UC-05 List System Users** | ✓ | ✓ | — | — | — | — |
+| **UC-06 Register User Account** | **✓ (Exclusive)** | — | — | — | — | — |
+| **UC-07 Update User Profile & Role** | ✓ | ✓ (Personnel) | — | — | — | — |
+| **UC-08 Deactivate / Soft-Delete User** | ✓ | ✓ (Personnel) | — | — | — | — |
+| **UC-09 Assign Personnel to Center Station** | ✓ | ✓ | — | — | — | — |
+| **UC-10 Create Evacuation Center** | ✓ | ✓ | — | — | — | — |
+| **UC-11 Configure Accommodation Units** | ✓ | ✓ | — | — | — | — |
+| **UC-12 Update Center Details & Status** | ✓ | ✓ | — | — | — | — |
+| **UC-13 Monitor Center Capacity Rates** | ✓ | ✓ | ✓ | — | — | — |
+| **UC-14 Auto-Update Shelter Capacity** | *System* | *System* | *System* | — | — | — |
+| **UC-15 Assign Shelters to Event** | ✓ | ✓ | — | — | — | — |
+| **UC-16 Verify via QR Scanner** | ✓ | ✓ | ✓ | Presents QR | Syncs data | — |
+| **UC-17 Verify via Demographic Search** | ✓ | ✓ | ✓ | Presents ID | Syncs data | — |
+| **UC-18 Admit Household & Set Evacuated** | ✓ | ✓ | ✓ | Admitted | — | — |
+| **UC-19 Allocate Accommodation Unit** | ✓ | ✓ | ✓ | Allocated | — | — |
+| **UC-20 Monitor In-Center Stay Duration** | ✓ | ✓ | ✓ | — | — | — |
+| **UC-21 Update Member-Level Status** | ✓ | ✓ | ✓ | — | — | — |
+| **UC-22 Process Checkout & Free Space** | ✓ | ✓ | ✓ | Released | — | — |
+| **UC-23 View Evacuation Records** | ✓ | ✓ | ✓ | — | — | — |
+| **UC-24 Sync Master Demographics** | *System* | ✓ | — | — | **Source** | — |
+| **UC-25 Restrict Demographic Data** | *Policy* | *Policy* | *Policy* | Hidden | Isolated | — |
+| **UC-26 Compute Vulnerability Metrics** | *System* | *System* | *System* | — | — | — |
+| **UC-27 View Age Cohorts Breakdown** | ✓ | ✓ | — | — | — | — |
+| **UC-28 View Pregnant Women Count** | ✓ | ✓ | — | — | — | — |
+| **UC-29 View PWD / Special Needs Count**| ✓ | ✓ | — | — | — | — |
+| **UC-30 View Gender Demographics** | ✓ | ✓ | — | — | — | — |
+| **UC-31 View Total Affected Population** | ✓ | ✓ | — | — | — | — |
+| **UC-32 Export System-Wide Summaries** | **✓ (Exclusive)** | — | — | — | — | — |
+| **UC-33 Report Incident / Center Issue** | ✓ | ✓ | ✓ | — | — | — |
+| **UC-34 Upload Evidence Photo** | ✓ | ✓ | ✓ | — | — | — |
+| **UC-35 Monitor Issues Kanban Board** | ✓ | ✓ | ✓ | — | — | — |
+| **UC-36 Triage & Update Issue Status** | ✓ | ✓ | — | — | — | — |
+| **UC-37 Resolve or Delete Incident** | ✓ | ✓ | — | — | — | — |
+| **UC-38 File Resource Supply Request** | ✓ | ✓ | ✓ | — | — | — |
+| **UC-39 Monitor Resource Demands Board**| ✓ | ✓ | ✓ | — | — | — |
+| **UC-40 Update Resource Request Status** | ✓ | ✓ | — | — | — | — |
+| **UC-41 Route Aid to ResQperation** | *System* | ✓ | — | — | — | **Target** |
+| **UC-42 Broadcast Emergency SMS** | ✓ | ✓ | — | **Receives** | — | — |
+| **UC-43 Dispatch Mobile Push Alerts** | ✓ | ✓ | — | **Receives** | — | **Gateway** |
+| **UC-44 Configure Recurring Dispatches** | ✓ | ✓ | — | **Receives** | — | **Gateway** |
+| **UC-45 Preview Recipient Volume** | ✓ | ✓ | — | — | — | — |
+| **UC-46 Monitor Dispatch Logs & Rates** | ✓ | ✓ | — | — | — | — |
+| **UC-47 Cancel / Abort Scheduled Alert** | ✓ | ✓ | — | — | — | — |
+| **UC-48 Declare Disaster Event** | ✓ | ✓ | — | — | — | — |
+| **UC-49 Track Active & Historical Events**| ✓ | ✓ | ✓ | — | — | — |
+| **UC-50 Terminate Disaster Event** | ✓ | ✓ | — | — | — | — |
+| **UC-51 Emergency Override of Admins** | **✓ (Exclusive)** | — | — | — | — | — |
+| **UC-52 Emergency Override of Personnel**| **✓ (Exclusive)** | — | — | — | — | — |
+| **UC-53 Global System Oversight** | **✓ (Exclusive)** | — | — | — | — | — |

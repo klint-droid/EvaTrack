@@ -16,7 +16,8 @@ class CreateUserDTO
         public readonly string $firstName,
         public readonly string $lastName,
         public readonly string $password,
-        public readonly string $contactNumber,
+        public readonly ?string $contactNumber = null,
+        public readonly ?string $email = null,
         public readonly ?string $roleKey = null,
     ) {}
 
@@ -27,6 +28,7 @@ class CreateUserDTO
             lastName:      $request->input('last_name'),
             password:      $request->input('password'),
             contactNumber: $request->input('contact_number'),
+            email:         $request->input('email'),
             roleKey:       $request->input('role'),
         );
     }
@@ -36,6 +38,7 @@ class CreateUserDTO
         return [
             'first_name'     => $this->firstName,
             'last_name'      => $this->lastName,
+            'email'          => $this->email,
             'password'       => $this->password,
             'contact_number' => $this->contactNumber,
             'role'           => $this->roleKey,

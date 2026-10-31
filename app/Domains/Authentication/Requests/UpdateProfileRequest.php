@@ -25,7 +25,8 @@ class UpdateProfileRequest extends FormRequest
         return [
             'first_name'     => 'required|string|max:255',
             'last_name'      => 'required|string|max:255',
-            'contact_number' => 'required|string|unique:users,contact_number,' . $userId . ',user_id',
+            'email'          => 'nullable|email|max:255|unique:users,email,' . $userId . ',user_id',
+            'contact_number' => 'nullable|string|unique:users,contact_number,' . $userId . ',user_id',
             'profile_photo'  => 'nullable|image|max:5120',
         ];
     }

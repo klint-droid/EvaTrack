@@ -22,9 +22,10 @@ class StoreUserRequest extends FormRequest
         return [
             'first_name'     => 'required|string|max:255',
             'last_name'      => 'required|string|max:255',
+            'email'          => 'nullable|email|max:255|unique:users,email',
             'password'       => 'required|string|min:8',
             'role'           => 'nullable|in:evac_personnel,evac_admin,super_admin',
-            'contact_number' => 'required|string|unique:users,contact_number',
+            'contact_number' => 'nullable|string|unique:users,contact_number',
         ];
     }
 }

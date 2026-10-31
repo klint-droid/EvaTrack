@@ -34,9 +34,10 @@ class CreateUserAction
         return $this->userRepository->create([
             'first_name'     => $dto->firstName,
             'last_name'      => $dto->lastName,
+            'email'          => $dto->email ?: null,
             'password'       => Hash::make($dto->password),
             'role_id'        => $role->role_id,
-            'contact_number' => $dto->contactNumber,
+            'contact_number' => $dto->contactNumber ?: null,
         ]);
     }
 }

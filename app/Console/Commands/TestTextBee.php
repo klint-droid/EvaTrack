@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Services\TextBeeService;
+use App\Domains\Notifications\Services\TextBeeService;
 use Illuminate\Console\Command;
 
 class TestTextBee extends Command

@@ -24,8 +24,9 @@ class UpdateUserRequest extends FormRequest
         return [
             'first_name'     => 'sometimes|string|max:255',
             'last_name'      => 'sometimes|string|max:255',
+            'email'          => 'nullable|email|max:255|unique:users,email,' . $userId . ',user_id',
             'role'           => 'sometimes|in:evac_personnel,evac_admin,super_admin',
-            'contact_number' => 'sometimes|string|unique:users,contact_number,' . $userId . ',user_id',
+            'contact_number' => 'nullable|string|unique:users,contact_number,' . $userId . ',user_id',
         ];
     }
 }

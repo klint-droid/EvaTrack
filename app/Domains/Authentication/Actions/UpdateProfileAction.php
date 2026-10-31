@@ -24,8 +24,12 @@ class UpdateProfileAction
         $data = [
             'first_name'     => $dto->firstName,
             'last_name'      => $dto->lastName,
-            'contact_number' => $dto->contactNumber,
+            'contact_number' => $dto->contactNumber ?: null,
         ];
+
+        if ($dto->hasEmail) {
+            $data['email'] = $dto->email ?: null;
+        }
 
         if ($dto->profilePhoto) {
             // Delete existing photo if present

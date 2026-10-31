@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Domains\Authentication\Controllers\AuthController;
+use App\Domains\Authentication\Controllers\ForgotPasswordController;
 use App\Http\Controllers\API\SyncController;
 use App\Domains\Authentication\Controllers\UserController;
 use App\Domains\Households\Controllers\HouseholdController;
@@ -33,6 +34,10 @@ use App\Domains\Analytics\Controllers\AnalyticsExportController;
 */
 
 Route::post('/login', [AuthController::class, 'apiLogin']);
+Route::post('/forgot-password/lookup', [ForgotPasswordController::class, 'lookup']);
+Route::post('/forgot-password/send-otp', [ForgotPasswordController::class, 'sendOtp']);
+Route::post('/forgot-password/verify-otp', [ForgotPasswordController::class, 'verifyOtp']);
+Route::post('/forgot-password/reset', [ForgotPasswordController::class, 'resetPassword']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'apiLogout']);

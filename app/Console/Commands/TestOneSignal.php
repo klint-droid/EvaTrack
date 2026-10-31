@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Services\OneSignalService;
+use App\Domains\Notifications\Services\OneSignalService;
 use Illuminate\Console\Command;
 
 class TestOneSignal extends Command

@@ -15,7 +15,9 @@ class UpdateProfileDTO
     public function __construct(
         public readonly string $firstName,
         public readonly string $lastName,
-        public readonly string $contactNumber,
+        public readonly ?string $contactNumber = null,
+        public readonly ?string $email = null,
+        public readonly bool $hasEmail = false,
         public readonly ?UploadedFile $profilePhoto = null,
     ) {}
 
@@ -25,6 +27,8 @@ class UpdateProfileDTO
             firstName:     $request->input('first_name'),
             lastName:      $request->input('last_name'),
             contactNumber: $request->input('contact_number'),
+            email:         $request->input('email'),
+            hasEmail:      $request->exists('email'),
             profilePhoto:  $request->file('profile_photo'),
         );
     }
