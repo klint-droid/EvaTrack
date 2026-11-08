@@ -173,4 +173,27 @@ class EvacuationCenterController extends BaseApiController
     {
         return response()->json($action->execute());
     }
+
+    #[OA\Get(
+        path: '/evacuation-centers/{center}/personnel',
+        summary: 'Get assigned personnel list and assignment history for this center',
+        security: [['bearerAuth' => []]],
+        tags: ['Evacuation Centers']
+    )]
+    #[OA\Parameter(name: 'center', in: 'path', description: 'Center ID', required: true, schema: new OA\Schema(type: 'string'))]
+    #[OA\Response(response: 200, description: 'Success')]
+    public function personnel(EvacuationCenter $center)
+    {
+        $assignments = $center->personnelAssignments()
+            ->with([
+                'user:user_id,first_name,last_name,email,contact_number,role_id',
+                'user.role',
+                'assignedBy:user_id,first_name,last_name'
+            ])
+            ->get();
+
+        return response()->json([
+            'data' => $assignments,
+        ]);
+    }
 }

@@ -71,6 +71,7 @@ Route::middleware(['auth:sanctum', 'role:super_admin,evac_admin'])->group(functi
     Route::put('/users/{id}', [UserController::class, 'updateUser']);
     Route::delete('/users/{id}', [UserController::class, 'deleteUser']);
     Route::post('/users/{user}/assign-center', [UserController::class, 'assignCenter']);
+    Route::get('/users/{user}/assignments', [UserController::class, 'assignments']);
 });
 
 /*
@@ -131,6 +132,7 @@ Route::prefix('evacuation-centers')
         Route::get('/', [EvacuationCenterController::class, 'index']);
         Route::get('/{center}', [EvacuationCenterController::class, 'show']);
         Route::get('/{center}/capacity', [EvacuationCenterController::class, 'capacity']);
+        Route::get('/{center}/personnel', [EvacuationCenterController::class, 'personnel']);
         Route::get('/{center}/export', [CenterExportController::class, 'exportCenterHouseholds']);
 
         Route::middleware('role:evac_admin')->group(function () {

@@ -59,6 +59,26 @@ class UserResource extends JsonResource
             ];
         }
 
+        $currentAssignment = $this->relationLoaded('currentPersonnelAssignment')
+            ? $this->currentPersonnelAssignment
+            : ($this->currentAssignment ?? null);
+
+        $currentAssignmentData = null;
+        if ($currentAssignment) {
+            $currentAssignmentData = [
+                'assignment_id'        => $currentAssignment->assignment_id,
+                'evacuation_center_id' => $currentAssignment->evacuation_center_id,
+                'center_name'          => $currentAssignment->center?->name,
+                'assigned_by'          => $currentAssignment->assigned_by,
+                'event_id'             => $currentAssignment->event_id,
+                'role_at_center'       => $currentAssignment->role_at_center,
+                'status'               => $currentAssignment->status,
+                'remarks'              => $currentAssignment->remarks,
+                'assigned_at'          => $currentAssignment->assigned_at?->toISOString(),
+                'relieved_at'          => $currentAssignment->relieved_at?->toISOString(),
+            ];
+        }
+
         return [
             'user_id'            => $this->user_id,
             'first_name'         => $this->first_name,
@@ -75,6 +95,7 @@ class UserResource extends JsonResource
             },
             'assigned_center_id' => $rawCenterId !== null ? (string) $rawCenterId : null,
             'assigned_center'    => $assignedCenterData,
+            'current_assignment' => $currentAssignmentData,
             'contact_number'     => $this->contact_number,
             'profile_photo_url'  => $this->profile_photo_url,
             'is_active'          => (bool) ($this->is_active ?? true),

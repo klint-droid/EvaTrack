@@ -89,6 +89,23 @@ class EvacuationCenter extends Model
         return $this->hasMany(ResourceRequest::class, 'evacuation_center_id', 'evacuation_center_id');
     }
 
+    public function personnelAssignments()
+    {
+        return $this->hasMany(\App\Domains\Authentication\Models\CenterPersonnelAssignment::class, 'evacuation_center_id', 'evacuation_center_id')->orderByDesc('assigned_at');
+    }
+
+    public function activePersonnelAssignments()
+    {
+        return $this->hasMany(\App\Domains\Authentication\Models\CenterPersonnelAssignment::class, 'evacuation_center_id', 'evacuation_center_id')
+            ->where('status', 'active')
+            ->whereNull('relieved_at');
+    }
+
+    public function assignedPersonnel()
+    {
+        return $this->hasMany(\App\Domains\Authentication\Models\User::class, 'assigned_center_id', 'evacuation_center_id');
+    }
+
     public function getRouteKeyName(){
         return 'evacuation_center_id';
     }

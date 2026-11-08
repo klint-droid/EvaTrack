@@ -394,6 +394,33 @@ CREATE TABLE `center_issue_reports` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
+-- Table: `center_personnel_assignments`
+-- ----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `center_personnel_assignments`;
+CREATE TABLE `center_personnel_assignments` (
+  `assignment_id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` varchar(255) NOT NULL,
+  `evacuation_center_id` varchar(255) NOT NULL,
+  `assigned_by` varchar(255) DEFAULT NULL,
+  `event_id` varchar(255) DEFAULT NULL,
+  `role_at_center` varchar(100) DEFAULT 'personnel',
+  `status` enum('active','completed','transferred') NOT NULL DEFAULT 'active',
+  `assigned_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `relieved_at` timestamp NULL DEFAULT NULL,
+  `remarks` text,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`assignment_id`),
+  KEY `idx_cpa_user_status` (`user_id`,`status`),
+  KEY `idx_cpa_center_status` (`evacuation_center_id`,`status`),
+  KEY `idx_cpa_assigned_at` (`assigned_at`),
+  CONSTRAINT `fk_cpa_assigned_by` FOREIGN KEY (`assigned_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_cpa_center` FOREIGN KEY (`evacuation_center_id`) REFERENCES `evacuation_centers` (`evacuation_center_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_cpa_event` FOREIGN KEY (`event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_cpa_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------------------------------------------------------
 -- Table: `cities`
 -- ----------------------------------------------------------------------------
 DROP TABLE IF EXISTS `cities`;

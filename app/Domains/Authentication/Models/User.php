@@ -115,6 +115,35 @@ class User extends Authenticatable
         return $this->belongsTo(EvacuationCenter::class, 'assigned_center_id');
     }
 
+    /**
+     * Historical and active personnel assignments for this user.
+     */
+    public function assignments()
+    {
+        return $this->hasMany(CenterPersonnelAssignment::class, 'user_id', 'user_id')->orderByDesc('assignment_id');
+    }
+
+    public function personnelAssignments()
+    {
+        return $this->assignments();
+    }
+
+    /**
+     * Active personnel center assignment.
+     */
+    public function currentAssignment()
+    {
+        return $this->hasOne(CenterPersonnelAssignment::class, 'user_id', 'user_id')
+            ->where('status', 'active')
+            ->whereNull('relieved_at')
+            ->latest('assignment_id');
+    }
+
+    public function currentPersonnelAssignment()
+    {
+        return $this->currentAssignment();
+    }
+
     public function isSuperAdmin()
     {
         return $this->role_id === self::ROLE_SUPER_ADMIN_ID;

@@ -251,4 +251,23 @@ class UserController extends Controller
             'message' => 'Password updated successfully'
         ]);
     }
+
+    /**
+     * Get assignment history for a given user.
+     */
+    public function assignments(string $user_id, UserRepositoryInterface $userRepository): JsonResponse
+    {
+        $targetUser = $userRepository->findById($user_id);
+        if (!$targetUser) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $assignments = $targetUser->assignments()
+            ->with(['center:evacuation_center_id,name,osm_address,capacity', 'assignedBy:user_id,first_name,last_name,email'])
+            ->get();
+
+        return response()->json([
+            'data' => $assignments,
+        ]);
+    }
 }

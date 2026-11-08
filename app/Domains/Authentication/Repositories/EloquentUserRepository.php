@@ -19,7 +19,7 @@ class EloquentUserRepository implements UserRepositoryInterface
      */
     public function paginateWithFilters(?string $search, ?string $role, array $allowedRoles, int $perPage = 10): LengthAwarePaginator
     {
-        $query = User::with(['role', 'assignedCenter']);
+        $query = User::with(['role', 'assignedCenter', 'currentPersonnelAssignment.center']);
 
         // Scope to caller's allowed roles
         $query->whereHas('role', function ($q) use ($allowedRoles) {
@@ -53,7 +53,7 @@ class EloquentUserRepository implements UserRepositoryInterface
      */
     public function findById(string $id): ?User
     {
-        return User::with(['role', 'assignedCenter'])->find($id);
+        return User::with(['role', 'assignedCenter', 'currentPersonnelAssignment.center'])->find($id);
     }
 
     /**
@@ -70,7 +70,7 @@ class EloquentUserRepository implements UserRepositoryInterface
     public function create(array $data): User
     {
         $user = User::create($data);
-        return $user->load(['role', 'assignedCenter']);
+        return $user->load(['role', 'assignedCenter', 'currentPersonnelAssignment.center']);
     }
 
     /**
@@ -79,7 +79,7 @@ class EloquentUserRepository implements UserRepositoryInterface
     public function update(User $user, array $data): User
     {
         $user->update($data);
-        return $user->load(['role', 'assignedCenter']);
+        return $user->load(['role', 'assignedCenter', 'currentPersonnelAssignment.center']);
     }
 
     /**
