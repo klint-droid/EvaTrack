@@ -11,7 +11,7 @@ class RecurrenceType extends Model
     protected $primaryKey = 'type_id';
     public $timestamps = false;
 
-    protected $fillable = ['type_key', 'type_label'];
+    protected $fillable = ['type_id', 'type_key', 'type_label'];
 
     public function notifications()
     {

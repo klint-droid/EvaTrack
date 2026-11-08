@@ -32,6 +32,33 @@ class UserResource extends JsonResource
         // Prevents integer casts from coercing null into 0.
         $rawCenterId = $this->getRawOriginal('assigned_center_id');
 
+        $assignedCenterData = null;
+        if ($this->assignedCenter) {
+            \App\Domains\Households\Models\HouseholdStatus::ensureSeeded();
+
+            $activeEvacQuery = \App\Domains\Evacuations\Models\EvacuationRecord::where('center_id', $this->assignedCenter->evacuation_center_id)
+                ->where('household_status_id', \App\Domains\Households\Models\HouseholdStatus::EVACUATED)
+                ->where(function ($q) {
+                    $q->whereNull('event_id')
+                      ->orWhereHas('event', function ($eq) {
+                          $eq->whereNull('ended_at');
+                      });
+                });
+
+            $currentOccupancy = (int) (clone $activeEvacQuery)->sum('evacuated_count');
+            $householdCount   = (int) (clone $activeEvacQuery)->distinct('household_id')->count('household_id');
+
+            $assignedCenterData = [
+                'id'                   => (string) $this->assignedCenter->evacuation_center_id,
+                'evacuation_center_id' => (string) $this->assignedCenter->evacuation_center_id,
+                'name'                 => $this->assignedCenter->name,
+                'osm_address'          => $this->assignedCenter->osm_address,
+                'capacity'             => (int) ($this->assignedCenter->capacity ?? 0),
+                'current_occupancy'    => $currentOccupancy,
+                'household_count'      => $householdCount,
+            ];
+        }
+
         return [
             'user_id'            => $this->user_id,
             'first_name'         => $this->first_name,
@@ -47,10 +74,7 @@ class UserResource extends JsonResource
                 default          => 'User',
             },
             'assigned_center_id' => $rawCenterId !== null ? (string) $rawCenterId : null,
-            'assigned_center'    => $this->assignedCenter ? [
-                'id'   => (string) $this->assignedCenter->evacuation_center_id,
-                'name' => $this->assignedCenter->name,
-            ] : null,
+            'assigned_center'    => $assignedCenterData,
             'contact_number'     => $this->contact_number,
             'profile_photo_url'  => $this->profile_photo_url,
             'is_active'          => (bool) ($this->is_active ?? true),

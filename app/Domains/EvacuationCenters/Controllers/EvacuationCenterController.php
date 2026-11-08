@@ -77,10 +77,15 @@ class EvacuationCenterController extends BaseApiController
     #[OA\Response(response: 200, description: 'Success')]
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     #[OA\Response(response: 404, description: 'Center not found')]
-    public function show(EvacuationCenter $center)
+    public function show(EvacuationCenter $center, GetCenterCapacityAction $capacityAction)
     {
+        $capacityInfo = $capacityAction->execute($center);
+        $center->load('currentEvent');
+        $center->current_occupancy = $capacityInfo['current_occupancy'] ?? 0;
+        $center->household_count = $capacityInfo['household_count'] ?? 0;
+
         return response()->json([
-            'data' => $center->load('currentEvent')
+            'data' => $center
         ]);
     }
 

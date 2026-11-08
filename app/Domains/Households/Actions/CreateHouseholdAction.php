@@ -86,6 +86,14 @@ class CreateHouseholdAction
                     if (!empty($m['is_pregnant']) && !in_array(4, $vulnerableIds)) $vulnerableIds[] = 4;
 
                     if (!empty($vulnerableIds)) {
+                        \App\Domains\ReferenceData\Models\VulnerableGroup::upsert([
+                            ['vulnerable_group_id' => 1, 'vulnerable_group_key' => 'elderly',    'vulnerable_group_label' => 'Elderly'],
+                            ['vulnerable_group_id' => 2, 'vulnerable_group_key' => 'children',   'vulnerable_group_label' => 'Children'],
+                            ['vulnerable_group_id' => 3, 'vulnerable_group_key' => 'pwd',        'vulnerable_group_label' => 'PWD'],
+                            ['vulnerable_group_id' => 4, 'vulnerable_group_key' => 'pregnant',   'vulnerable_group_label' => 'Pregnant Women'],
+                            ['vulnerable_group_id' => 5, 'vulnerable_group_key' => 'indigenous', 'vulnerable_group_label' => 'Indigenous People'],
+                        ], ['vulnerable_group_id'], ['vulnerable_group_key', 'vulnerable_group_label']);
+
                         $member->vulnerableGroupDetails()->sync($vulnerableIds);
                     }
 

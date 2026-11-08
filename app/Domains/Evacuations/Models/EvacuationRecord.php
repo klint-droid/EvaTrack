@@ -54,7 +54,7 @@ class EvacuationRecord extends Model
 
     public function status()
     {
-        return $this->belongsTo(HouseholdStatus::class, 'household_status_id', 'household_status_id');
+        return $this->belongsTo(HouseholdStatus::class, 'household_status_id', 'status_id');
     }
 
     public function verifier()

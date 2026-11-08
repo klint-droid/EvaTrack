@@ -11,7 +11,7 @@ class NotificationChannel extends Model
     protected $primaryKey = 'channel_id';
     public $timestamps = false;
 
-    protected $fillable = ['channel_key', 'channel_label'];
+    protected $fillable = ['channel_id', 'channel_key', 'channel_label'];
 
     public function logs()
     {

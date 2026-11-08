@@ -12,6 +12,37 @@ use Exception;
 
 class EloquentCenterIssueReportRepository implements CenterIssueReportRepositoryInterface
 {
+    private function ensureLookupsSeeded(): void
+    {
+        if (CenterIssueReportStatus::count() === 0) {
+            CenterIssueReportStatus::upsert([
+                ['status_id' => 1, 'status_key' => 'open',        'status_label' => 'Open'],
+                ['status_id' => 2, 'status_key' => 'in_progress', 'status_label' => 'In Progress'],
+                ['status_id' => 3, 'status_key' => 'resolved',    'status_label' => 'Resolved'],
+                ['status_id' => 4, 'status_key' => 'closed',      'status_label' => 'Closed'],
+            ], ['status_id'], ['status_key', 'status_label']);
+        }
+
+        if (CenterIssueCategory::count() === 0) {
+            CenterIssueCategory::upsert([
+                ['category_id' => 1, 'category_key' => 'incident',       'category_label' => 'Incident'],
+                ['category_id' => 2, 'category_key' => 'facility_issue', 'category_label' => 'Facility Issue'],
+                ['category_id' => 3, 'category_key' => 'health_issue',   'category_label' => 'Health Issue'],
+                ['category_id' => 4, 'category_key' => 'safety_issue',   'category_label' => 'Safety Issue'],
+                ['category_id' => 5, 'category_key' => 'other',          'category_label' => 'Other'],
+            ], ['category_id'], ['category_key', 'category_label']);
+        }
+
+        if (SeverityLevel::count() === 0) {
+            SeverityLevel::upsert([
+                ['severity_id' => 1, 'severity_key' => 'low',      'severity_label' => 'Low'],
+                ['severity_id' => 2, 'severity_key' => 'medium',   'severity_label' => 'Medium'],
+                ['severity_id' => 3, 'severity_key' => 'high',     'severity_label' => 'High'],
+                ['severity_id' => 4, 'severity_key' => 'critical', 'severity_label' => 'Critical'],
+            ], ['severity_id'], ['severity_key', 'severity_label']);
+        }
+    }
+
     private function reportRelations(): array
     {
         return [
@@ -26,6 +57,8 @@ class EloquentCenterIssueReportRepository implements CenterIssueReportRepository
 
     public function getFilteredReports(CenterIssueReportFilterDTO $filter, int|string|null $enforcedCenterId = null): array
     {
+        $this->ensureLookupsSeeded();
+
         $query = CenterIssueReport::with($this->reportRelations());
 
         if ($enforcedCenterId !== null) {
@@ -102,6 +135,8 @@ class EloquentCenterIssueReportRepository implements CenterIssueReportRepository
 
     public function createReport(array $data): CenterIssueReport
     {
+        $this->ensureLookupsSeeded();
+
         if (isset($data['category'])) {
             $data['category_id'] = CenterIssueCategory::where('category_key', $data['category'])->value('category_id');
             unset($data['category']);

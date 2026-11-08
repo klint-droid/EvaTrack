@@ -15,6 +15,7 @@ class AdmissionDTO
         public readonly ?string $eventId = null,
         public readonly array  $memberIds = [],
         public readonly ?int   $memberCount = null,
+        public readonly ?int   $unitId = null,
     ) {}
 
     public static function fromRequest(Request|FormRequest $request, string $centerId, string $userId, string $method = 'manual'): self
@@ -27,6 +28,7 @@ class AdmissionDTO
             eventId:     $request->input('event_id') ? (string) $request->input('event_id') : null,
             memberIds:   $request->input('member_ids', []),
             memberCount: $request->input('member_count') ? (int) $request->input('member_count') : null,
+            unitId:      $request->input('unit_id') ? (int) $request->input('unit_id') : null,
         );
     }
 }

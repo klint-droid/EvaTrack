@@ -30,7 +30,43 @@ class HouseholdStatus extends Model
     protected $primaryKey = 'status_id';
     public $timestamps = false;
 
-    protected $fillable = ['status_key', 'status_label'];
+    protected $fillable = ['status_id', 'status_key', 'status_label'];
+
+    public static function ensureSeeded(): void
+    {
+        $required = [
+            1 => ['status_id' => 1, 'status_key' => 'active',        'status_label' => 'Active'],
+            2 => ['status_id' => 2, 'status_key' => 'evacuated',     'status_label' => 'Evacuated'],
+            3 => ['status_id' => 3, 'status_key' => 'not_evacuated', 'status_label' => 'Not Evacuated'],
+            4 => ['status_id' => 4, 'status_key' => 'relocated',     'status_label' => 'Relocated'],
+            5 => ['status_id' => 5, 'status_key' => 'displaced',     'status_label' => 'Displaced'],
+            6 => ['status_id' => 6, 'status_key' => 'returned',      'status_label' => 'Returned'],
+        ];
+
+        $existingIds = static::whereIn('status_id', array_keys($required))
+            ->pluck('status_id')
+            ->map(fn ($id) => (int) $id)
+            ->toArray();
+
+        if (in_array(self::EVACUATED, $existingIds, true) && in_array(self::CHECKED_OUT, $existingIds, true)) {
+            return;
+        }
+
+        $existingKeys = static::pluck('status_id', 'status_key')->toArray();
+
+        foreach ($required as $id => $row) {
+            if (in_array($id, $existingIds, true)) {
+                continue;
+            }
+
+            $key = $row['status_key'];
+            if (isset($existingKeys[$key]) && (int) $existingKeys[$key] !== $id) {
+                $row['status_key'] = $key . '_' . $id;
+            }
+
+            static::insertOrIgnore([$row]);
+        }
+    }
 
     public function evacuationRecords()
     {

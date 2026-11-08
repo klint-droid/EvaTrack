@@ -69,25 +69,52 @@ class LiveAnalyticsService
     |--------------------------------------------------------------------------
     */
 
+    protected function applyEvacuationDateFilter($query, $startDate = null, $endDate = null)
+    {
+        if ($startDate) {
+            $query->where(function ($q) use ($startDate) {
+                $q->whereRaw('DATE(COALESCE(verified_at, updated_at, created_at)) >= ?', [$startDate])
+                  ->orWhere(function ($nq) {
+                      $nq->whereNull('verified_at')
+                         ->whereNull('updated_at')
+                         ->whereNull('created_at');
+                  });
+            });
+        }
+
+        if ($endDate) {
+            $query->where(function ($q) use ($endDate) {
+                $q->whereRaw('DATE(COALESCE(verified_at, updated_at, created_at)) <= ?', [$endDate])
+                  ->orWhere(function ($nq) {
+                      $nq->whereNull('verified_at')
+                         ->whereNull('updated_at')
+                         ->whereNull('created_at');
+                  });
+            });
+        }
+
+        return $query;
+    }
+
     protected function getSummaryKPIs($eventId, $centerId = null, $startDate = null, $endDate = null)
     {
-        $query = EvacuationRecord::query();
+        HouseholdStatus::ensureSeeded();
+
+        $query = EvacuationRecord::query()
+            ->where('household_status_id', HouseholdStatus::EVACUATED);
 
         if ($eventId !== 'all') {
-            $query->where('event_id', $eventId);
+            $query->where(function ($q) use ($eventId) {
+                $q->where('event_id', $eventId)
+                  ->orWhereNull('event_id');
+            });
         }
 
         if ($centerId) {
             $query->where('center_id', $centerId);
         }
 
-        if ($startDate) {
-            $query->whereDate('created_at', '>=', $startDate);
-        }
-
-        if ($endDate) {
-            $query->whereDate('created_at', '<=', $endDate);
-        }
+        $this->applyEvacuationDateFilter($query, $startDate, $endDate);
 
         $records = $query->get();
 
@@ -96,8 +123,12 @@ class LiveAnalyticsService
 
         $centerIds = $records->pluck('center_id')->unique()->filter();
 
-        $centers = EvacuationCenter::whereIn('evacuation_center_id', $centerIds)->get();
-        $totalCenters = $centers->count();
+        $centers = $centerId
+            ? EvacuationCenter::where('evacuation_center_id', $centerId)->get()
+            : ($centerIds->isNotEmpty()
+                ? EvacuationCenter::whereIn('evacuation_center_id', $centerIds)->get()
+                : EvacuationCenter::all());
+        $totalCenters = $centerIds->isNotEmpty() ? $centerIds->count() : $centers->count();
 
         $totalCapacity   = $centers->sum('capacity');
         $totalOccupancy  = $totalIndividuals;
@@ -121,30 +152,29 @@ class LiveAnalyticsService
 
     protected function getEvacuationTrends($eventId, $centerId = null, $startDate = null, $endDate = null)
     {
+        $dateExpr = 'DATE(COALESCE(verified_at, updated_at, created_at))';
+
         $query = EvacuationRecord::select(
-            DB::raw('DATE(created_at) as date'),
+            DB::raw("{$dateExpr} as date"),
             DB::raw('COUNT(*) as households'),
             DB::raw('SUM(evacuated_count) as individuals')
-        )->whereNotNull('created_at');
+        )->whereRaw('COALESCE(verified_at, updated_at, created_at) IS NOT NULL');
 
         if ($eventId !== 'all') {
-            $query->where('event_id', $eventId);
+            $query->where(function ($q) use ($eventId) {
+                $q->where('event_id', $eventId)
+                  ->orWhereNull('event_id');
+            });
         }
 
         if ($centerId) {
             $query->where('center_id', $centerId);
         }
 
-        if ($startDate) {
-            $query->whereDate('created_at', '>=', $startDate);
-        }
-
-        if ($endDate) {
-            $query->whereDate('created_at', '<=', $endDate);
-        }
+        $this->applyEvacuationDateFilter($query, $startDate, $endDate);
 
         return $query
-            ->groupBy(DB::raw('DATE(created_at)'))
+            ->groupBy(DB::raw($dateExpr))
             ->orderBy('date')
             ->get()
             ->map(function ($row) {
@@ -164,26 +194,25 @@ class LiveAnalyticsService
 
     protected function getStatusDistribution($eventId, $centerId = null, $startDate = null, $endDate = null)
     {
+        HouseholdStatus::ensureSeeded();
+
         $query = EvacuationRecord::select(
             'household_status_id',
             DB::raw('COUNT(*) as count')
         );
 
         if ($eventId !== 'all') {
-            $query->where('event_id', $eventId);
+            $query->where(function ($q) use ($eventId) {
+                $q->where('event_id', $eventId)
+                  ->orWhereNull('event_id');
+            });
         }
 
         if ($centerId) {
             $query->where('center_id', $centerId);
         }
 
-        if ($startDate) {
-            $query->whereDate('created_at', '>=', $startDate);
-        }
-
-        if ($endDate) {
-            $query->whereDate('created_at', '<=', $endDate);
-        }
+        $this->applyEvacuationDateFilter($query, $startDate, $endDate);
 
         $distribution = $query
             ->groupBy('household_status_id')
@@ -210,12 +239,19 @@ class LiveAnalyticsService
 
     protected function getDemographics($eventId, $centerId = null, $startDate = null, $endDate = null)
     {
-        $evacuationRecords = EvacuationRecord::query()
-            ->when($eventId !== 'all', fn($q) => $q->where('event_id', $eventId))
-            ->when($centerId, fn($q) => $q->where('center_id', $centerId))
-            ->when($startDate, fn($q) => $q->whereDate('created_at', '>=', $startDate))
-            ->when($endDate, fn($q) => $q->whereDate('created_at', '<=', $endDate))
-            ->get();
+        $evacuationQuery = EvacuationRecord::query()
+            ->where('household_status_id', HouseholdStatus::EVACUATED)
+            ->when($eventId !== 'all', function ($q) use ($eventId) {
+                $q->where(function ($sq) use ($eventId) {
+                    $sq->where('event_id', $eventId)
+                       ->orWhereNull('event_id');
+                });
+            })
+            ->when($centerId, fn($q) => $q->where('center_id', $centerId));
+
+        $this->applyEvacuationDateFilter($evacuationQuery, $startDate, $endDate);
+
+        $evacuationRecords = $evacuationQuery->get();
 
         $evacuationIds = $evacuationRecords->pluck('evacuation_id');
         $householdIds = $evacuationRecords->pluck('household_id')->unique()->filter();
@@ -316,23 +352,20 @@ class LiveAnalyticsService
             'center_id',
             DB::raw('COUNT(DISTINCT household_id) as household_count'),
             DB::raw('SUM(evacuated_count) as individual_count')
-        );
+        )->where('household_status_id', HouseholdStatus::EVACUATED);
 
         if ($eventId !== 'all') {
-            $query->where('event_id', $eventId);
+            $query->where(function ($q) use ($eventId) {
+                $q->where('event_id', $eventId)
+                  ->orWhereNull('event_id');
+            });
         }
 
         if ($centerId) {
             $query->where('center_id', $centerId);
         }
 
-        if ($startDate) {
-            $query->whereDate('created_at', '>=', $startDate);
-        }
-
-        if ($endDate) {
-            $query->whereDate('created_at', '<=', $endDate);
-        }
+        $this->applyEvacuationDateFilter($query, $startDate, $endDate);
 
         $recordsByCenter = $query
             ->groupBy('center_id')

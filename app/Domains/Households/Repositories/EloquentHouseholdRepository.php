@@ -142,12 +142,10 @@ class EloquentHouseholdRepository implements HouseholdRepositoryInterface
 
         if ($household->address) {
             $household->address->update(array_filter([
-                'barangay'     => $dto->barangay,
-                'street'       => $dto->street,
-                'purok'        => $dto->purok,
-                'city'         => $dto->city,
-                'province'     => $dto->province,
-                'full_address' => $dto->fullAddress,
+                'barangay_name' => $dto->barangay,
+                'street'        => $dto->street,
+                'purok_sitio'   => $dto->purok,
+                'full_address'  => $dto->fullAddress,
             ]));
         }
 
@@ -169,12 +167,10 @@ class EloquentHouseholdRepository implements HouseholdRepositoryInterface
     public function createAddress(Household $household, HouseholdDTO $dto): void
     {
         $address = Address::create([
-            'barangay'     => $dto->barangay,
-            'street'       => $dto->street,
-            'purok'        => $dto->purok,
-            'city'         => $dto->city,
-            'province'     => $dto->province,
-            'full_address' => $dto->fullAddress,
+            'barangay_name' => $dto->barangay,
+            'street'        => $dto->street,
+            'purok_sitio'   => $dto->purok,
+            'full_address'  => $dto->fullAddress,
         ]);
 
         $household->update(['address_id' => $address->address_id]);

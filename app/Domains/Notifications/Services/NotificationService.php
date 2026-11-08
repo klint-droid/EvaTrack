@@ -19,19 +19,78 @@ class NotificationService
         protected OneSignalService $push,
     ) {}
 
+    private function ensureLookupsSeeded(): void
+    {
+        NotificationChannel::upsert([
+            ['channel_id' => 1, 'channel_key' => 'sms',  'channel_label' => 'SMS'],
+            ['channel_id' => 2, 'channel_key' => 'push', 'channel_label' => 'Push Notification'],
+            ['channel_id' => 3, 'channel_key' => 'both', 'channel_label' => 'SMS & Push'],
+        ], ['channel_id'], ['channel_key', 'channel_label']);
+
+        NotificationStatus::upsert([
+            ['status_id' => 1, 'status_key' => 'sent',      'status_label' => 'Sent'],
+            ['status_id' => 2, 'status_key' => 'failed',    'status_label' => 'Failed'],
+            ['status_id' => 3, 'status_key' => 'pending',   'status_label' => 'Pending'],
+            ['status_id' => 4, 'status_key' => 'scheduled', 'status_label' => 'Scheduled'],
+            ['status_id' => 5, 'status_key' => 'cancelled', 'status_label' => 'Cancelled'],
+        ], ['status_id'], ['status_key', 'status_label']);
+
+        \App\Domains\Notifications\Models\RecurrenceType::upsert([
+            ['type_id' => 1, 'type_key' => 'hourly', 'type_label' => 'Hourly'],
+            ['type_id' => 2, 'type_key' => 'daily',  'type_label' => 'Daily'],
+            ['type_id' => 3, 'type_key' => 'weekly', 'type_label' => 'Weekly'],
+            ['type_id' => 4, 'type_key' => 'custom', 'type_label' => 'Custom Interval'],
+        ], ['type_id'], ['type_key', 'type_label']);
+    }
+
     private function channelId(string $key): int
     {
-        return NotificationChannel::where('channel_key', $key)->value('channel_id');
+        $id = NotificationChannel::where('channel_key', $key)->value('channel_id');
+        if ($id === null) {
+            $this->ensureLookupsSeeded();
+            $id = NotificationChannel::where('channel_key', $key)->value('channel_id');
+        }
+        return (int) ($id ?? match ($key) {
+            'sms'  => 1,
+            'push' => 2,
+            'both' => 3,
+            default => 1,
+        });
     }
 
     private function statusId(string $key): int
     {
-        return NotificationStatus::where('status_key', $key)->value('status_id');
+        $id = NotificationStatus::where('status_key', $key)->value('status_id');
+        if ($id === null) {
+            $this->ensureLookupsSeeded();
+            $id = NotificationStatus::where('status_key', $key)->value('status_id');
+        }
+        return (int) ($id ?? match ($key) {
+            'sent'      => 1,
+            'failed'    => 2,
+            'pending'   => 3,
+            'scheduled' => 4,
+            'cancelled' => 5,
+            default     => 1,
+        });
     }
     public function dispatch(array $payload): Notification
     {
+        // Auto-resolve active disaster event if not explicitly provided
+        if (empty($payload['evacuation_event_id'])) {
+            if (!empty($payload['evacuation_center_id'])) {
+                $center = \App\Domains\EvacuationCenters\Models\EvacuationCenter::find($payload['evacuation_center_id']);
+                $payload['evacuation_event_id'] = $center?->current_event_id;
+            }
+            if (empty($payload['evacuation_event_id'])) {
+                $activeEvent = \App\Domains\EvacuationEvents\Models\DisasterEvent::whereNull('ended_at')->latest()->first();
+                $payload['evacuation_event_id'] = $activeEvent?->event_id;
+            }
+        }
+
+        $targetFilter = $payload['target_filter'] ?? 'all';
         $householdIds = $this->resolveRecipients(
-            $payload['target_filter']        ?? 'all',
+            $targetFilter,
             $payload['evacuation_center_id'] ?? null,
             $payload['evacuation_event_id']  ?? null,
         );
@@ -48,23 +107,35 @@ class NotificationService
         $status       = ($isScheduled || $isRecurring) ? 'scheduled' : 'pending';
 
         $recurrenceTypeId = null;
+        $feedPayload = null;
         if ($isRecurring && !empty($payload['recurrence_type'])) {
+            $this->ensureLookupsSeeded();
             $recurrenceTypeId = \App\Domains\Notifications\Models\RecurrenceType::where('type_key', $payload['recurrence_type'])->value('type_id');
+
+            if ($payload['recurrence_type'] === 'custom') {
+                $intervalVal = !empty($payload['recurrence_interval_value']) ? (int)$payload['recurrence_interval_value'] : 1;
+                $intervalUnit = $payload['recurrence_interval_unit'] ?? 'hours';
+                $minutes = match($intervalUnit) {
+                    'minutes' => $intervalVal,
+                    'hours'   => $intervalVal * 60,
+                    'days'    => $intervalVal * 1440,
+                    'weeks'   => $intervalVal * 10080,
+                    default   => $intervalVal * 60,
+                };
+                if (!empty($payload['recurrence_interval_minutes'])) {
+                    $minutes = (int)$payload['recurrence_interval_minutes'];
+                }
+
+                $feedPayload = [
+                    'recurrence_type'             => 'custom',
+                    'recurrence_interval_value'   => $intervalVal,
+                    'recurrence_interval_unit'    => $intervalUnit,
+                    'recurrence_interval_minutes' => max(1, $minutes),
+                ];
+            }
         }
 
-        // Auto-resolve active disaster event if not explicitly provided
-        if (empty($payload['evacuation_event_id'])) {
-            if (!empty($payload['evacuation_center_id'])) {
-                $center = \App\Domains\EvacuationCenters\Models\EvacuationCenter::find($payload['evacuation_center_id']);
-                $payload['evacuation_event_id'] = $center?->current_event_id;
-            }
-            if (empty($payload['evacuation_event_id'])) {
-                $activeEvent = \App\Domains\EvacuationEvents\Models\DisasterEvent::whereNull('ended_at')->latest()->first();
-                $payload['evacuation_event_id'] = $activeEvent?->event_id;
-            }
-        }
-
-        $notification = DB::connection('mysql_v2')->transaction(function () use ($payload, $householdIds, $channel, $status, $isRecurring, $recurrenceTypeId) {
+        $notification = DB::connection('mysql_v2')->transaction(function () use ($payload, $householdIds, $channel, $status, $isRecurring, $recurrenceTypeId, $feedPayload) {
 
             $notification = Notification::create([
                 'message'              => $payload['message'],
@@ -78,6 +149,7 @@ class NotificationService
                 'is_recurring'         => $isRecurring,
                 'recurrence_type_id'   => $recurrenceTypeId,
                 'recurrence_end_at'    => $payload['recurrence_end_at'] ?? null,
+                'feed_payload_json'    => $feedPayload,
             ]);
 
             $rows = array_map(fn ($hid) => [
@@ -112,10 +184,12 @@ class NotificationService
             $notification->update(['last_sent_at' => now()]);
 
             $recurrenceType = $payload['recurrence_type'] ?? 'daily';
+            $customMinutes = $notification->recurrence_interval_minutes ?: ($feedPayload['recurrence_interval_minutes'] ?? 60);
             $nextRun = match($recurrenceType) {
                 'hourly' => now()->addHour(),
                 'daily'  => now()->addDay(),
                 'weekly' => now()->addWeek(),
+                'custom' => now()->addMinutes(max(1, (int)$customMinutes)),
                 default  => now()->addDay(),
             };
 
@@ -126,7 +200,10 @@ class NotificationService
             // only schedule next if before end date
             if (!$recurrenceEndAt || now()->parse($nextRun)->isBefore($recurrenceEndAt)) {
                 // reset status to scheduled for the next run (since sendToChannels sets it to 'sent')
-                $notification->update(['status' => 'scheduled']);
+                $notification->update([
+                    'status' => 'scheduled',
+                    'scheduled_at' => $nextRun,
+                ]);
 
                 \App\Jobs\SendScheduledNotification::dispatch($notification->notif_id)->delay($nextRun);
             }
@@ -152,23 +229,23 @@ class NotificationService
     {
         $query = Household::on('mysql_v2');
 
-        if ($targetFilter === 'evacuated') {
-            $query->whereHas('currentEvacuation');
-        } elseif ($targetFilter === 'not_evacuated') {
-            $query->whereDoesntHave('currentEvacuation');
-        }
-
         if ($centerId) {
+            // Target specific evacuation center
             $query->whereHas('currentEvacuation', fn($q) =>
                 $q->where('center_id', $centerId)
             );
+        } elseif ($targetFilter === 'not_evacuated') {
+            // Only households that are NOT currently evacuated
+            $query->whereDoesntHave('currentEvacuation');
+        } elseif ($targetFilter === 'evacuated') {
+            // Only households that are currently evacuated
+            $query->whereHas('currentEvacuation', function ($q) use ($eventId) {
+                if ($eventId) {
+                    $q->where('event_id', $eventId);
+                }
+            });
         }
-
-        if ($eventId) {
-            $query->whereHas('currentEvacuation', fn($q) =>
-                $q->where('event_id', $eventId)
-            );
-        }
+        // If $targetFilter === 'all' and no $centerId, no conditions applied -> all registered households
 
         return $query->pluck('household_id')->toArray();
     }

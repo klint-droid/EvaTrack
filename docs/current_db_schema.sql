@@ -1,0 +1,2553 @@
+-- Database: shared_db
+-- Generated at: 2026-11-07 23:32:37
+
+-- ==========================================
+-- Table/View: _archive_orphan_household_disasters (BASE TABLE)
+-- ==========================================
+CREATE TABLE `_archive_orphan_household_disasters` (
+  `household_disaster_id` int NOT NULL,
+  `household_id` varchar(255) DEFAULT NULL,
+  `disaster_id` varchar(255) DEFAULT NULL,
+  `initial_status_id` int DEFAULT NULL,
+  `current_status_id` int DEFAULT NULL,
+  `last_status_source` varchar(50) DEFAULT NULL,
+  `last_status_notes` text,
+  `last_reported_by_user_id` varchar(255) DEFAULT NULL,
+  `last_responder_id` int DEFAULT NULL,
+  `last_device_token_id` bigint DEFAULT NULL,
+  `last_latitude` decimal(10,7) DEFAULT NULL,
+  `last_longitude` decimal(10,7) DEFAULT NULL,
+  `last_battery_level` int DEFAULT NULL,
+  `last_reported_at` datetime DEFAULT NULL,
+  `priority_level` varchar(30) DEFAULT NULL,
+  `needs_dispatch` tinyint(1) NOT NULL DEFAULT '0',
+  `updated_at` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL,
+  PRIMARY KEY (`household_disaster_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: _archive_orphan_household_status_logs (BASE TABLE)
+-- ==========================================
+CREATE TABLE `_archive_orphan_household_status_logs` (
+  `status_log_id` int NOT NULL DEFAULT '0',
+  `disaster_id` varchar(255) DEFAULT NULL,
+  `household_id` varchar(255) NOT NULL,
+  `status_id` int NOT NULL,
+  `source` varchar(50) NOT NULL,
+  `submitted_by_user_id` varchar(255) DEFAULT NULL,
+  `responder_id` int DEFAULT NULL,
+  `device_token_id` bigint DEFAULT NULL,
+  `latitude` decimal(10,7) DEFAULT NULL,
+  `longitude` decimal(10,7) DEFAULT NULL,
+  `location_label` varchar(255) DEFAULT NULL,
+  `location_accuracy_m` decimal(8,2) DEFAULT NULL,
+  `battery_level` int DEFAULT NULL,
+  `signal_strength` int DEFAULT NULL,
+  `notes` text,
+  `submitted_at` datetime DEFAULT NULL,
+  `reviewed_by_user_id` varchar(255) DEFAULT NULL,
+  `reviewed_at` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`status_log_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: accommodation_types (BASE TABLE)
+-- ==========================================
+CREATE TABLE `accommodation_types` (
+  `type_id` int NOT NULL AUTO_INCREMENT,
+  `type_key` varchar(50) DEFAULT NULL,
+  `type_label` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`type_id`),
+  UNIQUE KEY `uk_accommodation_types_key` (`type_key`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: accommodation_units (BASE TABLE)
+-- ==========================================
+CREATE TABLE `accommodation_units` (
+  `unit_id` int NOT NULL AUTO_INCREMENT,
+  `center_id` varchar(255) DEFAULT NULL,
+  `name` varchar(100) DEFAULT NULL,
+  `type_id` int DEFAULT NULL,
+  `max_capacity` int DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`unit_id`),
+  KEY `idx_accomm_units_center_deleted` (`center_id`,`deleted_at`),
+  KEY `idx_accomm_units_type` (`type_id`),
+  CONSTRAINT `fk_accomm_units_center` FOREIGN KEY (`center_id`) REFERENCES `evacuation_centers` (`evacuation_center_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_accomm_units_type` FOREIGN KEY (`type_id`) REFERENCES `accommodation_types` (`type_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: addresses (BASE TABLE)
+-- ==========================================
+CREATE TABLE `addresses` (
+  `address_id` int NOT NULL AUTO_INCREMENT,
+  `street_address` int DEFAULT NULL,
+  `street` varchar(255) DEFAULT NULL,
+  `barangay_id` int DEFAULT NULL,
+  `barangay_name` varchar(255) DEFAULT NULL,
+  `sitio_id` int DEFAULT NULL,
+  `purok_sitio` varchar(255) DEFAULT NULL,
+  `house_number` varchar(255) DEFAULT NULL,
+  `purok_id` int DEFAULT NULL,
+  `zipcode_id` int DEFAULT NULL,
+  `zip_code` varchar(50) DEFAULT NULL,
+  `full_address` varchar(500) DEFAULT NULL,
+  `created_at` timestamp NOT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  `is_apartment` tinyint(1) DEFAULT NULL,
+  `building_name` varchar(120) DEFAULT NULL,
+  `floor_number` varchar(30) DEFAULT NULL,
+  `unit_number` varchar(80) DEFAULT NULL,
+  `room_number` varchar(80) DEFAULT NULL,
+  `landmark` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`address_id`),
+  KEY `idx_addresses_barangay` (`barangay_id`),
+  KEY `idx_addresses_sitio` (`sitio_id`),
+  KEY `idx_addresses_purok` (`purok_id`),
+  KEY `idx_addresses_zipcode` (`zipcode_id`),
+  CONSTRAINT `fk_addresses_barangay` FOREIGN KEY (`barangay_id`) REFERENCES `barangays` (`barangay_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_addresses_purok` FOREIGN KEY (`purok_id`) REFERENCES `puroks` (`purok_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_addresses_sitio` FOREIGN KEY (`sitio_id`) REFERENCES `sitios` (`sitio_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_addresses_zipcode` FOREIGN KEY (`zipcode_id`) REFERENCES `zipcodes` (`zipcode_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=51 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: affected_areas (BASE TABLE)
+-- ==========================================
+CREATE TABLE `affected_areas` (
+  `affected_area_id` int NOT NULL AUTO_INCREMENT,
+  `disaster_id` varchar(255) DEFAULT NULL,
+  `confirmed_by_admin_id` varchar(255) DEFAULT NULL,
+  `severity_id` int DEFAULT NULL,
+  `purok_id` int DEFAULT NULL,
+  `sitio_id` int DEFAULT NULL,
+  `barangay_id` int DEFAULT NULL,
+  `confirmed_by_hq` tinyint(1) DEFAULT NULL,
+  `confirmed_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`affected_area_id`),
+  KEY `idx_affected_areas_disaster` (`disaster_id`),
+  KEY `idx_affected_areas_purok` (`purok_id`),
+  KEY `idx_affected_areas_sitio` (`sitio_id`),
+  KEY `idx_affected_areas_barangay` (`barangay_id`),
+  KEY `idx_affected_areas_severity` (`severity_id`),
+  KEY `resq_060e64d606d09f13_idx` (`disaster_id`,`purok_id`),
+  CONSTRAINT `fk_affected_areas_barangay` FOREIGN KEY (`barangay_id`) REFERENCES `barangays` (`barangay_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_affected_areas_disaster` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_affected_areas_purok` FOREIGN KEY (`purok_id`) REFERENCES `puroks` (`purok_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_affected_areas_severity` FOREIGN KEY (`severity_id`) REFERENCES `severity_levels` (`severity_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_affected_areas_sitio` FOREIGN KEY (`sitio_id`) REFERENCES `sitios` (`sitio_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: analytics (BASE TABLE)
+-- ==========================================
+CREATE TABLE `analytics` (
+  `analytic_id` varchar(255) NOT NULL,
+  `evacuation_event_id` varchar(255) DEFAULT NULL,
+  `evacuation_center_id` varchar(255) DEFAULT NULL,
+  `barangay_id` int DEFAULT NULL,
+  `purok_sitio` varchar(150) DEFAULT NULL,
+  `record_period` date DEFAULT NULL,
+  `total_households` int unsigned NOT NULL DEFAULT '0',
+  `snapshot_type` varchar(50) DEFAULT NULL,
+  `total_population` int DEFAULT NULL,
+  `total_males` int unsigned NOT NULL DEFAULT '0',
+  `total_females` int unsigned NOT NULL DEFAULT '0',
+  `total_pwd` int unsigned NOT NULL DEFAULT '0',
+  `total_seniors` int unsigned NOT NULL DEFAULT '0',
+  `total_children` int unsigned NOT NULL DEFAULT '0',
+  `total_adults` int unsigned NOT NULL DEFAULT '0',
+  `total_pregnant` int unsigned NOT NULL DEFAULT '0',
+  `total_evacuees` int unsigned NOT NULL DEFAULT '0',
+  `children_count` int DEFAULT NULL,
+  `adult_count` int DEFAULT NULL,
+  `elderly_count` int DEFAULT NULL,
+  `pwd_count` int DEFAULT NULL,
+  `pregnant_count` int DEFAULT NULL,
+  `male_count` int DEFAULT NULL,
+  `female_count` int DEFAULT NULL,
+  `recorded_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`analytic_id`),
+  KEY `idx_analytics_event_center_period` (`evacuation_event_id`,`evacuation_center_id`,`record_period`),
+  KEY `idx_analytics_barangay` (`barangay_id`),
+  KEY `fk_analytics_center` (`evacuation_center_id`),
+  CONSTRAINT `fk_analytics_barangay` FOREIGN KEY (`barangay_id`) REFERENCES `barangays` (`barangay_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_analytics_center` FOREIGN KEY (`evacuation_center_id`) REFERENCES `evacuation_centers` (`evacuation_center_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_analytics_event` FOREIGN KEY (`evacuation_event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: analytics_job_logs (BASE TABLE)
+-- ==========================================
+CREATE TABLE `analytics_job_logs` (
+  `job_id` int NOT NULL AUTO_INCREMENT,
+  `status_id` int NOT NULL,
+  `started_at` datetime DEFAULT NULL,
+  `finished_at` datetime DEFAULT NULL,
+  `message` text,
+  PRIMARY KEY (`job_id`),
+  KEY `idx_analytics_job_logs_status` (`status_id`,`started_at`),
+  CONSTRAINT `fk_analytics_job_logs_status` FOREIGN KEY (`status_id`) REFERENCES `analytics_job_status` (`status_id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: analytics_job_status (BASE TABLE)
+-- ==========================================
+CREATE TABLE `analytics_job_status` (
+  `status_id` int NOT NULL,
+  `status_key` varchar(50) DEFAULT NULL,
+  `status_label` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`status_id`),
+  UNIQUE KEY `uk_analytics_job_status_key` (`status_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: audit_logs (BASE TABLE)
+-- ==========================================
+CREATE TABLE `audit_logs` (
+  `audit_log_id` int NOT NULL AUTO_INCREMENT,
+  `user_id` varchar(255) DEFAULT NULL,
+  `role_key` varchar(50) DEFAULT NULL,
+  `module` varchar(80) NOT NULL,
+  `action` varchar(80) NOT NULL,
+  `reference_table` varchar(80) DEFAULT NULL,
+  `reference_id` varchar(255) DEFAULT NULL,
+  `old_values` json DEFAULT NULL,
+  `new_values` json DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` varchar(255) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`audit_log_id`),
+  KEY `idx_audit_logs_created` (`created_at`),
+  KEY `idx_audit_logs_user_created` (`user_id`,`created_at`),
+  KEY `idx_audit_logs_module_action` (`module`,`action`),
+  KEY `idx_audit_logs_reference` (`reference_table`,`reference_id`),
+  CONSTRAINT `resq_7e9e267e7c9af499_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: barangay_boundaries (BASE TABLE)
+-- ==========================================
+CREATE TABLE `barangay_boundaries` (
+  `psgc_code` varchar(12) NOT NULL,
+  `barangay_id` int DEFAULT NULL,
+  `barangay_code` varchar(12) DEFAULT NULL,
+  `barangay_name` varchar(100) NOT NULL,
+  `city_name` varchar(100) NOT NULL,
+  `geometry_json` longtext NOT NULL,
+  `source_url` varchar(500) NOT NULL,
+  `source_note` varchar(255) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`psgc_code`),
+  KEY `barangay_boundaries_barangay_id_index` (`barangay_id`),
+  KEY `barangay_boundaries_barangay_code_index` (`barangay_code`),
+  CONSTRAINT `fk_barangay_boundaries_barangay` FOREIGN KEY (`barangay_id`) REFERENCES `barangays` (`barangay_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: barangays (BASE TABLE)
+-- ==========================================
+CREATE TABLE `barangays` (
+  `barangay_id` int NOT NULL,
+  `barangay_code` varchar(20) DEFAULT NULL,
+  `barangay_name` varchar(100) DEFAULT NULL,
+  `city_id` int NOT NULL,
+  PRIMARY KEY (`barangay_id`),
+  UNIQUE KEY `uk_barangays_code` (`barangay_code`),
+  KEY `idx_barangays_city` (`city_id`),
+  CONSTRAINT `fk_barangays_city` FOREIGN KEY (`city_id`) REFERENCES `cities` (`city_id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: cache (BASE TABLE)
+-- ==========================================
+CREATE TABLE `cache` (
+  `key` varchar(255) NOT NULL,
+  `value` mediumtext NOT NULL,
+  `expiration` bigint NOT NULL,
+  PRIMARY KEY (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: cache_locks (BASE TABLE)
+-- ==========================================
+CREATE TABLE `cache_locks` (
+  `key` varchar(255) NOT NULL,
+  `owner` varchar(255) DEFAULT NULL,
+  `expiration` bigint NOT NULL,
+  PRIMARY KEY (`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: cached_routes (BASE TABLE)
+-- ==========================================
+CREATE TABLE `cached_routes` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `team_id` int NOT NULL,
+  `household_id` varchar(255) DEFAULT NULL,
+  `evac_center_id` varchar(255) DEFAULT NULL,
+  `target_key` varchar(300) NOT NULL,
+  `profile` enum('auto','pedestrian') NOT NULL,
+  `polyline6` longtext,
+  `steps` json DEFAULT NULL,
+  `distance_m` int unsigned DEFAULT NULL,
+  `duration_s` int unsigned DEFAULT NULL,
+  `status` enum('ready','failed') NOT NULL DEFAULT 'failed',
+  `failure_reason` varchar(255) DEFAULT NULL,
+  `computed_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `cached_routes_team_target_profile_unique` (`team_id`,`target_key`,`profile`),
+  KEY `cached_routes_household_id_foreign` (`household_id`),
+  KEY `cached_routes_evac_center_id_foreign` (`evac_center_id`),
+  KEY `cached_routes_team_status_profile_index` (`team_id`,`status`,`profile`),
+  CONSTRAINT `cached_routes_evac_center_id_foreign` FOREIGN KEY (`evac_center_id`) REFERENCES `evacuation_centers` (`evacuation_center_id`) ON DELETE CASCADE,
+  CONSTRAINT `cached_routes_household_id_foreign` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE CASCADE,
+  CONSTRAINT `cached_routes_team_id_foreign` FOREIGN KEY (`team_id`) REFERENCES `rescue_teams` (`team_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: center_issue_categories (BASE TABLE)
+-- ==========================================
+CREATE TABLE `center_issue_categories` (
+  `category_id` int NOT NULL,
+  `category_key` varchar(50) DEFAULT NULL,
+  `category_label` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`category_id`),
+  UNIQUE KEY `uk_center_issue_categories_key` (`category_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: center_issue_report_statuses (BASE TABLE)
+-- ==========================================
+CREATE TABLE `center_issue_report_statuses` (
+  `status_id` int NOT NULL,
+  `status_key` varchar(50) DEFAULT NULL,
+  `status_label` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`status_id`),
+  UNIQUE KEY `uk_center_issue_report_statuses_key` (`status_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: center_issue_reports (BASE TABLE)
+-- ==========================================
+CREATE TABLE `center_issue_reports` (
+  `report_id` varchar(255) NOT NULL,
+  `evacuation_center_id` varchar(255) DEFAULT NULL,
+  `reported_by` varchar(255) DEFAULT NULL,
+  `handled_by` varchar(255) DEFAULT NULL,
+  `category_id` int NOT NULL,
+  `title` varchar(150) DEFAULT NULL,
+  `description` text,
+  `severity_id` int DEFAULT NULL,
+  `status_id` int DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `attachment_path` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`report_id`),
+  KEY `idx_cir_status_created` (`status_id`,`created_at`),
+  KEY `idx_cir_center_status` (`evacuation_center_id`,`status_id`),
+  KEY `idx_cir_category` (`category_id`),
+  KEY `idx_cir_severity` (`severity_id`),
+  KEY `idx_cir_reported_by` (`reported_by`),
+  KEY `idx_cir_handled_by` (`handled_by`),
+  CONSTRAINT `fk_cir_category` FOREIGN KEY (`category_id`) REFERENCES `center_issue_categories` (`category_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_cir_center` FOREIGN KEY (`evacuation_center_id`) REFERENCES `evacuation_centers` (`evacuation_center_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_cir_handled_by` FOREIGN KEY (`handled_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_cir_reported_by` FOREIGN KEY (`reported_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_cir_severity` FOREIGN KEY (`severity_id`) REFERENCES `severity_levels` (`severity_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_cir_status` FOREIGN KEY (`status_id`) REFERENCES `center_issue_report_statuses` (`status_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: cities (BASE TABLE)
+-- ==========================================
+CREATE TABLE `cities` (
+  `city_id` int NOT NULL,
+  `city_code` varchar(20) DEFAULT NULL,
+  `city_name` varchar(100) DEFAULT NULL,
+  `province_id` int NOT NULL,
+  PRIMARY KEY (`city_id`),
+  UNIQUE KEY `uk_cities_code` (`city_code`),
+  KEY `idx_cities_province` (`province_id`),
+  CONSTRAINT `fk_cities_province` FOREIGN KEY (`province_id`) REFERENCES `provinces` (`province_id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: civil_statuses (BASE TABLE)
+-- ==========================================
+CREATE TABLE `civil_statuses` (
+  `status_id` int NOT NULL AUTO_INCREMENT,
+  `status_key` varchar(20) DEFAULT NULL,
+  `status_label` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`status_id`),
+  UNIQUE KEY `uk_status_key` (`status_key`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: csv_uploads (BASE TABLE)
+-- ==========================================
+CREATE TABLE `csv_uploads` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `data_source_id` bigint NOT NULL,
+  `file_name` varchar(255) DEFAULT NULL,
+  `total_records` int DEFAULT NULL,
+  `successful_records` int DEFAULT NULL,
+  `failed_records` int DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_csv_uploads_source` (`data_source_id`),
+  CONSTRAINT `fk_csv_uploads_source` FOREIGN KEY (`data_source_id`) REFERENCES `data_sources` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: data_sources (BASE TABLE)
+-- ==========================================
+CREATE TABLE `data_sources` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `type` varchar(20) DEFAULT NULL,
+  `uploaded_by` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_data_sources_uploaded_by` (`uploaded_by`),
+  CONSTRAINT `fk_data_sources_user` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: device_tokens (BASE TABLE)
+-- ==========================================
+CREATE TABLE `device_tokens` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `device_uuid` varchar(150) DEFAULT NULL,
+  `household_id` varchar(255) DEFAULT NULL,
+  `member_id` varchar(255) DEFAULT NULL,
+  `device_name` varchar(100) DEFAULT NULL,
+  `platform` varchar(30) DEFAULT NULL,
+  `app_role` varchar(30) DEFAULT NULL,
+  `push_provider` varchar(50) DEFAULT NULL,
+  `player_id` varchar(255) DEFAULT NULL,
+  `expo_push_token` varchar(255) DEFAULT NULL,
+  `battery_level` int DEFAULT NULL,
+  `signal_strength` int DEFAULT NULL,
+  `location_permission_status` varchar(30) NOT NULL DEFAULT 'unknown',
+  `notification_permission_status` varchar(30) NOT NULL DEFAULT 'unknown',
+  `last_latitude` decimal(10,7) DEFAULT NULL,
+  `last_longitude` decimal(10,7) DEFAULT NULL,
+  `last_location_label` varchar(255) DEFAULT NULL,
+  `last_location_accuracy_m` decimal(8,2) DEFAULT NULL,
+  `last_location_at` datetime DEFAULT NULL,
+  `last_seen_at` datetime DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
+  `logged_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `user_id` varchar(255) DEFAULT NULL,
+  `team_id` int DEFAULT NULL,
+  `last_sync_at` timestamp NULL DEFAULT NULL,
+  `selection_token_id` bigint unsigned DEFAULT NULL,
+  `owner_selected_at` timestamp NULL DEFAULT NULL,
+  `push_token` varchar(255) DEFAULT NULL,
+  `one_signal_user_id` varchar(255) DEFAULT NULL,
+  `responder_id` int DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `resq_device_uuid_lookup` (`device_uuid`),
+  KEY `resq_household_device_lookup` (`household_id`,`device_uuid`),
+  KEY `resq_team_user_lookup` (`team_id`,`user_id`),
+  KEY `idx_device_tokens_member` (`member_id`),
+  KEY `idx_device_tokens_user` (`user_id`),
+  KEY `idx_device_tokens_responder` (`responder_id`),
+  KEY `resq_7e18a8a3a40fd914_fk` (`selection_token_id`),
+  CONSTRAINT `fk_device_tokens_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_device_tokens_member` FOREIGN KEY (`member_id`) REFERENCES `household_members` (`member_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_device_tokens_responder` FOREIGN KEY (`responder_id`) REFERENCES `responders` (`responder_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_device_tokens_team` FOREIGN KEY (`team_id`) REFERENCES `rescue_teams` (`team_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_device_tokens_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `resq_7e18a8a3a40fd914_fk` FOREIGN KEY (`selection_token_id`) REFERENCES `personal_access_tokens` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: device_tracking_logs (BASE TABLE)
+-- ==========================================
+CREATE TABLE `device_tracking_logs` (
+  `tracking_id` int NOT NULL AUTO_INCREMENT,
+  `device_token_id` bigint DEFAULT NULL,
+  `household_id` varchar(255) DEFAULT NULL,
+  `member_id` varchar(255) DEFAULT NULL,
+  `latitude` decimal(10,7) DEFAULT NULL,
+  `longitude` decimal(10,7) DEFAULT NULL,
+  `location_label` varchar(255) DEFAULT NULL,
+  `accuracy_m` decimal(8,2) DEFAULT NULL,
+  `location_source` varchar(50) DEFAULT NULL,
+  `is_allowed_location` tinyint(1) NOT NULL DEFAULT '1',
+  `battery_level` int DEFAULT NULL,
+  `signal_strength` int DEFAULT NULL,
+  `logged_at` datetime NOT NULL,
+  PRIMARY KEY (`tracking_id`),
+  KEY `idx_dev_tracking_token_time` (`device_token_id`,`logged_at`),
+  KEY `idx_dev_tracking_household` (`household_id`,`logged_at`),
+  KEY `idx_dev_tracking_member` (`member_id`,`logged_at`),
+  CONSTRAINT `fk_dev_tracking_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_dev_tracking_member` FOREIGN KEY (`member_id`) REFERENCES `household_members` (`member_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_dev_tracking_token` FOREIGN KEY (`device_token_id`) REFERENCES `device_tokens` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: disaster_broadcasts (BASE TABLE)
+-- ==========================================
+CREATE TABLE `disaster_broadcasts` (
+  `broadcast_id` int NOT NULL AUTO_INCREMENT,
+  `broadcast_title` varchar(150) DEFAULT NULL,
+  `disaster_id` varchar(255) DEFAULT NULL,
+  `sent_by_admin_id` varchar(255) DEFAULT NULL,
+  `severity_id` int DEFAULT NULL,
+  `scope_type` varchar(50) DEFAULT NULL,
+  `target_purok_id` int DEFAULT NULL,
+  `target_area_id` int DEFAULT NULL,
+  `message` text,
+  `allowed_statuses` varchar(255) DEFAULT NULL,
+  `channel` varchar(50) DEFAULT NULL,
+  `status` varchar(50) NOT NULL DEFAULT 'sent',
+  `notification_id` int DEFAULT NULL,
+  `weather_log_id` int DEFAULT NULL,
+  `sent_at` datetime NOT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `target_area_label` varchar(150) DEFAULT NULL,
+  `direct_impact_puroks_json` json DEFAULT NULL,
+  `allowed_statuses_json` json DEFAULT NULL,
+  `recipient_count` int DEFAULT NULL,
+  `push_status` varchar(50) DEFAULT NULL,
+  `sms_status` varchar(50) DEFAULT NULL,
+  `status_options_json` text,
+  `push_provider_ids_json` json DEFAULT NULL,
+  `push_errors_json` json DEFAULT NULL,
+  `push_accepted_count` int unsigned DEFAULT NULL,
+  `onesignal_id` varchar(36) DEFAULT NULL,
+  PRIMARY KEY (`broadcast_id`),
+  KEY `idx_disaster_broadcasts_event` (`disaster_id`,`sent_at`),
+  KEY `idx_disaster_broadcasts_notif` (`notification_id`),
+  KEY `idx_disaster_broadcasts_weather` (`weather_log_id`),
+  KEY `fk_disaster_broadcasts_severity` (`severity_id`),
+  CONSTRAINT `fk_disaster_broadcasts_event` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_disaster_broadcasts_notif` FOREIGN KEY (`notification_id`) REFERENCES `notifications` (`notif_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_disaster_broadcasts_severity` FOREIGN KEY (`severity_id`) REFERENCES `severity_levels` (`severity_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_disaster_broadcasts_weather` FOREIGN KEY (`weather_log_id`) REFERENCES `weather_logs` (`weather_log_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: disaster_event_types (BASE TABLE)
+-- ==========================================
+CREATE TABLE `disaster_event_types` (
+  `event_type_id` int NOT NULL AUTO_INCREMENT,
+  `event_id` varchar(255) DEFAULT NULL,
+  `type_id` int NOT NULL,
+  PRIMARY KEY (`event_type_id`),
+  UNIQUE KEY `uk_disaster_event_types_pair` (`event_id`,`type_id`),
+  KEY `idx_disaster_event_types_type` (`type_id`),
+  CONSTRAINT `fk_det_event` FOREIGN KEY (`event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_det_type` FOREIGN KEY (`type_id`) REFERENCES `disaster_types` (`type_id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: disaster_events (BASE TABLE)
+-- ==========================================
+CREATE TABLE `disaster_events` (
+  `event_id` varchar(255) NOT NULL,
+  `name` varchar(100) DEFAULT NULL,
+  `type_id` int NOT NULL,
+  `severity_level_id` int DEFAULT NULL,
+  `started_at` datetime DEFAULT NULL,
+  `ended_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  `rescue_priority_version` bigint unsigned DEFAULT NULL,
+  PRIMARY KEY (`event_id`),
+  KEY `idx_disaster_events_active` (`deleted_at`,`ended_at`,`started_at`),
+  KEY `idx_disaster_events_type` (`type_id`),
+  KEY `idx_disaster_events_severity` (`severity_level_id`),
+  KEY `resq_c56346aee4be5eea_idx` (`ended_at`),
+  CONSTRAINT `fk_disaster_events_severity` FOREIGN KEY (`severity_level_id`) REFERENCES `severity_levels` (`severity_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_disaster_events_type` FOREIGN KEY (`type_id`) REFERENCES `disaster_types` (`type_id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: disaster_type_severity_levels (BASE TABLE)
+-- ==========================================
+CREATE TABLE `disaster_type_severity_levels` (
+  `type_id` int NOT NULL,
+  `severity_id` int NOT NULL,
+  PRIMARY KEY (`type_id`,`severity_id`),
+  KEY `disaster_type_severity_levels_severity_id_foreign` (`severity_id`),
+  CONSTRAINT `disaster_type_severity_levels_severity_id_foreign` FOREIGN KEY (`severity_id`) REFERENCES `severity_levels` (`severity_id`) ON DELETE CASCADE,
+  CONSTRAINT `disaster_type_severity_levels_type_id_foreign` FOREIGN KEY (`type_id`) REFERENCES `disaster_types` (`type_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ==========================================
+-- Table/View: disaster_types (BASE TABLE)
+-- ==========================================
+CREATE TABLE `disaster_types` (
+  `type_id` int NOT NULL,
+  `type_code` varchar(20) DEFAULT NULL,
+  `type_name` varchar(100) DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`type_id`),
+  UNIQUE KEY `uk_disaster_types_code` (`type_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: dispatch_statuses (BASE TABLE)
+-- ==========================================
+CREATE TABLE `dispatch_statuses` (
+  `status_key` varchar(50) NOT NULL,
+  `label` varchar(100) NOT NULL,
+  `is_open` tinyint(1) NOT NULL DEFAULT '1',
+  `allow_create` tinyint(1) NOT NULL DEFAULT '0',
+  `allow_mobile` tinyint(1) NOT NULL DEFAULT '0',
+  `dashboard_group` varchar(30) NOT NULL DEFAULT 'other',
+  `is_alias` tinyint(1) NOT NULL DEFAULT '0',
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
+  `sort_order` int unsigned NOT NULL DEFAULT '0',
+  `status_code` varchar(20) NOT NULL,
+  PRIMARY KEY (`status_key`),
+  UNIQUE KEY `dispatch_statuses_status_code_unique` (`status_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: dispatch_trips (BASE TABLE)
+-- ==========================================
+CREATE TABLE `dispatch_trips` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `dispatch_id` int NOT NULL,
+  `team_id` int NOT NULL,
+  `device_id` bigint NOT NULL,
+  `profile` enum('auto','pedestrian') NOT NULL,
+  `started_at` datetime NOT NULL,
+  `ended_at` datetime DEFAULT NULL,
+  `distance_m` int unsigned DEFAULT NULL,
+  `planned_distance_m` int unsigned DEFAULT NULL,
+  `moving_s` int unsigned NOT NULL DEFAULT '0',
+  `stopped_s` int unsigned NOT NULL DEFAULT '0',
+  `avg_speed_ms` decimal(8,3) DEFAULT NULL,
+  `status` enum('recording','completed','abandoned') NOT NULL DEFAULT 'recording',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `dispatch_trips_device_id_foreign` (`device_id`),
+  KEY `dispatch_trips_dispatch_started_index` (`dispatch_id`,`started_at`),
+  KEY `dispatch_trips_team_started_index` (`team_id`,`started_at`),
+  CONSTRAINT `dispatch_trips_device_id_foreign` FOREIGN KEY (`device_id`) REFERENCES `device_tokens` (`id`),
+  CONSTRAINT `dispatch_trips_dispatch_id_foreign` FOREIGN KEY (`dispatch_id`) REFERENCES `responder_assignments` (`assignment_id`),
+  CONSTRAINT `dispatch_trips_team_id_foreign` FOREIGN KEY (`team_id`) REFERENCES `rescue_teams` (`team_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: education_levels (BASE TABLE)
+-- ==========================================
+CREATE TABLE `education_levels` (
+  `education_level_id` int NOT NULL,
+  `education_level_key` varchar(20) DEFAULT NULL,
+  `education_level_label` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`education_level_id`),
+  UNIQUE KEY `uk_education_levels_key` (`education_level_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: evacuated_members (BASE TABLE)
+-- ==========================================
+CREATE TABLE `evacuated_members` (
+  `evacuated_member_id` int NOT NULL AUTO_INCREMENT,
+  `evacuation_id` int NOT NULL,
+  `member_id` varchar(255) DEFAULT NULL,
+  `verified_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`evacuated_member_id`),
+  UNIQUE KEY `uk_evac_members_evac_member` (`evacuation_id`,`member_id`),
+  KEY `idx_evac_members_member` (`member_id`),
+  CONSTRAINT `fk_evac_members_member` FOREIGN KEY (`member_id`) REFERENCES `household_members` (`member_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_evac_members_record` FOREIGN KEY (`evacuation_id`) REFERENCES `evacuation_records` (`evacuation_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: evacuation_centers (BASE TABLE)
+-- ==========================================
+CREATE TABLE `evacuation_centers` (
+  `evacuation_center_id` varchar(255) NOT NULL,
+  `current_event_id` varchar(255) DEFAULT NULL,
+  `name` varchar(100) DEFAULT NULL,
+  `center_type` varchar(80) DEFAULT NULL,
+  `latitude` decimal(10,7) DEFAULT NULL,
+  `longitude` decimal(10,7) DEFAULT NULL,
+  `capacity` int DEFAULT NULL,
+  `status` varchar(30) NOT NULL DEFAULT 'active',
+  `current_occupancy` int DEFAULT NULL,
+  `contact_person` varchar(150) DEFAULT NULL,
+  `contact_number` varchar(30) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `deleted_at` datetime DEFAULT NULL,
+  `osm_address` varchar(255) DEFAULT NULL,
+  `notes` text,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`evacuation_center_id`),
+  KEY `idx_evac_centers_status` (`deleted_at`,`status`),
+  KEY `idx_evac_centers_event` (`current_event_id`),
+  CONSTRAINT `fk_evac_centers_event` FOREIGN KEY (`current_event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: evacuation_records (BASE TABLE)
+-- ==========================================
+CREATE TABLE `evacuation_records` (
+  `evacuation_id` int NOT NULL AUTO_INCREMENT,
+  `event_id` varchar(255) DEFAULT NULL,
+  `household_id` varchar(255) DEFAULT NULL,
+  `center_id` varchar(255) DEFAULT NULL,
+  `household_status_id` int DEFAULT NULL,
+  `evacuated_count` int DEFAULT NULL,
+  `method` enum('qr','manual') DEFAULT NULL,
+  `verified_by` varchar(255) DEFAULT NULL,
+  `verified_at` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`evacuation_id`),
+  KEY `idx_evac_records_status_center` (`center_id`,`household_status_id`,`household_id`),
+  KEY `idx_evac_records_event_household` (`event_id`,`household_id`),
+  KEY `idx_evac_records_household` (`household_id`),
+  KEY `idx_evac_records_status` (`household_status_id`),
+  KEY `idx_evac_records_verified_by` (`verified_by`),
+  CONSTRAINT `fk_evac_records_center` FOREIGN KEY (`center_id`) REFERENCES `evacuation_centers` (`evacuation_center_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_evac_records_event` FOREIGN KEY (`event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_evac_records_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_evac_records_status` FOREIGN KEY (`household_status_id`) REFERENCES `household_statuses` (`status_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_evac_records_verifier` FOREIGN KEY (`verified_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: event_center_history (BASE TABLE)
+-- ==========================================
+CREATE TABLE `event_center_history` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `event_id` varchar(255) NOT NULL,
+  `evacuation_center_id` varchar(255) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `event_center_unique` (`event_id`,`evacuation_center_id`),
+  KEY `idx_event_center_history_center` (`evacuation_center_id`),
+  CONSTRAINT `fk_ech_center` FOREIGN KEY (`evacuation_center_id`) REFERENCES `evacuation_centers` (`evacuation_center_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_ech_event` FOREIGN KEY (`event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: external_report_requests (BASE TABLE)
+-- ==========================================
+CREATE TABLE `external_report_requests` (
+  `id` char(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `source_system` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `reference` varchar(120) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `event_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `sections` json NOT NULL,
+  `format` varchar(8) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `purpose` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `status` varchar(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
+  `decision_note` text COLLATE utf8mb4_unicode_ci,
+  `decided_by` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `decided_at` timestamp NULL DEFAULT NULL,
+  `approved_summary` json DEFAULT NULL,
+  `file` json DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `api_version` varchar(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '2.0',
+  `sitio_id` varchar(120) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `external_report_requests_status_index` (`status`),
+  KEY `resq_72e67152b620c50c_fk` (`event_id`),
+  CONSTRAINT `resq_72e67152b620c50c_fk` FOREIGN KEY (`event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ==========================================
+-- Table/View: failed_jobs (BASE TABLE)
+-- ==========================================
+CREATE TABLE `failed_jobs` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `uuid` varchar(255) DEFAULT NULL,
+  `connection` text NOT NULL,
+  `queue` text NOT NULL,
+  `payload` longtext NOT NULL,
+  `exception` longtext NOT NULL,
+  `failed_at` timestamp NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `failed_jobs_uuid_unique` (`uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: field_report_categories (BASE TABLE)
+-- ==========================================
+CREATE TABLE `field_report_categories` (
+  `category_id` int NOT NULL,
+  `category_key` varchar(50) DEFAULT NULL,
+  `category_label` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`category_id`),
+  UNIQUE KEY `uk_field_report_categories_key` (`category_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: genders (BASE TABLE)
+-- ==========================================
+CREATE TABLE `genders` (
+  `gender_id` int NOT NULL AUTO_INCREMENT,
+  `gender_key` varchar(20) DEFAULT NULL,
+  `gender_label` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`gender_id`),
+  UNIQUE KEY `uk_gender_key` (`gender_key`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: geotagged_locations (BASE TABLE)
+-- ==========================================
+CREATE TABLE `geotagged_locations` (
+  `location_id` int NOT NULL AUTO_INCREMENT,
+  `household_id` varchar(255) DEFAULT NULL,
+  `latitude` decimal(10,7) DEFAULT NULL,
+  `longitude` decimal(10,7) DEFAULT NULL,
+  `location_label` varchar(255) DEFAULT NULL,
+  `accuracy_m` decimal(8,2) DEFAULT NULL,
+  `geotag_source` varchar(50) NOT NULL DEFAULT 'household_mobile',
+  `is_verified` tinyint(1) NOT NULL DEFAULT '0',
+  `verified_by_user_id` varchar(255) DEFAULT NULL,
+  `verified_at` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime NOT NULL,
+  PRIMARY KEY (`location_id`),
+  KEY `idx_geo_household` (`household_id`),
+  KEY `idx_geo_verified_by` (`verified_by_user_id`),
+  CONSTRAINT `fk_geo_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_geo_verified_by` FOREIGN KEY (`verified_by_user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: household_disasters (BASE TABLE)
+-- ==========================================
+CREATE TABLE `household_disasters` (
+  `household_disaster_id` int NOT NULL AUTO_INCREMENT,
+  `household_id` varchar(255) DEFAULT NULL,
+  `disaster_id` varchar(255) DEFAULT NULL,
+  `initial_status_id` int DEFAULT NULL,
+  `current_status_id` int DEFAULT NULL,
+  `last_status_source` varchar(50) DEFAULT NULL,
+  `last_status_notes` text,
+  `last_reported_by_user_id` varchar(255) DEFAULT NULL,
+  `last_responder_id` int DEFAULT NULL,
+  `last_device_token_id` bigint DEFAULT NULL,
+  `last_latitude` decimal(10,7) DEFAULT NULL,
+  `last_longitude` decimal(10,7) DEFAULT NULL,
+  `last_battery_level` int DEFAULT NULL,
+  `last_reported_at` datetime DEFAULT NULL,
+  `priority_level` varchar(30) DEFAULT NULL,
+  `needs_dispatch` tinyint(1) NOT NULL DEFAULT '0',
+  `updated_at` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL,
+  PRIMARY KEY (`household_disaster_id`),
+  UNIQUE KEY `uk_hd_event_household` (`disaster_id`,`household_id`),
+  KEY `idx_hd_dispatch` (`disaster_id`,`needs_dispatch`),
+  KEY `fk_hd_household` (`household_id`),
+  KEY `fk_hd_initial_status` (`initial_status_id`),
+  KEY `fk_hd_status` (`current_status_id`),
+  CONSTRAINT `fk_hd_event` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`),
+  CONSTRAINT `fk_hd_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`),
+  CONSTRAINT `fk_hd_initial_status` FOREIGN KEY (`initial_status_id`) REFERENCES `household_statuses` (`status_id`),
+  CONSTRAINT `fk_hd_status` FOREIGN KEY (`current_status_id`) REFERENCES `household_statuses` (`status_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: household_geographic_classifications (BASE TABLE)
+-- ==========================================
+CREATE TABLE `household_geographic_classifications` (
+  `household_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `status` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `latitude` decimal(10,7) NOT NULL,
+  `longitude` decimal(10,7) NOT NULL,
+  `sitio_id` int DEFAULT NULL,
+  `purok_id` int DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`household_id`),
+  KEY `household_geographic_classifications_status_index` (`status`),
+  KEY `resq_79ef643b0ca93a73_fk` (`purok_id`),
+  KEY `resq_99abdeb64f2c90cb_fk` (`sitio_id`),
+  CONSTRAINT `resq_22b65cda8c001677_fk` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_79ef643b0ca93a73_fk` FOREIGN KEY (`purok_id`) REFERENCES `puroks` (`purok_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_99abdeb64f2c90cb_fk` FOREIGN KEY (`sitio_id`) REFERENCES `sitios` (`sitio_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ==========================================
+-- Table/View: household_members (BASE TABLE)
+-- ==========================================
+CREATE TABLE `household_members` (
+  `member_id` varchar(255) NOT NULL,
+  `household_id` varchar(255) DEFAULT NULL,
+  `first_name` varchar(100) DEFAULT NULL,
+  `middle_name` varchar(100) DEFAULT NULL,
+  `last_name` varchar(100) DEFAULT NULL,
+  `birth_date` date NOT NULL,
+  `gender_id` int DEFAULT NULL,
+  `relationship_id` int DEFAULT NULL,
+  `is_household_head` tinyint(1) NOT NULL DEFAULT '0',
+  `can_report_for_household` tinyint(1) NOT NULL DEFAULT '0',
+  `contact_number` varchar(50) DEFAULT NULL,
+  `civil_status_id` int DEFAULT NULL,
+  `occupation` int DEFAULT NULL,
+  `education_level_id` int DEFAULT NULL,
+  `is_graduate` tinyint(1) DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  `is_pwd` tinyint(1) NOT NULL DEFAULT '0',
+  `is_senior` tinyint(1) NOT NULL DEFAULT '0',
+  `is_pregnant` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `sex` varchar(1) DEFAULT NULL,
+  `gender` varchar(20) DEFAULT NULL,
+  `relation` varchar(50) DEFAULT NULL,
+  `civil_status` varchar(50) DEFAULT NULL,
+  `religion` varchar(100) DEFAULT NULL,
+  `education_level` varchar(100) DEFAULT NULL,
+  `special_needs` varchar(50) DEFAULT NULL,
+  `legacy_member_id` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`member_id`),
+  KEY `idx_hm_household` (`household_id`),
+  KEY `idx_hm_relationship` (`relationship_id`),
+  KEY `idx_hm_head` (`household_id`,`is_household_head`),
+  KEY `idx_hm_gender` (`gender_id`),
+  KEY `idx_hm_civil_status` (`civil_status_id`),
+  KEY `idx_hm_education` (`education_level_id`),
+  KEY `idx_hm_occupation` (`occupation`),
+  KEY `idx_hm_deleted` (`deleted_at`),
+  CONSTRAINT `fk_hm_civil_status` FOREIGN KEY (`civil_status_id`) REFERENCES `civil_statuses` (`status_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_hm_education` FOREIGN KEY (`education_level_id`) REFERENCES `education_levels` (`education_level_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_hm_gender` FOREIGN KEY (`gender_id`) REFERENCES `genders` (`gender_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_hm_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_hm_occupation` FOREIGN KEY (`occupation`) REFERENCES `occupations` (`occuaption_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_hm_relationship` FOREIGN KEY (`relationship_id`) REFERENCES `relationships` (`relationship_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: household_mobile_notifications (BASE TABLE)
+-- ==========================================
+CREATE TABLE `household_mobile_notifications` (
+  `notification_id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `household_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `type` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `title` varchar(180) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `message` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `connection_id` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `read_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`notification_id`),
+  KEY `household_mobile_notifications_household_id_created_at_index` (`household_id`,`created_at`),
+  CONSTRAINT `resq_de2d65f74bfa2dd0_fk` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ==========================================
+-- Table/View: household_status_logs (BASE TABLE)
+-- ==========================================
+CREATE TABLE `household_status_logs` (
+  `status_log_id` int NOT NULL AUTO_INCREMENT,
+  `disaster_id` varchar(255) DEFAULT NULL,
+  `household_id` varchar(255) NOT NULL,
+  `status_id` int NOT NULL,
+  `source` varchar(50) NOT NULL,
+  `submitted_by_user_id` varchar(255) DEFAULT NULL,
+  `responder_id` int DEFAULT NULL,
+  `device_token_id` bigint DEFAULT NULL,
+  `latitude` decimal(10,7) DEFAULT NULL,
+  `longitude` decimal(10,7) DEFAULT NULL,
+  `location_label` varchar(255) DEFAULT NULL,
+  `location_accuracy_m` decimal(8,2) DEFAULT NULL,
+  `battery_level` int DEFAULT NULL,
+  `signal_strength` int DEFAULT NULL,
+  `notes` text,
+  `submitted_at` datetime DEFAULT NULL,
+  `reviewed_by_user_id` varchar(255) DEFAULT NULL,
+  `reviewed_at` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`status_log_id`),
+  KEY `idx_hsl_event_household` (`disaster_id`,`household_id`,`created_at`),
+  KEY `fk_hsl_status` (`status_id`),
+  KEY `idx_hsl_household` (`household_id`,`created_at`),
+  KEY `idx_hsl_responder` (`responder_id`),
+  CONSTRAINT `fk_hsl_event` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_hsl_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_hsl_status` FOREIGN KEY (`status_id`) REFERENCES `household_statuses` (`status_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: household_statuses (BASE TABLE)
+-- ==========================================
+CREATE TABLE `household_statuses` (
+  `status_id` int NOT NULL,
+  `status_key` varchar(50) DEFAULT NULL,
+  `status_label` varchar(100) DEFAULT NULL,
+  `severity_rank` tinyint unsigned NOT NULL DEFAULT '0',
+  `requires_rescue` tinyint(1) NOT NULL DEFAULT '0',
+  `color_hex` varchar(7) DEFAULT NULL,
+  `sort_order` smallint unsigned NOT NULL DEFAULT '999',
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
+  `safety_basis` varchar(6) DEFAULT NULL,
+  PRIMARY KEY (`status_id`),
+  UNIQUE KEY `uk_household_status_key` (`status_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: household_trusted_pins (BASE TABLE)
+-- ==========================================
+CREATE TABLE `household_trusted_pins` (
+  `household_id` varchar(255) NOT NULL,
+  `pin_hash` varchar(255) NOT NULL,
+  `updated_by_user_id` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`household_id`),
+  CONSTRAINT `fk_htp_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: households (BASE TABLE)
+-- ==========================================
+CREATE TABLE `households` (
+  `household_id` varchar(255) NOT NULL,
+  `household_code` varchar(255) DEFAULT NULL,
+  `household_number` varchar(255) DEFAULT NULL,
+  `household_name` varchar(100) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `member_count` int unsigned NOT NULL DEFAULT '0',
+  `created_by` varchar(255) DEFAULT NULL,
+  `address_id` int DEFAULT NULL,
+  `contact_number` varchar(50) DEFAULT NULL,
+  `emergency_contact` varchar(50) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  `login_user_id` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`household_id`),
+  UNIQUE KEY `uk_households_code` (`household_code`),
+  KEY `idx_households_address` (`address_id`),
+  KEY `idx_households_created_by` (`created_by`),
+  KEY `idx_households_login_user` (`login_user_id`),
+  KEY `idx_households_deleted` (`deleted_at`),
+  CONSTRAINT `fk_households_address` FOREIGN KEY (`address_id`) REFERENCES `addresses` (`address_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_households_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_households_login_user` FOREIGN KEY (`login_user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: hq_field_reports (BASE TABLE)
+-- ==========================================
+CREATE TABLE `hq_field_reports` (
+  `hq_report_id` int NOT NULL AUTO_INCREMENT,
+  `disaster_id` varchar(255) DEFAULT NULL,
+  `household_id` varchar(255) DEFAULT NULL,
+  `source` varchar(20) DEFAULT NULL,
+  `linked_report_id` int NOT NULL,
+  `created_at` datetime NOT NULL,
+  PRIMARY KEY (`hq_report_id`),
+  KEY `idx_hqfr_event` (`disaster_id`,`household_id`),
+  KEY `idx_hqfr_linked_report` (`linked_report_id`),
+  KEY `idx_hqfr_household` (`household_id`),
+  CONSTRAINT `fk_hqfr_event` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_hqfr_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_hqfr_linked_report` FOREIGN KEY (`linked_report_id`) REFERENCES `responder_field_reports` (`report_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: import_logs (BASE TABLE)
+-- ==========================================
+CREATE TABLE `import_logs` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `data_source_id` bigint NOT NULL,
+  `row_num` int DEFAULT NULL,
+  `row_number` int unsigned DEFAULT NULL,
+  `status` varchar(20) DEFAULT NULL,
+  `error_message` text,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_import_logs_source_status` (`data_source_id`,`status`),
+  CONSTRAINT `fk_import_logs_source` FOREIGN KEY (`data_source_id`) REFERENCES `data_sources` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=57 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: incident_archives (BASE TABLE)
+-- ==========================================
+CREATE TABLE `incident_archives` (
+  `archive_id` int NOT NULL AUTO_INCREMENT,
+  `archive_type` varchar(50) DEFAULT NULL,
+  `disaster_id` varchar(255) DEFAULT NULL,
+  `reference_table` varchar(80) DEFAULT NULL,
+  `reference_id` varchar(255) DEFAULT NULL,
+  `archived_by_admin_id` varchar(255) DEFAULT NULL,
+  `archive_note` text,
+  `archived_at` datetime NOT NULL,
+  `created_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`archive_id`),
+  KEY `idx_incident_archives_disaster` (`disaster_id`,`archive_type`),
+  KEY `idx_incident_archives_ref` (`reference_table`,`reference_id`),
+  KEY `resq_d85e1801ac3fda4f_fk` (`archived_by_admin_id`),
+  CONSTRAINT `resq_d85e1801ac3fda4f_fk` FOREIGN KEY (`archived_by_admin_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_f7d5b96efe64094f_fk` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: inquiries (BASE TABLE)
+-- ==========================================
+CREATE TABLE `inquiries` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `full_name` varchar(150) NOT NULL,
+  `organization` varchar(150) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `message` varchar(100) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: job_batches (BASE TABLE)
+-- ==========================================
+CREATE TABLE `job_batches` (
+  `id` varchar(255) NOT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `total_jobs` int NOT NULL,
+  `pending_jobs` int NOT NULL,
+  `failed_jobs` int NOT NULL,
+  `failed_job_ids` longtext NOT NULL,
+  `options` mediumtext,
+  `cancelled_at` int DEFAULT NULL,
+  `created_at` int NOT NULL,
+  `finished_at` int DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: jobs (BASE TABLE)
+-- ==========================================
+CREATE TABLE `jobs` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `queue` varchar(255) DEFAULT NULL,
+  `payload` longtext NOT NULL,
+  `attempts` tinyint unsigned NOT NULL,
+  `reserved_at` int unsigned DEFAULT NULL,
+  `available_at` int unsigned NOT NULL,
+  `created_at` int unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `jobs_queue_index` (`queue`,`reserved_at`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: landing_inquiries (BASE TABLE)
+-- ==========================================
+CREATE TABLE `landing_inquiries` (
+  `inquiry_id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(150) NOT NULL,
+  `organization` varchar(150) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `message` text NOT NULL,
+  `status` varchar(30) NOT NULL DEFAULT 'new',
+  `source_page` varchar(80) NOT NULL DEFAULT 'landing_page',
+  `ip_address` varchar(80) DEFAULT NULL,
+  `user_agent` varchar(255) DEFAULT NULL,
+  `responded_at` timestamp NULL DEFAULT NULL,
+  `handled_by_user_id` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`inquiry_id`),
+  KEY `idx_landing_inquiries_status` (`status`,`created_at`),
+  KEY `idx_landing_inquiries_handler` (`handled_by_user_id`),
+  CONSTRAINT `resq_0e1dae93e28724cc_fk` FOREIGN KEY (`handled_by_user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: map_tile_metadata (BASE TABLE)
+-- ==========================================
+CREATE TABLE `map_tile_metadata` (
+  `tile_id` int NOT NULL AUTO_INCREMENT,
+  `zoom_level` int NOT NULL,
+  `tile_x` int NOT NULL,
+  `tile_y` int NOT NULL,
+  `tile_url` varchar(500) DEFAULT NULL,
+  `cached_at` datetime NOT NULL,
+  `expires_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`tile_id`),
+  UNIQUE KEY `uk_map_tile_zxy` (`zoom_level`,`tile_x`,`tile_y`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: mapping_hazard_layers (BASE TABLE)
+-- ==========================================
+CREATE TABLE `mapping_hazard_layers` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `barangay_id` int NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `source` varchar(255) NOT NULL,
+  `source_url` varchar(255) DEFAULT NULL,
+  `assessed_at` date NOT NULL,
+  `geojson` json NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `mapping_hazard_layers_barangay_id_index` (`barangay_id`),
+  CONSTRAINT `resq_77025190d59483ff_fk` FOREIGN KEY (`barangay_id`) REFERENCES `barangays` (`barangay_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: member_disaster_statuses (BASE TABLE)
+-- ==========================================
+CREATE TABLE `member_disaster_statuses` (
+  `member_status_id` bigint NOT NULL AUTO_INCREMENT,
+  `disaster_id` varchar(255) NOT NULL,
+  `household_id` varchar(255) NOT NULL,
+  `member_id` varchar(255) NOT NULL,
+  `status_id` int NOT NULL DEFAULT '1',
+  `previous_status_id` int DEFAULT NULL,
+  `report_source` enum('self','household_head','proxy_member','responder','hq','sms','system') NOT NULL DEFAULT 'system',
+  `reported_by_user_id` varchar(255) DEFAULT NULL,
+  `reported_by_member_id` varchar(255) DEFAULT NULL,
+  `responder_id` int DEFAULT NULL,
+  `device_token_id` bigint DEFAULT NULL,
+  `latitude` decimal(10,7) DEFAULT NULL,
+  `longitude` decimal(10,7) DEFAULT NULL,
+  `location_label` varchar(255) DEFAULT NULL,
+  `location_accuracy_m` decimal(8,2) DEFAULT NULL,
+  `battery_level` int DEFAULT NULL,
+  `signal_strength` int DEFAULT NULL,
+  `evacuation_center_id` varchar(255) DEFAULT NULL,
+  `needs_rescue` tinyint(1) NOT NULL DEFAULT '0',
+  `severity_rank` tinyint unsigned NOT NULL DEFAULT '0',
+  `priority_level` enum('low','medium','high','critical') NOT NULL DEFAULT 'low',
+  `notes` text,
+  `is_verified` tinyint(1) NOT NULL DEFAULT '0',
+  `verified_by_user_id` varchar(255) DEFAULT NULL,
+  `verified_at` datetime DEFAULT NULL,
+  `reported_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`member_status_id`),
+  UNIQUE KEY `uk_mds_event_member` (`disaster_id`,`member_id`),
+  KEY `idx_mds_household` (`disaster_id`,`household_id`),
+  KEY `idx_mds_status` (`disaster_id`,`status_id`),
+  KEY `idx_mds_rescue` (`disaster_id`,`needs_rescue`,`severity_rank`),
+  KEY `idx_mds_member` (`member_id`),
+  KEY `idx_mds_reported_at` (`reported_at`),
+  KEY `idx_mds_status_fk` (`status_id`),
+  KEY `idx_mds_prev_status_fk` (`previous_status_id`),
+  KEY `fk_mds_household` (`household_id`),
+  CONSTRAINT `fk_mds_event` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`),
+  CONSTRAINT `fk_mds_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`),
+  CONSTRAINT `fk_mds_member` FOREIGN KEY (`member_id`) REFERENCES `household_members` (`member_id`),
+  CONSTRAINT `fk_mds_prev_status` FOREIGN KEY (`previous_status_id`) REFERENCES `member_statuses` (`status_id`),
+  CONSTRAINT `fk_mds_status` FOREIGN KEY (`status_id`) REFERENCES `member_statuses` (`status_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: member_status_logs (BASE TABLE)
+-- ==========================================
+CREATE TABLE `member_status_logs` (
+  `member_status_log_id` bigint NOT NULL AUTO_INCREMENT,
+  `disaster_id` varchar(255) NOT NULL,
+  `household_id` varchar(255) NOT NULL,
+  `member_id` varchar(255) NOT NULL,
+  `from_status_id` int DEFAULT NULL,
+  `to_status_id` int NOT NULL,
+  `report_source` varchar(30) NOT NULL,
+  `reported_by_user_id` varchar(255) DEFAULT NULL,
+  `reported_by_member_id` varchar(255) DEFAULT NULL,
+  `responder_id` int DEFAULT NULL,
+  `device_token_id` bigint DEFAULT NULL,
+  `latitude` decimal(10,7) DEFAULT NULL,
+  `longitude` decimal(10,7) DEFAULT NULL,
+  `location_label` varchar(255) DEFAULT NULL,
+  `location_accuracy_m` decimal(8,2) DEFAULT NULL,
+  `battery_level` int DEFAULT NULL,
+  `signal_strength` int DEFAULT NULL,
+  `notes` text,
+  `reported_at` datetime DEFAULT NULL,
+  `logged_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`member_status_log_id`),
+  KEY `idx_msl_member_time` (`member_id`,`logged_at`),
+  KEY `idx_msl_event` (`disaster_id`,`logged_at`),
+  KEY `idx_msl_household` (`household_id`,`logged_at`),
+  KEY `resq_844996646fa2d02b_fk` (`from_status_id`),
+  KEY `resq_c7815a85001a4c39_fk` (`to_status_id`),
+  KEY `resq_8e17c1f43c343e6b_fk` (`reported_by_user_id`),
+  KEY `resq_24280c3ab56db0ea_fk` (`reported_by_member_id`),
+  KEY `resq_1bb82f76ed97afd9_fk` (`responder_id`),
+  KEY `resq_9ecdc0a83c933c65_fk` (`device_token_id`),
+  CONSTRAINT `resq_1bb82f76ed97afd9_fk` FOREIGN KEY (`responder_id`) REFERENCES `responders` (`responder_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_24280c3ab56db0ea_fk` FOREIGN KEY (`reported_by_member_id`) REFERENCES `household_members` (`member_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_6978563e9169effa_fk` FOREIGN KEY (`member_id`) REFERENCES `household_members` (`member_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_844996646fa2d02b_fk` FOREIGN KEY (`from_status_id`) REFERENCES `member_statuses` (`status_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_8e17c1f43c343e6b_fk` FOREIGN KEY (`reported_by_user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_9ecdc0a83c933c65_fk` FOREIGN KEY (`device_token_id`) REFERENCES `device_tokens` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_c7815a85001a4c39_fk` FOREIGN KEY (`to_status_id`) REFERENCES `member_statuses` (`status_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_d1454f446a6c172a_fk` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_e2907eafd56b71fb_fk` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: member_statuses (BASE TABLE)
+-- ==========================================
+CREATE TABLE `member_statuses` (
+  `status_id` int NOT NULL AUTO_INCREMENT,
+  `status_key` varchar(50) NOT NULL,
+  `status_label` varchar(100) NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `severity_rank` tinyint unsigned NOT NULL DEFAULT '0',
+  `requires_rescue` tinyint(1) NOT NULL DEFAULT '0',
+  `is_terminal` tinyint(1) NOT NULL DEFAULT '0',
+  `color_hex` varchar(7) DEFAULT NULL,
+  `sort_order` smallint unsigned NOT NULL DEFAULT '999',
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `counts_as_death` tinyint(1) DEFAULT NULL,
+  `counts_as_injury` tinyint(1) DEFAULT NULL,
+  PRIMARY KEY (`status_id`),
+  UNIQUE KEY `uk_member_status_key` (`status_key`),
+  KEY `idx_member_status_severity` (`severity_rank`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: member_vulnerable_groups (BASE TABLE)
+-- ==========================================
+CREATE TABLE `member_vulnerable_groups` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `member_id` varchar(255) DEFAULT NULL,
+  `vulnerable_group_id` int NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_mvg_member_group` (`member_id`,`vulnerable_group_id`),
+  KEY `idx_mvg_group` (`vulnerable_group_id`),
+  CONSTRAINT `fk_mvg_group` FOREIGN KEY (`vulnerable_group_id`) REFERENCES `vulnerable_groups` (`vulnerable_group_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_mvg_member` FOREIGN KEY (`member_id`) REFERENCES `household_members` (`member_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: migrations (BASE TABLE)
+-- ==========================================
+CREATE TABLE `migrations` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `migration` varchar(255) DEFAULT NULL,
+  `batch` int NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: notification_channels (BASE TABLE)
+-- ==========================================
+CREATE TABLE `notification_channels` (
+  `channel_id` int NOT NULL,
+  `channel_key` varchar(50) DEFAULT NULL,
+  `channel_label` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`channel_id`),
+  UNIQUE KEY `uk_notification_channels_key` (`channel_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: notification_logs (BASE TABLE)
+-- ==========================================
+CREATE TABLE `notification_logs` (
+  `log_id` int NOT NULL AUTO_INCREMENT,
+  `notification_id` int NOT NULL,
+  `household_id` varchar(255) DEFAULT NULL,
+  `channel_id` int NOT NULL,
+  `status_id` int NOT NULL,
+  `sent_at` datetime DEFAULT NULL,
+  `retry_count` int DEFAULT NULL,
+  `external_message_id` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`log_id`),
+  KEY `idx_notif_logs_notif` (`notification_id`),
+  KEY `idx_notif_logs_household` (`household_id`,`status_id`),
+  KEY `idx_notif_logs_channel` (`channel_id`),
+  KEY `idx_notif_logs_status` (`status_id`),
+  CONSTRAINT `fk_notif_logs_channel` FOREIGN KEY (`channel_id`) REFERENCES `notification_channels` (`channel_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_notif_logs_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_notif_logs_notif` FOREIGN KEY (`notification_id`) REFERENCES `notifications` (`notif_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_notif_logs_status` FOREIGN KEY (`status_id`) REFERENCES `notification_statuses` (`status_id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: notification_recipients (BASE TABLE)
+-- ==========================================
+CREATE TABLE `notification_recipients` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `notification_id` int NOT NULL,
+  `household_id` varchar(255) DEFAULT NULL,
+  `read_at` datetime DEFAULT NULL,
+  `acknowledged_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_notif_recip_notif_hh` (`notification_id`,`household_id`),
+  KEY `idx_notif_recip_household` (`household_id`),
+  CONSTRAINT `fk_notif_recip_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_notif_recip_notif` FOREIGN KEY (`notification_id`) REFERENCES `notifications` (`notif_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=69 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: notification_statuses (BASE TABLE)
+-- ==========================================
+CREATE TABLE `notification_statuses` (
+  `status_id` int NOT NULL,
+  `status_key` varchar(50) DEFAULT NULL,
+  `status_label` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`status_id`),
+  UNIQUE KEY `uk_notification_statuses_key` (`status_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: notifications (BASE TABLE)
+-- ==========================================
+CREATE TABLE `notifications` (
+  `notif_id` int NOT NULL AUTO_INCREMENT,
+  `message` text,
+  `sent_by` varchar(255) DEFAULT NULL,
+  `evacuation_event_id` varchar(255) DEFAULT NULL,
+  `evacuation_center_id` varchar(255) DEFAULT NULL,
+  `scheduled_at` datetime DEFAULT NULL,
+  `is_recurring` tinyint(1) DEFAULT NULL,
+  `recurrence_type_id` int DEFAULT NULL,
+  `recurrence_end_at` datetime DEFAULT NULL,
+  `last_sent_at` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `channel` varchar(50) DEFAULT NULL,
+  `status` varchar(50) DEFAULT NULL,
+  `target_filter` varchar(50) DEFAULT NULL,
+  `source_key` varchar(120) DEFAULT NULL,
+  `onesignal_id` varchar(36) DEFAULT NULL,
+  `onesignal_ids_json` json DEFAULT NULL,
+  `feed_payload_json` json DEFAULT NULL,
+  `advisory_source` varchar(16) DEFAULT NULL,
+  `advisory_fingerprint` varchar(64) DEFAULT NULL,
+  `advisory_title` varchar(255) DEFAULT NULL,
+  `advisory_source_url` text,
+  PRIMARY KEY (`notif_id`),
+  UNIQUE KEY `resq_advisory_fingerprint_unique` (`advisory_fingerprint`),
+  UNIQUE KEY `resq_notification_source_unique` (`source_key`),
+  KEY `idx_notifications_sched` (`status`,`scheduled_at`),
+  KEY `idx_notifications_event` (`evacuation_event_id`,`created_at`),
+  KEY `idx_notifications_center` (`evacuation_center_id`,`created_at`),
+  KEY `idx_notifications_sent_by` (`sent_by`),
+  KEY `idx_notifications_recurrence` (`recurrence_type_id`),
+  CONSTRAINT `fk_notifications_center` FOREIGN KEY (`evacuation_center_id`) REFERENCES `evacuation_centers` (`evacuation_center_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_notifications_event` FOREIGN KEY (`evacuation_event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_notifications_recurrence` FOREIGN KEY (`recurrence_type_id`) REFERENCES `recurrence_types` (`type_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_notifications_sender` FOREIGN KEY (`sent_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: occupations (BASE TABLE)
+-- ==========================================
+CREATE TABLE `occupations` (
+  `occuaption_id` int NOT NULL,
+  `occupation_id` int GENERATED ALWAYS AS (`occuaption_id`) VIRTUAL COMMENT 'Clean alias for misspelled occuaption_id',
+  `occupation_name` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`occuaption_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: offline_packs (BASE TABLE)
+-- ==========================================
+CREATE TABLE `offline_packs` (
+  `version` varchar(64) NOT NULL,
+  `bbox` json NOT NULL,
+  `style_url` varchar(500) NOT NULL,
+  `size_bytes` bigint unsigned NOT NULL,
+  `checksum` char(64) NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `pack_format` varchar(32) NOT NULL DEFAULT 'mbtiles_zip',
+  PRIMARY KEY (`version`),
+  KEY `offline_packs_active_version_index` (`is_active`,`version`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: operational_sequences (BASE TABLE)
+-- ==========================================
+CREATE TABLE `operational_sequences` (
+  `sequence_key` varchar(255) NOT NULL,
+  `next_value` bigint unsigned NOT NULL,
+  `sequence_prefix` varchar(120) DEFAULT NULL,
+  PRIMARY KEY (`sequence_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: password_reset_requests (BASE TABLE)
+-- ==========================================
+CREATE TABLE `password_reset_requests` (
+  `request_id` char(36) NOT NULL,
+  `user_id` varchar(255) DEFAULT NULL,
+  `login_value` varchar(255) DEFAULT NULL,
+  `verification_method` enum('previous_password','security_questions','sms_otp') NOT NULL,
+  `token_hash` varchar(255) DEFAULT NULL,
+  `failed_attempts` tinyint unsigned NOT NULL DEFAULT '0',
+  `expires_at` timestamp NOT NULL,
+  `verified_at` timestamp NULL DEFAULT NULL,
+  `consumed_at` timestamp NULL DEFAULT NULL,
+  `requested_ip` varchar(45) DEFAULT NULL,
+  `user_agent` text,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `otp_subject_key` char(64) DEFAULT NULL,
+  `household_id` varchar(255) DEFAULT NULL,
+  `code_hash` varchar(255) DEFAULT NULL,
+  `sent_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`request_id`),
+  UNIQUE KEY `password_reset_requests_token_hash_unique` (`token_hash`),
+  UNIQUE KEY `resq_otp_subject_unique` (`otp_subject_key`),
+  KEY `password_reset_requests_user_id_consumed_at_index` (`user_id`,`consumed_at`),
+  KEY `password_reset_requests_expires_at_consumed_at_index` (`expires_at`,`consumed_at`),
+  KEY `resq_f282227758b5c771_fk` (`household_id`),
+  CONSTRAINT `resq_2792ce2041a6b947_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_f282227758b5c771_fk` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: password_reset_tokens (BASE TABLE)
+-- ==========================================
+CREATE TABLE `password_reset_tokens` (
+  `email` varchar(255) NOT NULL,
+  `token` varchar(255) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: personal_access_tokens (BASE TABLE)
+-- ==========================================
+CREATE TABLE `personal_access_tokens` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `tokenable_id` varchar(255) DEFAULT NULL,
+  `tokenable_type` varchar(255) DEFAULT NULL,
+  `name` text NOT NULL,
+  `token` varchar(64) DEFAULT NULL,
+  `abilities` text,
+  `last_used_at` timestamp NULL DEFAULT NULL,
+  `expires_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `personal_access_tokens_token_unique` (`token`),
+  KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`,`tokenable_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: property_damage_levels (BASE TABLE)
+-- ==========================================
+CREATE TABLE `property_damage_levels` (
+  `damage_key` varchar(80) NOT NULL,
+  `label` varchar(255) NOT NULL,
+  `sort_order` int unsigned NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`damage_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: provinces (BASE TABLE)
+-- ==========================================
+CREATE TABLE `provinces` (
+  `province_id` int NOT NULL,
+  `province_code` varchar(20) DEFAULT NULL,
+  `province_name` varchar(100) DEFAULT NULL,
+  `region_id` int NOT NULL,
+  PRIMARY KEY (`province_id`),
+  UNIQUE KEY `uk_provinces_code` (`province_code`),
+  KEY `idx_provinces_region` (`region_id`),
+  CONSTRAINT `fk_provinces_region` FOREIGN KEY (`region_id`) REFERENCES `regions` (`region_id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: purok_boundaries (BASE TABLE)
+-- ==========================================
+CREATE TABLE `purok_boundaries` (
+  `purok_id` int NOT NULL,
+  `geometry_json` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `source` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`purok_id`),
+  CONSTRAINT `resq_f1a504a4e34ddae2_fk` FOREIGN KEY (`purok_id`) REFERENCES `puroks` (`purok_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ==========================================
+-- Table/View: puroks (BASE TABLE)
+-- ==========================================
+CREATE TABLE `puroks` (
+  `purok_id` int NOT NULL,
+  `purok_name` varchar(100) DEFAULT NULL,
+  `sitio_id` int NOT NULL,
+  PRIMARY KEY (`purok_id`),
+  KEY `idx_puroks_sitio` (`sitio_id`),
+  CONSTRAINT `fk_puroks_sitio` FOREIGN KEY (`sitio_id`) REFERENCES `sitios` (`sitio_id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: realtime_outbox (BASE TABLE)
+-- ==========================================
+CREATE TABLE `realtime_outbox` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `topics` text NOT NULL,
+  `available_at` int unsigned NOT NULL,
+  `claim_token` char(36) DEFAULT NULL,
+  `claimed_until` int unsigned DEFAULT NULL,
+  `attempts` int unsigned NOT NULL DEFAULT '0',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `delivered_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `realtime_outbox_pending` (`delivered_at`,`available_at`,`id`),
+  KEY `realtime_outbox_claim_token_index` (`claim_token`)
+) ENGINE=InnoDB AUTO_INCREMENT=185 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: recurrence_types (BASE TABLE)
+-- ==========================================
+CREATE TABLE `recurrence_types` (
+  `type_id` int NOT NULL AUTO_INCREMENT,
+  `type_key` varchar(50) DEFAULT NULL,
+  `type_label` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`type_id`),
+  UNIQUE KEY `uk_recurrence_types_key` (`type_key`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: regions (BASE TABLE)
+-- ==========================================
+CREATE TABLE `regions` (
+  `region_id` int NOT NULL,
+  `region_code` varchar(20) DEFAULT NULL,
+  `region_name` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`region_id`),
+  UNIQUE KEY `uk_regions_code` (`region_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: relationships (BASE TABLE)
+-- ==========================================
+CREATE TABLE `relationships` (
+  `relationship_id` int NOT NULL AUTO_INCREMENT,
+  `relationship_key` varchar(50) DEFAULT NULL,
+  `relationship_label` varchar(100) DEFAULT NULL,
+  `is_head` tinyint(1) NOT NULL DEFAULT '0',
+  `is_immediate_family` tinyint(1) NOT NULL DEFAULT '0',
+  `can_report_for_household` tinyint(1) NOT NULL DEFAULT '0',
+  `sort_order` smallint unsigned NOT NULL DEFAULT '999',
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`relationship_id`),
+  UNIQUE KEY `uk_relationship_key` (`relationship_key`)
+) ENGINE=InnoDB AUTO_INCREMENT=40 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: remembered_devices (BASE TABLE)
+-- ==========================================
+CREATE TABLE `remembered_devices` (
+  `remembered_device_id` char(36) NOT NULL,
+  `user_id` varchar(255) NOT NULL,
+  `token_hash` varchar(255) NOT NULL,
+  `device_name` varchar(150) DEFAULT NULL,
+  `platform` varchar(30) DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` text,
+  `last_used_at` timestamp NULL DEFAULT NULL,
+  `expires_at` timestamp NOT NULL,
+  `revoked_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`remembered_device_id`),
+  UNIQUE KEY `remembered_devices_token_hash_unique` (`token_hash`),
+  KEY `remembered_devices_user_id_revoked_at_index` (`user_id`,`revoked_at`),
+  KEY `remembered_devices_expires_at_revoked_at_index` (`expires_at`,`revoked_at`),
+  CONSTRAINT `resq_0e9a7f3f11c8990f_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: report_idempotency (BASE TABLE)
+-- ==========================================
+CREATE TABLE `report_idempotency` (
+  `scope` char(64) NOT NULL,
+  `request_hash` char(64) NOT NULL,
+  `response_status` smallint unsigned DEFAULT NULL,
+  `response_body` longtext,
+  `content_type` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `expires_at` timestamp NOT NULL,
+  PRIMARY KEY (`scope`),
+  KEY `report_idempotency_expires_at_index` (`expires_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: request_validations (BASE TABLE)
+-- ==========================================
+CREATE TABLE `request_validations` (
+  `validation_id` int NOT NULL AUTO_INCREMENT,
+  `request_id` varchar(255) NOT NULL,
+  `validation_status` varchar(30) NOT NULL,
+  `validator_user_id` varchar(255) DEFAULT NULL,
+  `validation_notes` text,
+  `missing_information` text,
+  `duplicate_request_id` varchar(255) DEFAULT NULL,
+  `validated_at` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`validation_id`),
+  KEY `idx_req_validations_request` (`request_id`),
+  KEY `idx_req_validations_validator` (`validator_user_id`),
+  KEY `resq_b6477439f5d5e08a_idx` (`request_id`,`created_at`),
+  CONSTRAINT `fk_req_validations_request` FOREIGN KEY (`request_id`) REFERENCES `resource_requests` (`request_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_req_validations_validator` FOREIGN KEY (`validator_user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: rescue_criteria_contact_baselines (BASE TABLE)
+-- ==========================================
+CREATE TABLE `rescue_criteria_contact_baselines` (
+  `event_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `household_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `no_contact` tinyint(1) NOT NULL,
+  `captured_at` timestamp NOT NULL,
+  PRIMARY KEY (`event_id`,`household_id`),
+  KEY `resq_6f1f8b058f28b61c_fk` (`household_id`),
+  CONSTRAINT `resq_6477cf95f637ff7a_fk` FOREIGN KEY (`event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_6f1f8b058f28b61c_fk` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ==========================================
+-- Table/View: rescue_criteria_line_snapshots (BASE TABLE)
+-- ==========================================
+CREATE TABLE `rescue_criteria_line_snapshots` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `event_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `bucket_hour` int unsigned NOT NULL,
+  `observed_at` timestamp NOT NULL,
+  `impact_open` int unsigned NOT NULL,
+  `household_total` int unsigned NOT NULL,
+  `special_open` int unsigned NOT NULL,
+  `vulnerable_total` int unsigned NOT NULL,
+  `unreported_open` int unsigned NOT NULL,
+  `member_total` int unsigned NOT NULL,
+  `no_contact_open` int unsigned NOT NULL,
+  `no_contact_total` int unsigned NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `rescue_priority_version` bigint unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `rescue_criteria_event_bucket_unique` (`event_id`,`bucket_hour`),
+  KEY `resq_31d787d3b1908fca_fk` (`rescue_priority_version`),
+  CONSTRAINT `resq_31d787d3b1908fca_fk` FOREIGN KEY (`rescue_priority_version`) REFERENCES `rescue_priority_settings` (`version`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_bf9c5df1878e11ac_fk` FOREIGN KEY (`event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ==========================================
+-- Table/View: rescue_criteria_snapshots (BASE TABLE)
+-- ==========================================
+CREATE TABLE `rescue_criteria_snapshots` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `event_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `observed_at` timestamp NOT NULL,
+  `impact` decimal(5,1) DEFAULT NULL,
+  `special_needs` decimal(5,1) DEFAULT NULL,
+  `unreported` decimal(5,1) DEFAULT NULL,
+  `no_contact` decimal(5,1) DEFAULT NULL,
+  `purok_count` int unsigned NOT NULL,
+  `rescue_priority_version` bigint unsigned DEFAULT NULL,
+  `definition_version` tinyint unsigned NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `rescue_criteria_snapshots_event_id_observed_at_unique` (`event_id`,`observed_at`),
+  KEY `resq_5a227d93d486e431_fk` (`rescue_priority_version`),
+  CONSTRAINT `resq_5a227d93d486e431_fk` FOREIGN KEY (`rescue_priority_version`) REFERENCES `rescue_priority_settings` (`version`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_a925bd424181332c_fk` FOREIGN KEY (`event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ==========================================
+-- Table/View: rescue_priority_settings (BASE TABLE)
+-- ==========================================
+CREATE TABLE `rescue_priority_settings` (
+  `version` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `impact_weight` tinyint unsigned NOT NULL,
+  `vulnerability_weight` tinyint unsigned NOT NULL,
+  `unreported_weight` tinyint unsigned NOT NULL,
+  `no_contact_weight` tinyint unsigned NOT NULL,
+  `updated_by_user_id` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `change_reason` varchar(255) DEFAULT NULL,
+  `high_percent` decimal(5,1) NOT NULL DEFAULT '40.0',
+  `medium_percent` decimal(5,1) NOT NULL DEFAULT '20.0',
+  `deploy_first_percent` decimal(5,1) NOT NULL DEFAULT '20.0',
+  PRIMARY KEY (`version`),
+  KEY `resq_68ee510152684dbb_fk` (`updated_by_user_id`),
+  CONSTRAINT `resq_68ee510152684dbb_fk` FOREIGN KEY (`updated_by_user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: rescue_teams (BASE TABLE)
+-- ==========================================
+CREATE TABLE `rescue_teams` (
+  `team_id` int NOT NULL,
+  `team_code` varchar(50) DEFAULT NULL,
+  `team_name` varchar(100) DEFAULT NULL,
+  `team_type` varchar(80) DEFAULT NULL,
+  `assigned_purok_id` int DEFAULT NULL,
+  `leader_responder_id` int DEFAULT NULL,
+  `duty_status` varchar(30) NOT NULL DEFAULT 'available',
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `base_name` varchar(120) DEFAULT NULL,
+  `base_latitude` decimal(10,7) DEFAULT NULL,
+  `base_longitude` decimal(10,7) DEFAULT NULL,
+  PRIMARY KEY (`team_id`),
+  UNIQUE KEY `uk_rescue_teams_code` (`team_code`),
+  KEY `idx_rescue_teams_purok` (`assigned_purok_id`),
+  KEY `idx_rescue_teams_leader` (`leader_responder_id`),
+  CONSTRAINT `fk_rescue_teams_purok` FOREIGN KEY (`assigned_purok_id`) REFERENCES `puroks` (`purok_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `resq_b8b8912433edb420_fk` FOREIGN KEY (`leader_responder_id`) REFERENCES `responders` (`responder_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: resource_request_status (BASE TABLE)
+-- ==========================================
+CREATE TABLE `resource_request_status` (
+  `status_id` int NOT NULL,
+  `status_key` varchar(50) DEFAULT NULL,
+  `status_label` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`status_id`),
+  UNIQUE KEY `uk_resource_request_status_key` (`status_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: resource_requests (BASE TABLE)
+-- ==========================================
+CREATE TABLE `resource_requests` (
+  `request_id` varchar(255) NOT NULL,
+  `request_source` varchar(80) DEFAULT NULL,
+  `source_reference` varchar(120) DEFAULT NULL,
+  `request_category` varchar(50) DEFAULT NULL,
+  `evacuation_center_id` varchar(255) DEFAULT NULL,
+  `requested_by` varchar(255) DEFAULT NULL,
+  `handled_by` varchar(255) DEFAULT NULL,
+  `resource_type` varchar(100) DEFAULT NULL,
+  `item_name` varchar(150) DEFAULT NULL,
+  `quantity` int DEFAULT NULL,
+  `unit` varchar(50) DEFAULT NULL,
+  `description` text,
+  `status_id` int DEFAULT NULL,
+  `validation_status` varchar(30) NOT NULL DEFAULT 'needs_validation',
+  `validation_notes` text,
+  `validated_by_user_id` varchar(255) DEFAULT NULL,
+  `validated_at` datetime DEFAULT NULL,
+  `released_for_tracking_at` datetime DEFAULT NULL,
+  `tracking_reference` varchar(120) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `urgency_id` int unsigned DEFAULT NULL,
+  PRIMARY KEY (`request_id`),
+  KEY `idx_resource_req_status_created` (`status_id`,`created_at`),
+  KEY `idx_rr_center_created` (`evacuation_center_id`,`created_at`),
+  KEY `idx_rr_requested_by` (`requested_by`),
+  KEY `idx_rr_handled_by` (`handled_by`),
+  KEY `idx_rr_validated_by` (`validated_by_user_id`),
+  KEY `resource_requests_urgency_id_index` (`urgency_id`),
+  CONSTRAINT `fk_rr_center` FOREIGN KEY (`evacuation_center_id`) REFERENCES `evacuation_centers` (`evacuation_center_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_rr_handled_by` FOREIGN KEY (`handled_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_rr_requested_by` FOREIGN KEY (`requested_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_rr_status` FOREIGN KEY (`status_id`) REFERENCES `resource_request_status` (`status_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_rr_validated_by` FOREIGN KEY (`validated_by_user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `resource_requests_urgency_id_foreign` FOREIGN KEY (`urgency_id`) REFERENCES `urgency_levels` (`urgency_id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: responder_assignments (BASE TABLE)
+-- ==========================================
+CREATE TABLE `responder_assignments` (
+  `assignment_id` int NOT NULL,
+  `assignment_code` varchar(80) DEFAULT NULL,
+  `responder_id` int NOT NULL,
+  `team_id` int DEFAULT NULL,
+  `disaster_id` varchar(255) DEFAULT NULL,
+  `affected_area_id` int DEFAULT NULL,
+  `household_id` varchar(255) DEFAULT NULL,
+  `status_log_id` int DEFAULT NULL,
+  `assigned_area` varchar(150) DEFAULT NULL,
+  `route_notes` text,
+  `priority_level` varchar(30) DEFAULT NULL,
+  `dispatch_notes` text,
+  `created_by_admin_id` varchar(255) DEFAULT NULL,
+  `status` varchar(50) DEFAULT NULL,
+  `assigned_at` datetime NOT NULL,
+  `accepted_at` datetime DEFAULT NULL,
+  `en_route_at` datetime DEFAULT NULL,
+  `arrived_at` datetime DEFAULT NULL,
+  `completed_at` datetime DEFAULT NULL,
+  `outcome_notes` text,
+  `updated_at` datetime DEFAULT NULL,
+  `responder_count` smallint unsigned NOT NULL DEFAULT '1',
+  `dispatch_type` varchar(30) NOT NULL DEFAULT 'rescue',
+  PRIMARY KEY (`assignment_id`),
+  UNIQUE KEY `uk_responder_assignments_code` (`assignment_code`),
+  KEY `responder_assignments_dispatch_type_index` (`dispatch_type`),
+  KEY `idx_ra_disaster_status` (`disaster_id`,`status`),
+  KEY `idx_ra_responder` (`responder_id`,`status`),
+  KEY `idx_ra_team` (`team_id`,`status`),
+  KEY `idx_ra_household` (`household_id`),
+  KEY `idx_ra_status` (`status`),
+  KEY `resq_15fe6c020a727519_idx` (`disaster_id`,`assigned_at`),
+  KEY `resq_4ed1f5a1527836f8_fk` (`affected_area_id`),
+  CONSTRAINT `fk_ra_disaster` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_ra_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_ra_responder` FOREIGN KEY (`responder_id`) REFERENCES `responders` (`responder_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_ra_status` FOREIGN KEY (`status`) REFERENCES `dispatch_statuses` (`status_key`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_ra_team` FOREIGN KEY (`team_id`) REFERENCES `rescue_teams` (`team_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `resq_4ed1f5a1527836f8_fk` FOREIGN KEY (`affected_area_id`) REFERENCES `affected_areas` (`affected_area_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: responder_check_ins (BASE TABLE)
+-- ==========================================
+CREATE TABLE `responder_check_ins` (
+  `check_in_id` int NOT NULL AUTO_INCREMENT,
+  `responder_id` int NOT NULL,
+  `disaster_id` varchar(255) DEFAULT NULL,
+  `team_id` int DEFAULT NULL,
+  `affected_area_id` int DEFAULT NULL,
+  `household_id` varchar(255) DEFAULT NULL,
+  `member_id` varchar(255) DEFAULT NULL,
+  `latitude` decimal(10,7) DEFAULT NULL,
+  `longitude` decimal(10,7) DEFAULT NULL,
+  `check_in_method` varchar(10) DEFAULT NULL,
+  `status_id` int DEFAULT NULL,
+  `notes` text,
+  `checked_in_at` datetime NOT NULL,
+  `checked_out_at` datetime DEFAULT NULL,
+  `verified_by` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`check_in_id`),
+  KEY `idx_rci_disaster_responder` (`disaster_id`,`responder_id`),
+  KEY `idx_rci_household` (`household_id`),
+  KEY `idx_rci_team` (`team_id`),
+  KEY `resq_246080cfbc80e122_idx` (`responder_id`,`checked_in_at`),
+  KEY `resq_dd5b0744848cf706_idx` (`disaster_id`,`household_id`),
+  KEY `resq_d91b5f847846ce32_fk` (`affected_area_id`),
+  KEY `resq_64f15fb7b5ec9834_fk` (`member_id`),
+  CONSTRAINT `fk_rci_disaster` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_rci_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_rci_responder` FOREIGN KEY (`responder_id`) REFERENCES `responders` (`responder_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_rci_team` FOREIGN KEY (`team_id`) REFERENCES `rescue_teams` (`team_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `resq_64f15fb7b5ec9834_fk` FOREIGN KEY (`member_id`) REFERENCES `household_members` (`member_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_d91b5f847846ce32_fk` FOREIGN KEY (`affected_area_id`) REFERENCES `affected_areas` (`affected_area_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: responder_communication_logs (BASE TABLE)
+-- ==========================================
+CREATE TABLE `responder_communication_logs` (
+  `communication_id` int NOT NULL AUTO_INCREMENT,
+  `responder_id` int NOT NULL,
+  `team_id` int DEFAULT NULL,
+  `team_name` varchar(100) DEFAULT NULL,
+  `disaster_id` varchar(255) DEFAULT NULL,
+  `message` text,
+  `timestamp` datetime NOT NULL,
+  PRIMARY KEY (`communication_id`),
+  KEY `idx_rcl_disaster_time` (`disaster_id`,`timestamp`),
+  KEY `idx_rcl_team_time` (`team_id`,`timestamp`),
+  KEY `idx_rcl_responder_time` (`responder_id`,`timestamp`),
+  CONSTRAINT `fk_rcl_disaster` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_rcl_responder` FOREIGN KEY (`responder_id`) REFERENCES `responders` (`responder_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_rcl_team` FOREIGN KEY (`team_id`) REFERENCES `rescue_teams` (`team_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: responder_field_report_details (BASE TABLE)
+-- ==========================================
+CREATE TABLE `responder_field_report_details` (
+  `detail_id` int NOT NULL AUTO_INCREMENT,
+  `report_id` int NOT NULL,
+  `category_id` int NOT NULL,
+  `value` int DEFAULT NULL,
+  `notes` text,
+  PRIMARY KEY (`detail_id`),
+  KEY `idx_rfrd_report` (`report_id`),
+  KEY `idx_rfrd_category` (`category_id`),
+  CONSTRAINT `fk_rfrd_category` FOREIGN KEY (`category_id`) REFERENCES `field_report_categories` (`category_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_rfrd_report` FOREIGN KEY (`report_id`) REFERENCES `responder_field_reports` (`report_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: responder_field_report_members (BASE TABLE)
+-- ==========================================
+CREATE TABLE `responder_field_report_members` (
+  `detail_id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `report_id` int NOT NULL,
+  `household_id` varchar(255) NOT NULL,
+  `disaster_id` varchar(255) NOT NULL,
+  `member_id` varchar(255) NOT NULL,
+  `status_id` int DEFAULT NULL,
+  `status_key` varchar(50) NOT NULL,
+  `assessed_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`detail_id`),
+  UNIQUE KEY `rf_report_member_unique` (`report_id`,`member_id`),
+  KEY `rf_member_event_household_idx` (`disaster_id`,`household_id`),
+  KEY `idx_rfrm_member` (`member_id`),
+  KEY `idx_rfrm_status` (`status_id`),
+  KEY `fk_rfrm_household` (`household_id`),
+  CONSTRAINT `fk_rfrm_disaster` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_rfrm_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_rfrm_member` FOREIGN KEY (`member_id`) REFERENCES `household_members` (`member_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_rfrm_report` FOREIGN KEY (`report_id`) REFERENCES `responder_field_reports` (`report_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_rfrm_status` FOREIGN KEY (`status_id`) REFERENCES `member_statuses` (`status_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: responder_field_reports (BASE TABLE)
+-- ==========================================
+CREATE TABLE `responder_field_reports` (
+  `report_id` int NOT NULL AUTO_INCREMENT,
+  `responder_id` int NOT NULL,
+  `disaster_id` varchar(255) DEFAULT NULL,
+  `household_id` varchar(255) DEFAULT NULL,
+  `latitude` decimal(10,7) DEFAULT NULL,
+  `longitude` decimal(10,7) DEFAULT NULL,
+  `notes` text,
+  `created_at` datetime NOT NULL,
+  `assignment_id` int DEFAULT NULL,
+  `submitted_by_user_id` varchar(255) DEFAULT NULL,
+  `status_log_id` int DEFAULT NULL,
+  `incident_type` varchar(80) DEFAULT NULL,
+  `incident_type_other` varchar(255) DEFAULT NULL,
+  `property_damage` varchar(80) DEFAULT NULL,
+  `death_count` int unsigned DEFAULT '0',
+  `injured_count` int unsigned DEFAULT '0',
+  `idempotency_key` varchar(100) DEFAULT NULL,
+  `payload_hash` varchar(64) DEFAULT NULL,
+  `submitted_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`report_id`),
+  UNIQUE KEY `uk_rfr_idempotency` (`idempotency_key`),
+  KEY `idx_rfr_disaster_household` (`disaster_id`,`household_id`),
+  KEY `idx_rfr_responder` (`responder_id`,`created_at`),
+  KEY `idx_rfr_assignment` (`assignment_id`),
+  KEY `fk_rfr_household` (`household_id`),
+  KEY `resq_6beb664e75439fd1_fk` (`status_log_id`),
+  KEY `resq_5bd01543efdb9459_fk` (`property_damage`),
+  CONSTRAINT `fk_rfr_assignment` FOREIGN KEY (`assignment_id`) REFERENCES `responder_assignments` (`assignment_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_rfr_disaster` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_rfr_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_rfr_responder` FOREIGN KEY (`responder_id`) REFERENCES `responders` (`responder_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `resq_5bd01543efdb9459_fk` FOREIGN KEY (`property_damage`) REFERENCES `property_damage_levels` (`damage_key`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_6beb664e75439fd1_fk` FOREIGN KEY (`status_log_id`) REFERENCES `household_status_logs` (`status_log_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: responder_location_logs (BASE TABLE)
+-- ==========================================
+CREATE TABLE `responder_location_logs` (
+  `log_id` int NOT NULL AUTO_INCREMENT,
+  `responder_id` int NOT NULL,
+  `latitude` decimal(10,7) DEFAULT NULL,
+  `longitude` decimal(10,7) DEFAULT NULL,
+  `battery_level` int DEFAULT NULL,
+  `signal_strength` int DEFAULT NULL,
+  `logged_at` datetime NOT NULL,
+  PRIMARY KEY (`log_id`),
+  KEY `idx_rll_responder_time` (`responder_id`,`logged_at`),
+  CONSTRAINT `fk_rll_responder` FOREIGN KEY (`responder_id`) REFERENCES `responders` (`responder_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: responder_routes (BASE TABLE)
+-- ==========================================
+CREATE TABLE `responder_routes` (
+  `route_id` int NOT NULL AUTO_INCREMENT,
+  `assignment_id` int NOT NULL,
+  `route_name` varchar(150) DEFAULT NULL,
+  `route_status` varchar(30) NOT NULL DEFAULT 'planned',
+  `start_latitude` decimal(10,7) DEFAULT NULL,
+  `start_longitude` decimal(10,7) DEFAULT NULL,
+  `end_latitude` decimal(10,7) DEFAULT NULL,
+  `end_longitude` decimal(10,7) DEFAULT NULL,
+  `estimated_distance_km` decimal(8,2) DEFAULT NULL,
+  `estimated_duration_min` int DEFAULT NULL,
+  `route_polyline` mediumtext,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `responder_id` int DEFAULT NULL,
+  `household_id` varchar(255) DEFAULT NULL,
+  `navigation_steps` json DEFAULT NULL,
+  PRIMARY KEY (`route_id`),
+  KEY `idx_rr_assignment` (`assignment_id`),
+  KEY `idx_rr_responder` (`responder_id`),
+  KEY `idx_rr_household` (`household_id`),
+  CONSTRAINT `fk_rr_route_assignment` FOREIGN KEY (`assignment_id`) REFERENCES `responder_assignments` (`assignment_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_rr_route_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_rr_route_responder` FOREIGN KEY (`responder_id`) REFERENCES `responders` (`responder_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: responders (BASE TABLE)
+-- ==========================================
+CREATE TABLE `responders` (
+  `responder_id` int NOT NULL,
+  `user_id` varchar(255) DEFAULT NULL,
+  `responder_code` varchar(80) DEFAULT NULL,
+  `created_by_admin_id` varchar(255) DEFAULT NULL,
+  `team_id` int DEFAULT NULL,
+  `username` varchar(100) DEFAULT NULL,
+  `password_hash` varchar(255) DEFAULT NULL,
+  `full_name` varchar(100) DEFAULT NULL,
+  `title` varchar(100) DEFAULT NULL,
+  `contact_number` varchar(20) DEFAULT NULL,
+  `emergency_contact_name` varchar(150) DEFAULT NULL,
+  `emergency_contact_number` varchar(30) DEFAULT NULL,
+  `date_of_birth` date DEFAULT NULL,
+  `gender` varchar(20) DEFAULT NULL,
+  `blood_type` varchar(10) DEFAULT NULL,
+  `address` text,
+  `skills` text,
+  `training_notes` text,
+  `certification_reference` varchar(150) DEFAULT NULL,
+  `equipment_notes` text,
+  `is_validated` tinyint(1) DEFAULT NULL,
+  `is_deployed` tinyint(1) DEFAULT NULL,
+  `duty_status` varchar(30) NOT NULL DEFAULT 'off_duty',
+  `last_active_at` datetime DEFAULT NULL,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`responder_id`),
+  UNIQUE KEY `uk_responders_code` (`responder_code`),
+  KEY `idx_responders_user` (`user_id`),
+  KEY `idx_responders_team` (`team_id`,`duty_status`),
+  KEY `idx_responders_username` (`username`),
+  CONSTRAINT `fk_responders_team` FOREIGN KEY (`team_id`) REFERENCES `rescue_teams` (`team_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_responders_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: resq_orphan_references (BASE TABLE)
+-- ==========================================
+CREATE TABLE `resq_orphan_references` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `source_table` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `source_key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `source_column` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `original_value` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `parent_table` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `preserved_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `resq_orphan_source_unique` (`source_table`,`source_key`,`source_column`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ==========================================
+-- Table/View: roles (BASE TABLE)
+-- ==========================================
+CREATE TABLE `roles` (
+  `role_id` int NOT NULL,
+  `role_key` varchar(50) DEFAULT NULL,
+  `role_name` varchar(100) DEFAULT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `base_role_key` varchar(80) DEFAULT NULL,
+  `web_modules` json DEFAULT NULL,
+  `can_manage_personnel` tinyint(1) DEFAULT NULL,
+  `can_approve_requests` tinyint(1) DEFAULT NULL,
+  PRIMARY KEY (`role_id`),
+  UNIQUE KEY `uk_roles_role_key` (`role_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: route_coordinates (BASE TABLE)
+-- ==========================================
+CREATE TABLE `route_coordinates` (
+  `coordinate_id` int NOT NULL AUTO_INCREMENT,
+  `route_id` int NOT NULL,
+  `latitude` decimal(10,7) DEFAULT NULL,
+  `longitude` decimal(10,7) DEFAULT NULL,
+  `sequence_order` int NOT NULL,
+  `recorded_at` datetime DEFAULT NULL,
+  `accuracy_m` decimal(8,2) DEFAULT NULL,
+  PRIMARY KEY (`coordinate_id`),
+  KEY `idx_route_coords_route_seq` (`route_id`,`sequence_order`),
+  CONSTRAINT `fk_route_coords_route` FOREIGN KEY (`route_id`) REFERENCES `responder_routes` (`route_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: sessions (BASE TABLE)
+-- ==========================================
+CREATE TABLE `sessions` (
+  `id` varchar(255) NOT NULL,
+  `user_id` varchar(255) DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` text,
+  `payload` longtext NOT NULL,
+  `last_activity` int NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `sessions_user_id_index` (`user_id`),
+  KEY `sessions_last_activity_index` (`last_activity`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: severity_levels (BASE TABLE)
+-- ==========================================
+CREATE TABLE `severity_levels` (
+  `severity_id` int NOT NULL,
+  `severity_key` varchar(50) DEFAULT NULL,
+  `severity_label` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`severity_id`),
+  UNIQUE KEY `uk_severity_levels_key` (`severity_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: sitios (BASE TABLE)
+-- ==========================================
+CREATE TABLE `sitios` (
+  `sitio_id` int NOT NULL,
+  `sitio_name` varchar(100) DEFAULT NULL,
+  `barangay_id` int NOT NULL,
+  PRIMARY KEY (`sitio_id`),
+  KEY `idx_sitios_barangay` (`barangay_id`),
+  CONSTRAINT `fk_sitios_barangay` FOREIGN KEY (`barangay_id`) REFERENCES `barangays` (`barangay_id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: situation_report_submissions (BASE TABLE)
+-- ==========================================
+CREATE TABLE `situation_report_submissions` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `sit_rep_id` int NOT NULL,
+  `submitted_at` timestamp NOT NULL,
+  `delivered_by` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `received_by` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `recorded_by` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `situation_report_submissions_sit_rep_id_index` (`sit_rep_id`),
+  CONSTRAINT `resq_65e805833d7f909a_fk` FOREIGN KEY (`sit_rep_id`) REFERENCES `situation_reports` (`sit_rep_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ==========================================
+-- Table/View: situation_reports (BASE TABLE)
+-- ==========================================
+CREATE TABLE `situation_reports` (
+  `sit_rep_id` int NOT NULL AUTO_INCREMENT,
+  `report_number` varchar(80) DEFAULT NULL,
+  `disaster_id` varchar(255) DEFAULT NULL,
+  `created_by_admin_id` varchar(255) DEFAULT NULL,
+  `household_id` varchar(255) DEFAULT NULL,
+  `summary` text,
+  `report_status` varchar(30) NOT NULL DEFAULT 'draft',
+  `reviewed_by_user_id` varchar(255) DEFAULT NULL,
+  `reviewed_at` datetime DEFAULT NULL,
+  `escalated_to` varchar(150) DEFAULT NULL,
+  `is_archived` tinyint(1) DEFAULT NULL,
+  `generated_at` datetime NOT NULL,
+  `archived_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `schema_version` varchar(8) NOT NULL DEFAULT '2.0',
+  `sitrep_type` varchar(16) DEFAULT NULL,
+  `approved_by` varchar(150) DEFAULT NULL,
+  `operator_inputs` json DEFAULT NULL,
+  PRIMARY KEY (`sit_rep_id`),
+  UNIQUE KEY `uk_sitrep_number` (`report_number`),
+  KEY `idx_sitrep_disaster` (`disaster_id`,`generated_at`),
+  KEY `idx_sitrep_household` (`household_id`),
+  CONSTRAINT `fk_sitrep_disaster` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_sitrep_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: status_reminders (BASE TABLE)
+-- ==========================================
+CREATE TABLE `status_reminders` (
+  `reminder_id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `event_id` varchar(255) NOT NULL,
+  `household_id` varchar(255) NOT NULL,
+  `member_id` varchar(255) NOT NULL,
+  `attempt` tinyint unsigned NOT NULL,
+  `status` varchar(20) NOT NULL DEFAULT 'pending',
+  `scheduled_at` timestamp NOT NULL,
+  `sent_at` timestamp NULL DEFAULT NULL,
+  `stopped_at` timestamp NULL DEFAULT NULL,
+  `member_delivery` varchar(30) DEFAULT NULL,
+  `household_delivery` varchar(30) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`reminder_id`),
+  UNIQUE KEY `status_reminders_event_member_attempt_unique` (`event_id`,`member_id`,`attempt`),
+  KEY `status_reminders_due_index` (`status`,`scheduled_at`),
+  KEY `status_reminders_household_index` (`event_id`,`household_id`,`status`),
+  KEY `fk_status_reminders_household` (`household_id`),
+  KEY `fk_status_reminders_member` (`member_id`),
+  CONSTRAINT `fk_status_reminders_event` FOREIGN KEY (`event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_status_reminders_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_status_reminders_member` FOREIGN KEY (`member_id`) REFERENCES `household_members` (`member_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: sync_events (BASE TABLE)
+-- ==========================================
+CREATE TABLE `sync_events` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `client_event_id` char(36) NOT NULL,
+  `device_id` bigint NOT NULL,
+  `type` varchar(40) NOT NULL,
+  `status` enum('received','processed','failed') NOT NULL DEFAULT 'received',
+  `error_message` varchar(255) DEFAULT NULL,
+  `received_at` timestamp NOT NULL,
+  `result_json` json DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `sync_events_client_event_id_unique` (`client_event_id`),
+  KEY `sync_events_device_received_at_index` (`device_id`,`received_at`),
+  CONSTRAINT `sync_events_device_id_foreign` FOREIGN KEY (`device_id`) REFERENCES `device_tokens` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: trip_points (BASE TABLE)
+-- ==========================================
+CREATE TABLE `trip_points` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `trip_id` bigint unsigned NOT NULL,
+  `lat` decimal(10,7) NOT NULL,
+  `lng` decimal(10,7) NOT NULL,
+  `accuracy` decimal(8,2) DEFAULT NULL,
+  `speed` decimal(8,3) DEFAULT NULL,
+  `heading` decimal(6,2) DEFAULT NULL,
+  `recorded_at` datetime(6) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `trip_points_trip_recorded_at_index` (`trip_id`,`recorded_at`),
+  CONSTRAINT `trip_points_trip_id_foreign` FOREIGN KEY (`trip_id`) REFERENCES `dispatch_trips` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: trusted_households (BASE TABLE)
+-- ==========================================
+CREATE TABLE `trusted_households` (
+  `connection_id` varchar(80) NOT NULL,
+  `requesting_household_id` varchar(255) NOT NULL,
+  `trusted_household_id` varchar(255) NOT NULL,
+  `reason` text NOT NULL,
+  `validation_status` varchar(30) NOT NULL DEFAULT 'pending',
+  `member_relationships` json DEFAULT NULL,
+  `created_by_user_id` varchar(255) DEFAULT NULL,
+  `validated_by_user_id` varchar(255) DEFAULT NULL,
+  `validated_at` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`connection_id`),
+  KEY `idx_trusted_households_requesting` (`requesting_household_id`),
+  KEY `idx_trusted_households_trusted` (`trusted_household_id`),
+  KEY `idx_trusted_households_status` (`validation_status`),
+  CONSTRAINT `fk_trusted_hh_requesting` FOREIGN KEY (`requesting_household_id`) REFERENCES `households` (`household_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_trusted_hh_trusted` FOREIGN KEY (`trusted_household_id`) REFERENCES `households` (`household_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: unit_allocations (BASE TABLE)
+-- ==========================================
+CREATE TABLE `unit_allocations` (
+  `allocation_id` int NOT NULL AUTO_INCREMENT,
+  `evacuation_id` int NOT NULL,
+  `unit_id` int NOT NULL,
+  `assigned_by` varchar(255) DEFAULT NULL,
+  `selected_by_resident` tinyint(1) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`allocation_id`),
+  KEY `idx_unit_alloc_evac` (`evacuation_id`),
+  KEY `idx_unit_alloc_unit` (`unit_id`),
+  KEY `idx_unit_alloc_assigned_by` (`assigned_by`),
+  CONSTRAINT `fk_unit_alloc_assigned_by` FOREIGN KEY (`assigned_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_unit_alloc_evac` FOREIGN KEY (`evacuation_id`) REFERENCES `evacuation_records` (`evacuation_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_unit_alloc_unit` FOREIGN KEY (`unit_id`) REFERENCES `accommodation_units` (`unit_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: urgency_levels (BASE TABLE)
+-- ==========================================
+CREATE TABLE `urgency_levels` (
+  `urgency_id` int unsigned NOT NULL AUTO_INCREMENT,
+  `urgency_key` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `urgency_label` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`urgency_id`),
+  UNIQUE KEY `urgency_levels_urgency_key_unique` (`urgency_key`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ==========================================
+-- Table/View: user_notifications (BASE TABLE)
+-- ==========================================
+CREATE TABLE `user_notifications` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` varchar(255) NOT NULL,
+  `type` varchar(50) NOT NULL DEFAULT 'general',
+  `title` varchar(255) NOT NULL,
+  `message` text NOT NULL,
+  `data` json DEFAULT NULL,
+  `read_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_user_notifications_user_id` (`user_id`),
+  KEY `idx_user_notifications_read_at` (`read_at`),
+  CONSTRAINT `fk_user_notifications_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: users (BASE TABLE)
+-- ==========================================
+CREATE TABLE `users` (
+  `user_id` varchar(255) NOT NULL,
+  `first_name` varchar(100) DEFAULT NULL,
+  `last_name` varchar(100) DEFAULT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `username` varchar(100) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `email_verified_at` timestamp NULL DEFAULT NULL,
+  `password` varchar(255) DEFAULT NULL,
+  `role_id` int DEFAULT NULL,
+  `contact_number` varchar(50) DEFAULT NULL,
+  `assigned_center_id` varchar(255) DEFAULT NULL,
+  `household_id` varchar(255) DEFAULT NULL,
+  `member_id` varchar(255) DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT NULL,
+  `must_change_password` tinyint(1) NOT NULL DEFAULT '0',
+  `temp_password` varchar(255) DEFAULT NULL,
+  `remember_token` varchar(100) DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `deleted_at` datetime DEFAULT NULL,
+  `profile_photo` varchar(255) DEFAULT NULL,
+  `security_question_1` varchar(100) DEFAULT NULL,
+  `security_answer_1` varchar(255) DEFAULT NULL,
+  `security_question_2` varchar(100) DEFAULT NULL,
+  `security_answer_2` varchar(255) DEFAULT NULL,
+  `password_changed_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`user_id`),
+  UNIQUE KEY `uk_users_member` (`member_id`),
+  KEY `idx_users_household` (`household_id`),
+  KEY `idx_users_role` (`role_id`),
+  KEY `idx_users_email` (`email`),
+  KEY `idx_users_contact` (`contact_number`),
+  KEY `idx_users_username` (`username`),
+  KEY `idx_users_assigned_center` (`assigned_center_id`),
+  KEY `idx_users_deleted` (`deleted_at`),
+  CONSTRAINT `fk_users_assigned_center` FOREIGN KEY (`assigned_center_id`) REFERENCES `evacuation_centers` (`evacuation_center_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_users_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_users_member` FOREIGN KEY (`member_id`) REFERENCES `household_members` (`member_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_users_role` FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: v_household_status_board (VIEW)
+-- ==========================================
+CREATE ALGORITHM=UNDEFINED DEFINER=`groupmate`@`%` SQL SECURITY INVOKER VIEW `v_household_status_board` AS select `mds`.`disaster_id` AS `disaster_id`,`h`.`household_id` AS `household_id`,`h`.`household_code` AS `household_code`,`h`.`household_name` AS `household_name`,`hs`.`status_id` AS `household_status_id`,`hs`.`status_label` AS `household_status_label`,`hs`.`color_hex` AS `household_status_color`,count(0) AS `total_members`,sum((`ms`.`status_key` = 'unknown')) AS `unreported`,sum((`ms`.`status_key` in ('safe','safe_at_home','evacuated'))) AS `accounted_safe`,sum((`ms`.`requires_rescue` = 1)) AS `needs_rescue_count`,sum((`ms`.`status_key` = 'missing')) AS `missing_count`,sum((`ms`.`status_key` = 'injured')) AS `injured_count`,sum((`ms`.`status_key` = 'deceased')) AS `deceased_count`,max(`mds`.`severity_rank`) AS `worst_severity`,max(`mds`.`reported_at`) AS `last_reported_at`,max(`mds`.`latitude`) AS `latitude`,max(`mds`.`longitude`) AS `longitude` from (((((`member_disaster_statuses` `mds` join `household_members` `hm` on(((`hm`.`member_id` = `mds`.`member_id`) and (`hm`.`deleted_at` is null)))) join `households` `h` on((`h`.`household_id` = `mds`.`household_id`))) join `member_statuses` `ms` on((`ms`.`status_id` = `mds`.`status_id`))) left join `household_disasters` `hd` on(((`hd`.`disaster_id` = `mds`.`disaster_id`) and (`hd`.`household_id` = `mds`.`household_id`)))) left join `household_statuses` `hs` on((`hs`.`status_id` = `hd`.`current_status_id`))) group by `mds`.`disaster_id`,`h`.`household_id`,`h`.`household_code`,`h`.`household_name`,`hs`.`status_id`,`hs`.`status_label`,`hs`.`color_hex`;
+
+-- ==========================================
+-- Table/View: v_member_status_monitor (VIEW)
+-- ==========================================
+CREATE ALGORITHM=UNDEFINED DEFINER=`groupmate`@`%` SQL SECURITY INVOKER VIEW `v_member_status_monitor` AS select `mds`.`member_status_id` AS `member_status_id`,`mds`.`disaster_id` AS `disaster_id`,`de`.`name` AS `event_name`,`de`.`started_at` AS `event_started_at`,`de`.`ended_at` AS `event_ended_at`,(`de`.`ended_at` is null) AS `event_is_active`,`h`.`household_id` AS `household_id`,`h`.`household_code` AS `household_code`,`h`.`household_number` AS `household_number`,`h`.`household_name` AS `household_name`,`h`.`contact_number` AS `household_contact`,`hm`.`member_id` AS `member_id`,trim(concat_ws(' ',`hm`.`first_name`,`hm`.`middle_name`,`hm`.`last_name`)) AS `member_name`,timestampdiff(YEAR,`hm`.`birth_date`,curdate()) AS `age`,`g`.`gender_label` AS `gender`,`r`.`relationship_label` AS `relationship_label`,`hm`.`is_household_head` AS `is_household_head`,`hm`.`is_pwd` AS `is_pwd`,`hm`.`is_senior` AS `is_senior`,`hm`.`is_pregnant` AS `is_pregnant`,`u`.`user_id` AS `account_user_id`,`u`.`username` AS `account_username`,`u`.`email` AS `account_email`,(`u`.`user_id` is not null) AS `has_account`,`mds`.`status_id` AS `status_id`,`ms`.`status_key` AS `status_key`,`ms`.`status_label` AS `status_label`,`ms`.`color_hex` AS `status_color`,`mds`.`severity_rank` AS `severity_rank`,`mds`.`needs_rescue` AS `needs_rescue`,`mds`.`priority_level` AS `priority_level`,`prev`.`status_label` AS `previous_status_label`,`mds`.`report_source` AS `report_source`,`mds`.`reported_by_user_id` AS `reported_by_user_id`,`mds`.`reported_by_member_id` AS `reported_by_member_id`,trim(concat_ws(' ',`rep`.`first_name`,`rep`.`last_name`)) AS `reported_by_name`,`mds`.`latitude` AS `latitude`,`mds`.`longitude` AS `longitude`,`mds`.`location_label` AS `location_label`,`mds`.`location_accuracy_m` AS `location_accuracy_m`,`mds`.`battery_level` AS `battery_level`,`mds`.`signal_strength` AS `signal_strength`,`mds`.`evacuation_center_id` AS `evacuation_center_id`,`mds`.`notes` AS `notes`,`mds`.`is_verified` AS `is_verified`,`mds`.`verified_at` AS `verified_at`,`mds`.`reported_at` AS `reported_at`,`mds`.`updated_at` AS `updated_at`,timestampdiff(MINUTE,`mds`.`reported_at`,now()) AS `minutes_since_report` from (((((((((`member_disaster_statuses` `mds` join `household_members` `hm` on((`hm`.`member_id` = `mds`.`member_id`))) join `households` `h` on((`h`.`household_id` = `mds`.`household_id`))) join `member_statuses` `ms` on((`ms`.`status_id` = `mds`.`status_id`))) join `disaster_events` `de` on((`de`.`event_id` = `mds`.`disaster_id`))) left join `member_statuses` `prev` on((`prev`.`status_id` = `mds`.`previous_status_id`))) left join `relationships` `r` on((`r`.`relationship_id` = `hm`.`relationship_id`))) left join `genders` `g` on((`g`.`gender_id` = `hm`.`gender_id`))) left join `users` `u` on(((`u`.`member_id` = `hm`.`member_id`) and (`u`.`deleted_at` is null)))) left join `household_members` `rep` on((`rep`.`member_id` = `mds`.`reported_by_member_id`))) where ((`hm`.`deleted_at` is null) and (`h`.`deleted_at` is null));
+
+-- ==========================================
+-- Table/View: vulnerable_groups (BASE TABLE)
+-- ==========================================
+CREATE TABLE `vulnerable_groups` (
+  `vulnerable_group_id` int NOT NULL AUTO_INCREMENT,
+  `vulnerable_group_key` varchar(20) DEFAULT NULL,
+  `vulnerable_group_label` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`vulnerable_group_id`),
+  UNIQUE KEY `uk_vulnerable_group_key` (`vulnerable_group_key`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: weather_logs (BASE TABLE)
+-- ==========================================
+CREATE TABLE `weather_logs` (
+  `weather_log_id` int NOT NULL AUTO_INCREMENT,
+  `disaster_id` varchar(255) DEFAULT NULL,
+  `source_name` varchar(80) NOT NULL,
+  `source_url` varchar(255) DEFAULT NULL,
+  `condition_name` varchar(80) DEFAULT NULL,
+  `temperature` decimal(5,2) DEFAULT NULL,
+  `rainfall_mm` decimal(8,2) DEFAULT NULL,
+  `wind_speed` decimal(8,2) DEFAULT NULL,
+  `wind_direction` varchar(50) DEFAULT NULL,
+  `humidity` int DEFAULT NULL,
+  `advisory_title` varchar(255) DEFAULT NULL,
+  `advisory_text` text,
+  `raw_payload` json DEFAULT NULL,
+  `observed_at` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`weather_log_id`),
+  KEY `weather_logs_latest_idx` (`observed_at`,`created_at`),
+  KEY `weather_logs_event_latest_idx` (`disaster_id`,`observed_at`,`created_at`),
+  CONSTRAINT `fk_weather_logs_event` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: web_push_deliveries (BASE TABLE)
+-- ==========================================
+CREATE TABLE `web_push_deliveries` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `subscription_id` bigint unsigned NOT NULL,
+  `notice_hash` varchar(64) NOT NULL,
+  `created_at` timestamp NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `web_push_deliveries_subscription_id_notice_hash_unique` (`subscription_id`,`notice_hash`),
+  CONSTRAINT `fk_web_push_deliveries_sub` FOREIGN KEY (`subscription_id`) REFERENCES `web_push_subscriptions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: web_push_subscriptions (BASE TABLE)
+-- ==========================================
+CREATE TABLE `web_push_subscriptions` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` varchar(255) NOT NULL,
+  `token_id` bigint unsigned DEFAULT NULL,
+  `endpoint_hash` varchar(64) NOT NULL,
+  `subscription` text NOT NULL,
+  `expires_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `push_after` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `web_push_subscriptions_endpoint_hash_unique` (`endpoint_hash`),
+  KEY `web_push_subscriptions_user_id_index` (`user_id`),
+  KEY `web_push_subscriptions_token_id_index` (`token_id`),
+  CONSTRAINT `fk_web_push_subs_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `resq_e20d31d8baa70e39_fk` FOREIGN KEY (`token_id`) REFERENCES `personal_access_tokens` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ==========================================
+-- Table/View: zipcodes (BASE TABLE)
+-- ==========================================
+CREATE TABLE `zipcodes` (
+  `zipcode_id` int NOT NULL,
+  `zipcode` varchar(10) DEFAULT NULL,
+  `city_id` int NOT NULL,
+  PRIMARY KEY (`zipcode_id`),
+  KEY `idx_zipcodes_city` (`city_id`),
+  CONSTRAINT `fk_zipcodes_city` FOREIGN KEY (`city_id`) REFERENCES `cities` (`city_id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+

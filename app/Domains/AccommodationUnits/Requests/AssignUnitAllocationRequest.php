@@ -2,6 +2,7 @@
 
 namespace App\Domains\AccommodationUnits\Requests;
 
+use App\Domains\Evacuations\Models\EvacuationRecord;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AssignUnitAllocationRequest extends FormRequest
@@ -14,7 +15,14 @@ class AssignUnitAllocationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'evacuation_id' => 'required|exists:evacuation_records,evacuation_id',
+            'evacuation_id' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    if (!EvacuationRecord::where('evacuation_id', $value)->exists()) {
+                        $fail('The selected evacuation record is invalid.');
+                    }
+                },
+            ],
         ];
     }
 }

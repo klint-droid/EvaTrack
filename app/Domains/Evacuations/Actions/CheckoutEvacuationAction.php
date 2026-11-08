@@ -28,11 +28,7 @@ class CheckoutEvacuationAction
                 'checkout_at'         => Carbon::now()
             ]);
 
-            // Note: Originally EvacuationService also updated unit allocation here.
-            // If they are checked out, unit allocations were resolved in EvacuationController or Service.
-            // Let's verify what `EvacuationService@handleCheckout` did.
-            // In the original service, it updated status and checkout_at. That's it.
-            // (Unit allocations might be handled via a listener or in the controller directly).
+            \App\Domains\AccommodationUnits\Models\UnitAllocation::where('evacuation_id', $evacuationId)->delete();
 
             return $this->evacuationRepository->findById($evacuationId);
         });

@@ -28,6 +28,7 @@ class Notification extends Model
         'channel',
         'status',
         'target_filter',
+        'feed_payload_json',
     ];
 
     protected $casts = [
@@ -36,15 +37,59 @@ class Notification extends Model
         'recurrence_end_at' => 'datetime',
         'last_sent_at' => 'datetime',
         'created_at' => 'datetime',
+        'feed_payload_json' => 'array',
     ];
 
-    protected $appends = ['recurrence_type'];
+    protected $appends = [
+        'recurrence_type',
+        'recurrence_interval_minutes',
+        'recurrence_interval_value',
+        'recurrence_interval_unit',
+    ];
 
     public function getRecurrenceTypeAttribute()
     {
+        $feed = $this->feed_payload_json;
+        if (is_string($feed)) {
+            $feed = json_decode($feed, true);
+        }
+        if (!empty($feed['recurrence_type'])) {
+            return $feed['recurrence_type'];
+        }
+
         return $this->relationLoaded('recurrenceType')
             ? $this->getRelationValue('recurrenceType')?->type_key
             : $this->recurrenceType()->first()?->type_key;
+    }
+
+    public function getRecurrenceIntervalMinutesAttribute()
+    {
+        if (array_key_exists('recurrence_interval_minutes', $this->attributes) && $this->attributes['recurrence_interval_minutes'] !== null) {
+            return (int) $this->attributes['recurrence_interval_minutes'];
+        }
+        $feed = $this->feed_payload_json;
+        if (is_string($feed)) {
+            $feed = json_decode($feed, true);
+        }
+        return isset($feed['recurrence_interval_minutes']) ? (int) $feed['recurrence_interval_minutes'] : null;
+    }
+
+    public function getRecurrenceIntervalValueAttribute()
+    {
+        $feed = $this->feed_payload_json;
+        if (is_string($feed)) {
+            $feed = json_decode($feed, true);
+        }
+        return $feed['recurrence_interval_value'] ?? null;
+    }
+
+    public function getRecurrenceIntervalUnitAttribute()
+    {
+        $feed = $this->feed_payload_json;
+        if (is_string($feed)) {
+            $feed = json_decode($feed, true);
+        }
+        return $feed['recurrence_interval_unit'] ?? null;
     }
 
     public function sender()

@@ -32,436 +32,423 @@ Panel Chair: Mr. Eric Magto  |  Panelist: Ms. Khiara Danielle Rubia
 
 | Version | Date | Description | Author(s) |
 | --- | --- | --- | --- |
-| 0.1 | 2026-07-20 | Initial draft: project scope, must-haves elicitation, and stakeholder requirements analysis. | All proponents |
-| 0.5 | 2026-08-20 | Complete functional and non-functional requirements, integration architecture (SafeTrack and ResQperation), adviser comments incorporated. | Ruales, Gelbolingo, Villadolid, Cernal |
-| 1.0 | 2026-10-05 | Approved baseline for capstone panel defense incorporating verified backend actions, analytics computations, and field-tested UI workflows. | All proponents |
+| 0.1 | 2026-07-20 | Initial draft covering project scope, core system requirements, and stakeholder roles. | All proponents |
+| 0.5 | 2026-08-20 | Defined functional and non-functional requirements and integration workflows with SafeTrack and ResQperation. | Ruales, Gelbolingo, Villadolid, Cernal |
+| 1.0 | 2026-10-31 | Finalized SRS aligned with the actual implemented EvaTrack system, verified backend domain actions, frontend components, and active database schema. | All proponents |
 
 # Table of Contents
 
 Revision History ........................................... 2
-Table of Contents ......................................... 3
-1. Introduction ............................................. 4
-1.1 Purpose ............................................. 4
-1.2 Scope ................................................. 4
-1.3 Definitions, Acronyms, and Abbreviations .. 5
-1.4 References ....................................... 6
+Table of Contents ........................................... 3
+1. Introduction ........................................... 4
+1.1 Purpose ........................................... 4
+1.2 Scope ........................................... 4
+1.3 Definitions, Acronyms, and Abbreviations ........................................... 5
+1.4 References ........................................... 6
 1.5 Overview ........................................... 6
-2. Overall Description ............................... 7
-2.1 Product Perspective ..................... 7
-2.2 Product Functions ......................... 8
-2.3 User Classes and Characteristics .. 8
-2.4 Operating Environment ................. 9
-2.5 Design and Implementation Constraints .. 9
-2.6 Assumptions and Dependencies ... 10
-2.7 Apportioning of Requirements ... 10
-3. Specific Requirements ........................... 11
-3.1 External Interface Requirements .. 11
-3.1.1 User Interfaces ................. 11
-3.1.2 Hardware Interfaces ......... 11
-3.1.3 Software Interfaces ......... 12
-3.1.4 Communications Interfaces .. 12
-3.2 Functional Requirements ............. 13
-3.2.1 Authentication & Role-Based Access Control (AUTH) .. 13
-3.2.2 SafeTrack Demographics Ingestion & Isolation (STK) .. 14
-3.2.3 Evacuation Center & Room Configuration (CTR) .. 15
-3.2.4 Household Verification & Admission Tracking (VER) .. 16
-3.2.5 In-Center Stay, Room Assignment & Checkout (STAY) .. 17
-3.2.6 Disaster Event Coordination (EVT) .. 18
-3.2.7 In-Center Needs & Incident Reporting (ISS) .. 19
-3.2.8 Resource Demands & ResQperation Response Routing (RES) .. 20
-3.2.9 Emergency Dispatches, SMS & Push Broadcasts (NOTIF) .. 21
-3.2.10 Evacuation Analytics & Demographic Reporting (ANL) .. 22
-3.2.11 Audit Logging & Super Admin System Oversight (AUD) .. 23
-3.3 Non-Functional Requirements ..... 24
-3.3.1 Performance ......................... 24
-3.3.2 Security & Data Confidentiality .. 24
-3.3.3 Reliability and Disaster Availability .. 25
-3.3.4 Usability & Field Accessibility .. 25
-3.3.5 Maintainability & Clean Architecture .. 26
-3.3.6 Portability ......................... 26
-3.3.7 Data Privacy and Regulatory Compliance .. 26
-3.4 Database Requirements ................. 27
-Appendix A. Preliminary Entity-Relationship Overview .. 30
-Appendix B. Requirements Traceability Matrix .. 31
-Appendix C. Capstone Approval & Sign-Off Sheet .. 34
+2. Overall Description ........................................... 7
+2.1 Product Perspective ........................................... 7
+2.2 Product Functions ........................................... 8
+2.3 User Classes and Characteristics ........................................... 8
+2.4 Operating Environment ........................................... 9
+2.5 Design and Implementation Constraints ........................................... 9
+2.6 Assumptions and Dependencies ........................................... 10
+2.7 Apportioning of Requirements ........................................... 10
+3. Specific Requirements ........................................... 11
+3.1 External Interface Requirements ........................................... 11
+3.1.1 User Interfaces ........................................... 11
+3.1.2 Hardware Interfaces ........................................... 11
+3.1.3 Software Interfaces ........................................... 12
+3.1.4 Communications Interfaces ........................................... 12
+3.2 Functional Requirements ........................................... 13
+3.2.1 Authentication & User Account Management (AUTH) ........................................... 13
+3.2.2 SafeTrack Demographics & Privacy Isolation (STK) ........................................... 14
+3.2.3 Evacuation Center & Accommodation Unit Management (CTR) ........................................... 15
+3.2.4 Household Verification & Check-In Admission (VER) ........................................... 16
+3.2.5 In-Center Stay, Unit Allocation & Checkout (STAY) ........................................... 17
+3.2.6 Disaster Event Management (EVT) ........................................... 18
+3.2.7 Center Issue & Facility Condition Reporting (ISS) ........................................... 19
+3.2.8 Resource Requests & ResQperation Coordination (RES) ........................................... 20
+3.2.9 Emergency Alerts: SMS & Push Notifications (NOTIF) ........................................... 21
+3.2.10 Evacuation Analytics & Report Exports (ANL) ........................................... 22
+3.2.11 Super Admin System Oversight & In-App Alerts (OVR) ........................................... 23
+3.3 Non-Functional Requirements ........................................... 24
+3.3.1 Performance ........................................... 24
+3.3.2 Security & Data Confidentiality ........................................... 24
+3.3.3 Reliability and Availability ........................................... 25
+3.3.4 Usability & Accessibility ........................................... 25
+3.3.5 Maintainability & Architecture ........................................... 26
+3.3.6 Portability ........................................... 26
+3.3.7 Data Privacy Compliance ........................................... 26
+3.4 Database Requirements ........................................... 27
+Appendix A. Entity-Relationship Overview ........................................... 30
+Appendix B. Requirements Traceability Matrix ........................................... 31
+Appendix C. Capstone Approval & Sign-Off Sheet ........................................... 34
 
 # 1. Introduction
 
 ## 1.1 Purpose
 
-Purpose and Objective: This Software Requirements Specification (SRS) establishes the formal functional, behavioral, and non-functional baseline for the development and evaluation of EVATRACK (Version 1.0) — a Streamlined Evacuation Processes and Coordination Platform. It defines the complete scope of system capabilities, constraints, external interfaces, and security controls agreed upon between the student proponents, the capstone adviser, the project coordinator, the evaluation panel of the School of Computer Studies at the University of San Jose-Recoletos (USJ-R), and emergency response stakeholders.
-The intended audiences of this document are: (a) the Capstone Evaluation Panel and Project Coordinator, to assess architectural rigor, functional completeness, and compliance with college project standards; (b) the Capstone Adviser, to guide iterative technical execution; (c) the Project Development Team, to translate every verifiable requirement into production-ready software artifacts, unit/feature tests, and deployment scripts; and (d) Disaster Risk Reduction and Management Officers (DRRMO), Barangay Disaster Committees, and evacuation center personnel, to validate that the operational workflows accurately mitigate field challenges encountered during natural disaster evacuations.
+Purpose and Objective: This Software Requirements Specification (SRS) defines the functional and non-functional requirements for EVATRACK (Version 1.0) — a web-based evacuation management and coordination platform. This document serves as the official technical reference for the student proponents, the capstone adviser, the project coordinator, and the evaluation panel of the School of Computer Studies at the University of San Jose-Recoletos (USJ-R). Every requirement described in this document directly reflects the features, workflows, and database structure implemented in the EvaTrack system.
 ## 1.2 Scope
 
-System Scope: EvaTrack is an enterprise-grade, web-based evacuation logistics, admission, and coordination management platform engineered to modernize disaster response within Local Government Units (LGUs). The system manages the full operational lifecycle of disaster evacuation across municipal shelters, comprising: multi-center registration and room-level capacity tracking; rapid evacuee household admission via QR code scanning and manual demographic search; in-center stay monitoring; emergency incident and facility health reporting; and resource demand management.
-Crucially, EvaTrack establishes secure, bi-directional interoperability with two peer platforms in the disaster management ecosystem:
-(1) SafeTrack Demographics System: EvaTrack retrieves pre-registered household master records and vulnerability profiles from SafeTrack. In strict adherence to data privacy principles, this demographic data is completely hidden from public/resident view and is exposed solely to authorized evacuation personnel on-site for identity verification, demographic aggregation, and needs prioritization.
-(2) ResQperation Response Platform: EvaTrack routes resource supply requests, medical logistics packs, and search-and-rescue assistance directly to ResQperation coordinators, while utilizing ResQperation push gateways to broadcast real-time mobile evacuation warnings to citizens with smartphones.
-User Roles & Access: The system enforces strict Role-Based Access Control (RBAC) across three primary operator tiers: Super Admin, Evacuation Admin, and Evacuation Personnel. Displaced households and citizen residents act as secondary beneficiaries who receive outbound multi-channel broadcasts (SMS and mobile push) and undergo on-site verification without holding direct interactive user accounts.
-Scope Exclusions: Explicitly Out of Scope for Version 1.0:
-• Long-term permanent post-disaster housing re-settlement administration;
-• Direct financial cash-disbursement or commercial point-of-sale transactions;
-• Wearable biometric health sensor telemetry;
-• Native mobile app binary stores (EvaTrack provides a fully responsive PWA web interface accessed via desktop, tablet, and mobile browsers).
+System Scope: EvaTrack is a web-based platform designed to help Local Government Units (LGUs) and barangay disaster response teams manage evacuation centers efficiently during disasters. The system handles the complete evacuation workflow: setting up evacuation centers and accommodation units, verifying and admitting arriving households via QR code scanning or manual search, assigning families to shelter units, monitoring shelter occupancy in real time, reporting facility issues, requesting supplies, broadcasting emergency alerts, and generating demographic analytics.
+EvaTrack connects with two partner systems in the disaster management workflow:
+(1) SafeTrack Demographics System: EvaTrack retrieves registered household profiles, family member lists, addresses, and vulnerability indicators from SafeTrack. To protect resident privacy, this demographic information is hidden from the public and is accessible only to authorized system operators for verifying evacuees and computing shelter analytics.
+(2) ResQperation Response Platform: EvaTrack forwards resource and personnel assistance requests from evacuation centers to ResQperation and uses push notification services to send emergency evacuation alerts to residents with the mobile app.
+User Roles & Access: The system enforces Role-Based Access Control (RBAC) across three operator roles: Super Admin, Evacuation Admin, and Evacuation Personnel. Residents do not need user accounts; they can view public shelter availability on the EvaTrack Public Portal map, receive SMS and push alerts, and present their QR code upon arriving at an evacuation center.
 ## 1.3 Definitions, Acronyms, and Abbreviations
 
 
 | Term / Acronym | Definition |
 | --- | --- |
-| EvaTrack | Streamlined Evacuation Processes and Coordination Platform specified in this document. |
-| SafeTrack | Municipal census and household demographic profiling system serving as the authoritative demographic data source. |
-| ResQperation | Emergency rescue dispatch and response coordination platform integrated with EvaTrack for logistics routing and push notifications. |
-| SRS | Software Requirements Specification — this document, conforming to IEEE Std 830-1998 and ISO/IEC/IEEE 29148:2018. |
-| RBAC | Role-Based Access Control — security architecture restricting system operations according to authenticated user roles. |
-| LGU | Local Government Unit (Municipality, City, or Barangay in the Republic of the Philippines). |
-| DRRMO / MDRRMO | Disaster Risk Reduction and Management Office / Municipal DRRMO. |
-| NDRRMC | National Disaster Risk Reduction and Management Council of the Philippines. |
-| DPA of 2012 | Republic Act No. 10173 (Data Privacy Act of 2012, Philippines) and its Implementing Rules and Regulations. |
-| PWD | Person with Disability — tracked as a vulnerable demographic category for priority evacuation accommodation. |
-| QR Code | Quick Response Matrix Barcode — encoded with a household's unique verification token for rapid contactless check-in. |
-| SMS | Short Message Service — utilized for dispatching cellular emergency advisories to residents without active mobile data. |
-| REST API | Representational State Transfer Application Programming Interface — JSON-based client-server communication architecture. |
-| DTO | Data Transfer Object — typed domain structure encapsulating payload parameters across architectural layers. |
-| ORM | Object-Relational Mapping — Eloquent abstraction layer mapping MySQL database tables to PHP domain models. |
-| CRUD | Create, Read, Update, Delete — fundamental persistent data operations executed by the backend repository layer. |
+| EvaTrack | The web-based evacuation center management and coordination platform described in this document. |
+| SafeTrack | The partner demographic profiling system that provides registered household and family member records. |
+| ResQperation | The partner disaster response platform that receives resource requests and delivers mobile push alerts. |
+| Accommodation Unit | A designated living space inside an evacuation center (Family Room, Dormitory, Tent, Classroom, Gymnasium, or Covered Court) with a specific maximum capacity. |
+| RBAC | Role-Based Access Control — restricts system features and center data based on the logged-in user's role. |
+| QR Code | Quick Response code containing a household's unique identifier used for fast check-in verification at an evacuation center. |
+| SMS | Short Message Service — text messages sent via the TextBee SMS gateway to notify residents who do not have internet access. |
+| Push Notification | Mobile app alerts sent via OneSignal / ResQperation to notify residents who have internet connectivity. |
+| PWD | Person with Disability — a vulnerable group tracked by the system to help prioritize shelter care and analytics. |
+| RA 10173 | Republic Act No. 10173 (Data Privacy Act of 2012, Philippines), governing the protection of personal household data. |
+| REST API | Representational State Transfer Application Programming Interface used for communication between the React frontend, Laravel backend, and partner systems. |
+| DTO | Data Transfer Object — a structured PHP object used in the backend to pass validated request data cleanly into domain actions. |
 
 ## 1.4 References
 
 - ISO/IEC/IEEE 29148:2018: Systems and software engineering — Life cycle processes — Requirements engineering.
-- IEEE Std 830-1998: IEEE Recommended Practice for Software Requirements Specifications (structural reference).
 - Republic Act No. 10173: Data Privacy Act of 2012, National Privacy Commission, Republic of the Philippines.
-- Joint Memorandum Circular No. 1 (2013): Guidelines on Evacuation Center Coordination and Management, NDRRMC / DSWD / DOH.
-- Laravel Framework Reference: Laravel 11.x/12.x Official Documentation, Laravel LLC, https://laravel.com/docs.
-- React Library Reference: React 18.x Documentation & Component API, Meta Platforms, Inc., https://react.dev.
-- MySQL 8.0 Engine Reference: MySQL 8.0 Reference Manual, Oracle Corporation, https://dev.mysql.com/doc/.
-- EVATRACK-Must-Haves (1).docx: EvaTrack Capstone Baseline Specification, School of Computer Studies, USJ-R.
+- Joint Memorandum Circular No. 1 (2013): Guidelines on Evacuation Center Coordination and Management, NDRRMC / DSWD / DILG / DOH.
+- Laravel Framework Reference: Laravel 11.x/12.x Official Documentation, https://laravel.com/docs.
+- React Frontend Reference: React 18.x & TanStack React Query Documentation, https://react.dev.
+- MySQL 8.0 Database Reference: MySQL 8.0 Reference Manual, Oracle Corporation, https://dev.mysql.com/doc/.
+- EVATRACK-Must-Haves (1).docx: EvaTrack Capstone Project Baseline Requirements, School of Computer Studies, USJ-R.
+
 ## 1.5 Overview
 
-The remainder of this document is structured as follows: Section 2 presents an overall description of EvaTrack, covering its operational context, high-level product functions, user classes, operating environment, design constraints, and dependencies. Section 3 details the specific requirements, including external interfaces (UI, hardware, software, communications), comprehensive functional requirements organized by domain subsystems, non-functional quality attributes, and the database schema dictionary. Appendices A, B, and C provide the preliminary Entity-Relationship narrative, the Must-Haves Requirements Traceability Matrix, and the Capstone Panel Approval Sheet.
-
+Section 2 provides an overall description of the EvaTrack platform, including its architecture, core features, user roles, operating environment, and constraints. Section 3 details the specific requirements, covering user interfaces, software integrations, functional requirements for all 11 system modules, non-functional requirements, and the active MySQL database tables. Appendices A, B, and C present the Entity-Relationship overview, the Requirements Traceability Matrix mapped to the actual codebase, and the Capstone Approval Sheet.
 # 2. Overall Description
 
 ## 2.1 Product Perspective
 
-System Architecture: EvaTrack operates as a modern, decoupled web application built on Domain-Driven Design (DDD) principles. It bridges municipal disaster administration and field center operations through a three-tier architecture:
-(a) Presentation Tier: A responsive Single-Page Application (SPA) built using React 18, Vite, and Tailwind CSS. The interface provides accessible, high-contrast light and dark modes, intuitive tabular data tables, real-time KPI progress cards, camera-driven HTML5 QR scanning, and interactive analytics visualizations powered by Recharts.
-(b) Application & Business Logic Tier: A robust Laravel backend architected using Action-Domain-Responder (ADR) and Service-Repository patterns. Each functional capability is encapsulated in discrete Action classes (e.g., SearchHouseholdsAction, UpdateEvacuatedMemberStatusAction, CreateResourceRequestAction) with typed DTOs and Form Request validation.
-(c) Persistence Tier: A MySQL 8.0 relational database operating with InnoDB engine, utf8mb4 encoding, strict foreign key constraints, and soft deletion flags to maintain forensic audit trails.
-Ecosystem Placement: System Interoperability Context:
-EvaTrack interfaces with SafeTrack via private authenticated API channels to ingest household rosters and vulnerability markers. SafeTrack data remains confidential to system operators. Concurrently, EvaTrack communicates with ResQperation via outbound webhooks and REST endpoints to transfer resource requests and trigger push notification delivery to registered resident devices.
+System Architecture: EvaTrack is built as a modern web application with a clear separation between the frontend user interface, the backend API, and the relational database:
+(a) Frontend Application (EvaTrackFrontEnd): Built with React 18, Vite, and Tailwind CSS. It uses TanStack React Query for client-side data caching and instant page transitions, Zustand for reactive user and permission state, Leaflet for interactive evacuation center maps, Recharts for demographic charts, and an HTML5 camera scanner for reading household QR codes.
+(b) Backend API (EvaTrack): Built with Laravel and organized into modular domains (Authentication, Households, EvacuationCenters, AccommodationUnits, Evacuations, EvacuationEvents, CenterIssueReports, ResourceRequests, Notifications, Analytics, and ReferenceData). Each feature is handled by dedicated Controller, Action, Form Request, DTO, and Eloquent Repository classes.
+(c) Database Layer (mysql_v2 / shared_db): A MySQL 8.0 relational database containing the 31 active tables used by the system, enforcing foreign key relationships and soft deletes.
+System Integrations: EvaTrack connects to SafeTrack data to verify households and members without exposing private records on public pages. It also connects with ResQperation to forward resource requests and send mobile push alerts, alongside TextBee for sending SMS alerts to residents without internet access.
 ## 2.2 Product Functions
 
-At a macro level, EvaTrack fulfills the following primary functions:
-- Demographic Ingestion: Ingest and index master citizen records from SafeTrack, restricting visibility solely to verification personnel.
-- Household Verification: Rapid admission of arriving families using camera-based QR code scanning or indexed multi-criteria search (name, contact, address).
-- Status Tracking: Real-time state tracking of households and individual family members as Evacuated or Not Evacuated.
-- Capacity Recalculation: Dynamic adjustment of center-level and room-level capacity counts immediately upon household admission or checkout.
-- Shelter & Room Management: Multi-center operational control, room zoning, and designated personnel assignment.
-- Resource Demand Routing: Logging of shelter shortages (food, water, medicines) and dispatching resource assistance tickets directly to ResQperation.
-- In-Center Incident Reporting: Logging and lifecycle resolution tracking of shelter facility damage, sanitation issues, and medical emergencies.
-- Emergency Alert Dispatch: Multi-channel broadcast transmission (SMS via GSM gateway and push notifications via ResQperation).
-- Evacuation Analytics: Real-time computation of demographic vulnerabilities (age cohorts, pregnant women, PWDs, sex breakdown, total affected persons).
-- Oversight & Audit: Immutable audit logging of operator actions with emergency override capabilities for system recovery.
+EvaTrack provides the following core functions:
+- SafeTrack Demographic Access: Retrieves household profiles, family members, addresses, and vulnerability groups from SafeTrack strictly for authorized personnel verification.
+- Household Verification & Check-In: Verifies arriving households through camera-based QR code scanning or manual search by household name, member name, or contact number.
+- Evacuation Status Tracking: Tracks the status of households (Not Evacuated, Evacuated, Checked Out) and records which individual family members are present in the center.
+- Automatic Capacity & Occupancy Updates: Automatically updates evacuation center occupancy and accommodation unit slot counts whenever households are admitted, assigned to units, or checked out.
+- Center & Accommodation Unit Management: Allows operators to manage evacuation centers and configure accommodation units (Family Room, Dormitory, Tent, Classroom, Gymnasium, Covered Court).
+- Resource Request Routing: Enables personnel to submit resource and personnel requests and routes them to Evacuation Admins and ResQperation.
+- Center Issue Reporting: Allows personnel to report in-center facility, medical, sanitation, or security issues with severity levels and photo attachments, and lets admins update their resolution status.
+- Multi-Channel Emergency Alerts: Sends emergency evacuation alerts via SMS (TextBee) for offline residents and Push Notifications (OneSignal / ResQperation) for mobile app users.
+- Demographic & Vulnerability Analytics: Computes live evacuation statistics from verified evacuees, including age groups (infants, children, teens, adults, seniors), pregnant women, PWDs, gender counts, and shelter occupancy rates, with CSV and PDF export.
+- Public Evacuation Map Portal: Provides a public map portal where citizens can view active evacuation centers and available capacity without logging in.
+
 ## 2.3 User Classes and Characteristics
 
 
-| User Class | Operational Responsibilities & Scope | Proficiency & Access Level |
+| User Class | System Responsibilities & Scope | Access Level |
 | --- | --- | --- |
-| Super Admin | Maintains supreme oversight across all centers, users, and disaster events. Generates system-wide analytics, exports consolidated municipality reports, and holds emergency override authority across all administrative actions for troubleshooting. | High technical proficiency; Full root system access. |
-| Evacuation Admin | Creates and configures evacuation centers and sub-rooms. Assigns evacuation personnel to specific shelters. Monitors cross-center occupancy, active resource requests, and issue reports. Authorizes and dispatches emergency broadcasts via SMS and ResQperation push. | Moderate; Trained disaster operation manager. |
-| Evacuation Personnel | Stationed on-site at assigned evacuation centers. Performs QR scanning and manual search verification of arriving evacuees. Updates household stay details, assigns families to available rooms, logs facility needs/shortages, and submits assistance requests. | Basic to moderate; Field staff trained in mobile/tablet scanner operation. |
-| Households / Residents<br>(Secondary Actor) | Displaced citizens who receive emergency broadcast warnings via SMS or ResQperation mobile app. Present physical or digital QR codes upon center arrival. Do not possess interactive login credentials. | General public; Zero technical training required. |
-| SafeTrack Platform<br>(External Actor) | Authoritative municipal demographic database. Supplies verified household data, member rosters, and vulnerability tags to EvaTrack via automated API synchronization. | Machine-to-machine authenticated REST client. |
-| ResQperation System<br>(External Actor) | External disaster response platform. Ingests escalated resource/personnel tickets from EvaTrack and routes mobile push broadcasts to citizens. | Machine-to-machine authenticated REST / Webhook client. |
+| Super Admin | Has full oversight across all evacuation centers, disaster events, households, and reports. Exclusively authorized to register new user accounts (POST /api/users). Can manage centers, units, personnel assignments, and perform emergency overrides across all system modules. | Full system-wide administrative access. |
+| Evacuation Admin | Creates and updates evacuation centers, configures accommodation units, and assigns Evacuation Personnel to centers. Declares and closes disaster events, monitors shelter occupancy, updates center issue statuses, reviews resource requests, and sends SMS and push alerts. | Administrative access across evacuation centers and operations. |
+| Evacuation Personnel | Assigned to a specific evacuation center. Scans household QR codes or searches records to verify and admit evacuees, creates and manages accommodation units within their assigned center, assigns households to units, updates member presence, processes household checkouts, reports center issues, and submits resource requests. | Operational access scoped to their assigned evacuation center. |
+| Households / Residents<br>(Passive Actor) | View active evacuation centers and available slots on the Public Portal map, receive SMS and push evacuation alerts, and present their QR code or household details to personnel upon arrival at a shelter. | Public portal access only; no login account required. |
+| SafeTrack System<br>(External System) | Provides pre-registered household records, family member details, addresses, and vulnerability classifications for verification and analytics. | Authenticated API and shared database integration. |
+| ResQperation System<br>(External System) | Receives resource and personnel assistance requests from EvaTrack and delivers push notification alerts to residents. | Authenticated REST API integration. |
 
 ## 2.4 Operating Environment
 
-- Server Infrastructure: Ubuntu 22.04 / 24.04 LTS, Nginx 1.24+, PHP 8.2+ with PHP-FPM, Composer 2.x, MySQL 8.0 Enterprise/Community Server.
-- Client Platforms: Modern evergreen browsers (Google Chrome 115+, Microsoft Edge 115+, Mozilla Firefox 115+, Safari 16+) on desktop, laptop, tablet, or smartphone viewports (360px to 4K).
-- Hardware & Peripherals: Built-in or USB webcams, smartphone cameras supporting MediaDevices.getUserMedia() for real-time QR scanning; standard office printers for PDF export printing.
-- Network Environment: Standard TCP/IP with minimum 256 kbps bandwidth for field personnel; HTTPS (TLS 1.2/1.3); cellular GSM connectivity for SMS dispatch gateways.
+- Backend Server Environment: PHP 8.2+, Laravel 11/12 framework, Composer 2.x, and MySQL 8.0 database server.
+- Client Browser Environment: Modern web browsers (Google Chrome, Microsoft Edge, Mozilla Firefox, Apple Safari) on desktop computers, laptops, tablets, and smartphones.
+- Hardware Peripherals: Device camera (smartphone, tablet, or webcam) supporting browser media permissions for QR code scanning.
+- Network & Gateways: HTTPS network connection for API communication, TextBee SMS gateway dispatch, and OneSignal / ResQperation push notification delivery.
+
 ## 2.5 Design and Implementation Constraints
 
-- Backend Architectural Constraint: The backend must strictly utilize Laravel 11/12 with PHP 8.2+ following Domain-Driven Design (DDD) with discrete Action, DTO, and Repository layers.
-- Frontend Architectural Constraint: The frontend must be implemented in React 18 with Vite build tooling and Tailwind CSS utility styling for accessible dark/light presentation.
-- Database Security Constraint: Every query execution must utilize Eloquent ORM or parameterized query binding; string concatenation in SQL queries is prohibited.
-- Privacy & Statutory Constraint: In accordance with RA 10173, SafeTrack demographic data must never be published, displayed on public portals, or accessed by unauthorized roles.
-- Version Control Constraint: All database schema changes must be codified as reversible Laravel migrations version-controlled within Git.
+- Backend Architecture: The backend uses Laravel organized into domain folders with Controllers, Actions, Form Requests, DTOs, Models, and Eloquent Repositories.
+- Frontend Architecture: The frontend uses React 18, Vite, Tailwind CSS, TanStack React Query for caching, and Zustand for role and capability state management.
+- Database Security: All database queries use Laravel Eloquent ORM or parameterized queries to prevent SQL injection.
+- Data Privacy Protection: In compliance with RA 10173 (Data Privacy Act of 2012), SafeTrack household and member records are protected behind authenticated operator routes and are never shown on the public portal.
+
 ## 2.6 Assumptions and Dependencies
 
-- Operational Assumption: Municipal LGUs designate official evacuation centers and appoint certified Evacuation Admins and Personnel prior to disaster onset.
-- Data Dependency: SafeTrack demographic registries are populated with accurate citizen rosters prior to disaster event declaration.
-- Integration Dependency: ResQperation server endpoints remain available to accept logistics requests and deliver push messages during active emergencies.
-- Telecommunications Dependency: Cellular telco carriers (Smart, Globe, DITO) maintain functional SMS gateway relay capability during evacuation advisories.
+- Operational Setup: Local Government Units register official evacuation centers and assign personnel accounts before or during disaster operations.
+- SafeTrack Data Availability: Household and family member demographic records from SafeTrack are available in the database for verification.
+- External Service Connectivity: ResQperation API endpoints, OneSignal push services, and the TextBee SMS gateway are reachable when dispatching external requests and alerts.
+
 ## 2.7 Apportioning of Requirements
 
-All requirements cataloged under the 'Must' priority in Section 3 represent the non-negotiable core must-haves baseline specified in EVATRACK-Must-Haves (1).docx and verified for the panel defense. 'Should' priority requirements represent operational enhancements implemented to optimize usability and field resilience. 'Could' priority items represent exploratory extensions reserved for post-capstone production iterations.
-
+Requirements marked as 'Must' in Section 3 represent the essential features required by the EVATRACK Must-Haves specification and implemented in the system. Requirements marked as 'Should' represent supporting usability and reporting features that improve day-to-day operations.
 # 3. Specific Requirements
 
 ## 3.1 External Interface Requirements
 
 ### 3.1.1 User Interfaces
 
-- UI-01 Responsive Layout: The system shall deliver a fully responsive, mobile-first web interface rendered via React and Tailwind CSS, supporting display resolutions from 360x640 up to 3840x2160.
-- UI-02 Theme Adaptation: The user interface shall support instantaneous, flash-free toggling between dark mode and light mode, persisting preference in localStorage.
-- UI-03 Emergency Announcement Banner: The dashboard shall display an uncluttered emergency announcement banner indicating the active disaster event name, type, and severity with manual pagination controls.
-- UI-04 Tabular Interfaces: All tabular lists (Households, Evacuees, Centers, Issues, Requests) shall provide real-time search filtering, column sort toggles, status pills, and accessible pagination.
-- UI-05 QR Scanner Viewfinder: The verification workflow shall provide a high-performance camera viewfinder modal with real-time target framing, automatic camera switching, and immediate audio-visual scan feedback.
+- UI-01 Responsive Layout: Responsive web interface built with React and Tailwind CSS that adapts cleanly across mobile phones, tablets, and desktop screens, including a mobile bottom navigation bar and desktop sidebar.
+- UI-02 Light & Dark Theme: Supports switching between Light Mode and Dark Mode, saving the user's preference in browser storage.
+- UI-03 Command Dashboard: Displays active shelter capacities, available slots, occupancy ratios, active issue counts, and pending resource logistics on the operator Dashboard.
+- UI-04 Standardized Data Tables: Provides searchable, filterable, and paginated tables across Evacuation Centers, Accommodation Units, Households, Issue Reports, Resource Requests, Alerts, and User Management.
+- UI-05 QR Scanner & Verification View: Provides an interactive camera modal in the Verify Household module for scanning household QR codes, alongside an instant manual search bar.
+- UI-06 Public Evacuation Map Portal: Provides a Public Portal with an interactive Leaflet map showing evacuation center locations, capacity status, and routing guidance for citizens.
+
 ### 3.1.2 Hardware Interfaces
 
-- HW-01 Camera Interface: Standard integrated or external USB/Bluetooth video capture devices adhering to WebRTC / MediaDevices APIs for optical QR code scanning.
-- HW-02 Print Interface: Standard operating system print subsystem (CUPS, Windows Spooler) accessible via window.print() for generating paper evacuation manifests and CSV logs.
+- HW-01 Camera Device Interface: Uses smartphone, tablet, or computer cameras through the browser MediaDevices API to scan household QR codes.
+- HW-02 Export & Print Interface: Uses the browser print and file download interface to export PDF and CSV reports for centers and analytics.
+
 ### 3.1.3 Software Interfaces
 
 
-| Interface Name | Functional Scope & Purpose | Protocol & Integration Mechanism |
+| Interface Name | Purpose in EvaTrack | Integration Method |
 | --- | --- | --- |
-| SafeTrack Demographics API | Retrieves household profiles, family member rosters, addresses, and vulnerability categories (infants, elderly, pregnant, PWDs). | REST / JSON over HTTPS; Bearer API Token; Local database replication sync. |
-| ResQperation Push Gateway | Transmits urgent disaster warnings and push notifications to registered residents holding the ResQperation mobile app. | Outbound REST API / JSON over HTTPS; Asynchronous queue worker. |
-| ResQperation Logistics Dispatch | Escalates center supply demands (food, water, medicine, personnel) to ResQperation response coordinators. | REST API / Webhook payload containing itemized requisition DTOs. |
-| Cellular SMS Gateway | Transmits SMS emergency evacuation alerts and verification acknowledgments to residents lacking internet connectivity. | HTTPS REST / Semaphore / Twilio SMS Gateway; Asynchronous job queue. |
+| SafeTrack Demographics Integration | Provides household profiles, family member rosters, addresses, and vulnerability groups (Senior Citizen, PWD, Pregnant, Infant, Child) for verification. | REST API (ExternalHouseholdService) and shared MySQL database tables. |
+| ResQperation Resource & Push Integration | Receives resource and personnel requests from evacuation centers and supports push notification alerts to residents. | REST API JSON requests and OneSignalService push notification dispatch. |
+| TextBee SMS Gateway | Sends SMS evacuation alerts to registered household phone numbers for residents without internet access. | HTTPS REST API via TextBeeService. |
+| Leaflet & OpenStreetMap | Renders interactive maps for selecting evacuation center coordinates and displaying shelter locations on the Public Portal. | React-Leaflet map components and reverse geocoding utility. |
 
 ### 3.1.4 Communications Interfaces
 
-- COM-01 Transport Encryption: All browser-to-server and server-to-server exchanges shall use HTTPS with TLS 1.2/1.3 encryption.
-- COM-02 Token Security: API sessions shall authenticate via Laravel Sanctum bearer tokens with configurable expiration and automatic revocation upon logout.
-- COM-03 Request Integrity: All state-modifying requests shall be protected against Cross-Site Request Forgery (CSRF) and Cross-Origin Resource Sharing (CORS) whitelisting.
+- COM-01 JSON REST Communication: All API requests between the React frontend and Laravel backend use JSON over HTTP/HTTPS.
+- COM-02 Token Authentication: Protected API routes use Laravel Sanctum bearer tokens and session authentication, automatically clearing sessions on 401 Unauthorized responses.
+- COM-03 Request Security: All state-changing requests include CSRF protection headers (X-XSRF-TOKEN) and server-side validation.
+
 ## 3.2 Functional Requirements
 
-Functional requirements are cataloged below by operational domain. Each requirement is expressed as a verifiable 'shall' statement, assigned a unique identifier, categorized by MoSCoW priority (Must, Should, Could), and explicitly attributed to the responsible proponent and must-haves baseline from EVATRACK-Must-Haves (1).docx.
-### 3.2.1 Authentication & Role-Based Access Control (AUTH)
+The functional requirements below are organized by system module. Every requirement corresponds directly to implemented features in EvaTrack and the baseline requirements in EVATRACK-Must-Haves (1).docx.
+### 3.2.1 Authentication & User Account Management (AUTH)
 
 
-| Req. ID | Verifiable Requirement Description | Priority | Attribution |
+| Req. ID | Requirement Description | Priority | Attribution |
 | --- | --- | --- | --- |
-| FR-AUTH-01 | The system shall authenticate operators using unique email/user ID credentials and bcrypt password hashes before granting access. | Must | Anna Rhea Villadolid |
-| FR-AUTH-02 | The system shall enforce Role-Based Access Control (RBAC) across Super Admin, Evacuation Admin, and Evacuation Personnel roles via backend route middleware. | Must | Anna Rhea Villadolid |
-| FR-AUTH-03 | The system shall restrict Evacuation Personnel actions strictly to their assigned evacuation center, denying modification of external centers. | Must | Anna Rhea Villadolid |
-| FR-AUTH-04 | The system shall allow Super Admins and Evacuation Admins to create, update, activate, and deactivate personnel accounts with center assignment. | Must | Anna Rhea Villadolid |
-| FR-AUTH-05 | The system shall invalidate user authorization tokens immediately upon logout and enforce session timeout after 30 minutes of inactivity. | Must | Anna Rhea Villadolid |
-| FR-AUTH-06 | The system shall allow authenticated operators to update their profile information and change passwords with current-password confirmation. | Should | Anna Rhea Villadolid |
+| FR-AUTH-01 | The system shall authenticate users (Super Admin, Evacuation Admin, Evacuation Personnel) using their registered email/credentials and hashed password, supporting OTP verification. | Must | Anna Rhea Villadolid |
+| FR-AUTH-02 | The system shall enforce Role-Based Access Control (RBAC) on both backend API routes and frontend views based on the user's assigned role. | Must | Anna Rhea Villadolid |
+| FR-AUTH-03 | The system shall restrict Evacuation Personnel to managing operations only within their assigned evacuation center (assigned_center_id). | Must | Anna Rhea Villadolid |
+| FR-AUTH-04 | The system shall allow only the Super Admin to register new user accounts (POST /api/users), while allowing Super Admins and Evacuation Admins to update users and assign personnel to centers. | Must | Anna Rhea Villadolid |
+| FR-AUTH-05 | The system shall revoke the user's authentication token immediately upon logout. | Must | Anna Rhea Villadolid |
+| FR-AUTH-06 | The system shall allow logged-in users to update their profile details, profile photo, and account password. | Should | Anna Rhea Villadolid |
 
-### 3.2.2 SafeTrack Demographics Ingestion & Isolation (STK)
+### 3.2.2 SafeTrack Demographics & Privacy Isolation (STK)
 
 
-| Req. ID | Verifiable Requirement Description | Priority | Attribution |
+| Req. ID | Requirement Description | Priority | Attribution |
 | --- | --- | --- | --- |
-| FR-STK-01 | The system shall ingest household demographic data from SafeTrack, including head of household, member roster, birthdates, gender, and address. | Must | Vhenz Cernal |
-| FR-STK-02 | The system shall capture vulnerable group classifications from SafeTrack (infants, children, elderly, pregnant women, and PWDs). | Must | Vhenz Cernal |
-| FR-STK-03 | The system shall strictly restrict the visibility of SafeTrack demographic data to authorized evacuation personnel and admins during verification. | Must | Vhenz Cernal |
-| FR-STK-04 | The system shall prohibit direct public and resident access to raw SafeTrack demographic records to ensure compliance with RA 10173. | Must | Vhenz Cernal |
-| FR-STK-05 | The system shall support incremental re-synchronization of SafeTrack demographic datasets without overwriting active evacuation stay logs. | Should | Vhenz Cernal |
+| FR-STK-01 | The system shall retrieve household records from SafeTrack, including the household name, contact number, address hierarchy (region, province, city, barangay, sitio, purok), and family member list. | Must | Vhenz Cernal |
+| FR-STK-02 | The system shall retrieve vulnerability classifications for household members (Senior Citizen, PWD, Pregnant, Infant, Child). | Must | Vhenz Cernal |
+| FR-STK-03 | The system shall restrict access to SafeTrack household and member demographic records strictly to authenticated system operators for verification and analytics. | Must | Vhenz Cernal |
+| FR-STK-04 | The system shall hide personal household demographic data from the public portal so that residents and unauthenticated visitors cannot view private citizen information. | Must | Vhenz Cernal |
+| FR-STK-05 | The system shall allow authorized operators to manage household profiles and family member records when updating registry details. | Should | Vhenz Cernal |
 
-### 3.2.3 Evacuation Center & Room Configuration (CTR)
+### 3.2.3 Evacuation Center & Accommodation Unit Management (CTR)
 
 
-| Req. ID | Verifiable Requirement Description | Priority | Attribution |
+| Req. ID | Requirement Description | Priority | Attribution |
 | --- | --- | --- | --- |
-| FR-CTR-01 | The system shall allow Evacuation Admins and Super Admins to create and configure evacuation centers with name, address coordinates, and capacity. | Must | Vhenz Cernal |
-| FR-CTR-02 | The system shall allow Evacuation Admins to configure individual rooms and partitions within an evacuation center, specifying room capacity and gender allocation. | Must | Danica Gelbolingo |
-| FR-CTR-03 | The system shall automatically recalculate total center capacity and room occupancy upon household verification and room assignment. | Must | Vhenz Cernal |
-| FR-CTR-04 | The system shall display real-time occupancy percentage badges and progress meters indicating available, near-capacity, and full shelter status. | Must | Vhenz Cernal |
-| FR-CTR-05 | The system shall allow Evacuation Admins to assign and re-assign Evacuation Personnel to operational evacuation centers. | Must | Danica Gelbolingo |
-| FR-CTR-06 | The system shall prevent admitting households to centers that have reached 100% capacity unless an administrative override is authorized. | Should | Vhenz Cernal |
+| FR-CTR-01 | The system shall allow Super Admins and Evacuation Admins to create, update, and delete evacuation centers with a center name, address, map coordinates (latitude/longitude), contact number, and maximum capacity. | Must | Vhenz Cernal |
+| FR-CTR-02 | The system shall allow Super Admins, Evacuation Admins, and assigned Evacuation Personnel to create, update, and delete accommodation units within an evacuation center, selecting a unit type (Family Room, Dormitory, Tent, Classroom, Gymnasium, Covered Court) and unit max capacity. | Must | Danica Gelbolingo |
+| FR-CTR-03 | The system shall validate that the total capacity of accommodation units inside a center does not exceed the evacuation center's maximum capacity. | Must | Danica Gelbolingo |
+| FR-CTR-04 | The system shall automatically update the center's current occupancy and available slots whenever households are admitted, updated, or checked out. | Must | Vhenz Cernal |
+| FR-CTR-05 | The system shall display real-time occupancy progress bars and status indicators (Available, Near Full, Full) for each evacuation center and accommodation unit. | Must | Vhenz Cernal |
+| FR-CTR-06 | The system shall allow Super Admins and Evacuation Admins to assign Evacuation Personnel to a specific evacuation center. | Must | Danica Gelbolingo |
 
-### 3.2.4 Household Verification & Admission Tracking (VER)
+### 3.2.4 Household Verification & Check-In Admission (VER)
 
 
-| Req. ID | Verifiable Requirement Description | Priority | Attribution |
+| Req. ID | Requirement Description | Priority | Attribution |
 | --- | --- | --- | --- |
-| FR-VER-01 | The system shall enable Evacuation Personnel to verify arriving households via camera-driven optical scanning of digital or printed QR codes. | Must | Klint M. Ruales |
-| FR-VER-02 | The system shall provide fallback manual verification by searching SafeTrack records using household head name, member name, or contact number. | Must | Klint M. Ruales |
-| FR-VER-03 | The system shall display the household member roster upon successful verification, allowing personnel to select which members are physically present. | Must | Klint M. Ruales |
-| FR-VER-04 | The system shall update household evacuation status to 'Evacuated' once verified members are admitted to the center. | Must | Vhenz Cernal |
-| FR-VER-05 | The system shall automatically lock the 'Admit' button and display an 'Admitted' badge when a household reaches 100% verified member admission. | Must | Klint M. Ruales |
-| FR-VER-06 | The system shall record verification timestamps, admitting personnel ID, and admission mode (QR vs. Manual) in the persistent evacuation record. | Must | Klint M. Ruales |
-| FR-VER-07 | The system shall alert personnel if a household has already been admitted to another center to prevent fraudulent duplicate registrations. | Must | Klint M. Ruales |
+| FR-VER-01 | The system shall allow Evacuation Personnel to verify arriving households by scanning their QR code using the device camera. | Must | Klint M. Ruales |
+| FR-VER-02 | The system shall provide a manual search option to find and verify households by household name, member name, household ID, or contact number. | Must | Klint M. Ruales |
+| FR-VER-03 | The system shall display the household's family member list during verification so personnel can check in the specific members who are physically present. | Must | Klint M. Ruales |
+| FR-VER-04 | The system shall create an evacuation record and update the household's status to 'Evacuated' (household_status_id = 2) once members are checked in. | Must | Vhenz Cernal |
+| FR-VER-05 | The system shall disable the check-in action and show an 'Admitted' status once all members of a household have been verified and admitted. | Must | Klint M. Ruales |
+| FR-VER-06 | The system shall record the verifying personnel's user ID, the active disaster event ID, the admission timestamp, and the verification method (QR or manual). | Must | Klint M. Ruales |
+| FR-VER-07 | The system shall prevent duplicate active admissions of the same household across different evacuation centers during the same disaster event. | Must | Klint M. Ruales |
 
-### 3.2.5 In-Center Stay, Room Assignment & Checkout (STAY)
+### 3.2.5 In-Center Stay, Unit Allocation & Checkout (STAY)
 
 
-| Req. ID | Verifiable Requirement Description | Priority | Attribution |
+| Req. ID | Requirement Description | Priority | Attribution |
 | --- | --- | --- | --- |
-| FR-STAY-01 | The system shall allow Evacuation Personnel to assign admitted households and family members to designated rooms within the center. | Must | Danica Gelbolingo |
-| FR-STAY-02 | The system shall monitor household stay duration, displaying admission timestamp and real-time elapsed hours/days in shelter. | Must | Danica Gelbolingo |
-| FR-STAY-03 | The system shall allow personnel to update individual member statuses (e.g., in-shelter, referred to hospital, temporary leave). | Must | Danica Gelbolingo |
-| FR-STAY-04 | The system shall allow Evacuation Personnel to process household checkout upon official evacuation decampment. | Must | Danica Gelbolingo |
-| FR-STAY-05 | The system shall automatically deduct departing household member counts from center and room occupancy tallies upon checkout. | Must | Vhenz Cernal |
-| FR-STAY-06 | The system shall archive completed evacuation records permanently for historical analytics while updating active status to 'Decamped'. | Must | Danica Gelbolingo |
+| FR-STAY-01 | The system shall allow Evacuation Personnel and Admins to assign admitted households to an available accommodation unit (unit_allocations) within the evacuation center. | Must | Danica Gelbolingo |
+| FR-STAY-02 | The system shall allow personnel to unassign or transfer a household from an accommodation unit when needed. | Must | Danica Gelbolingo |
+| FR-STAY-03 | The system shall track and display the household's check-in date and time and monitor their stay inside the evacuation center. | Must | Danica Gelbolingo |
+| FR-STAY-04 | The system shall allow personnel to update individual family member evacuation status (Evacuated vs. Not Evacuated) during their stay, automatically adjusting the center's evacuated count. | Must | Danica Gelbolingo |
+| FR-STAY-05 | The system shall allow personnel to process household checkout, setting the household status to 'Checked Out' (household_status_id = 6) and recording the checkout timestamp. | Must | Danica Gelbolingo |
+| FR-STAY-06 | The system shall automatically release the household's assigned accommodation unit slots and deduct their member count from the center's active occupancy upon checkout. | Must | Vhenz Cernal |
 
-### 3.2.6 Disaster Event Coordination (EVT)
+### 3.2.6 Disaster Event Management (EVT)
 
 
-| Req. ID | Verifiable Requirement Description | Priority | Attribution |
+| Req. ID | Requirement Description | Priority | Attribution |
 | --- | --- | --- | --- |
-| FR-EVT-01 | The system shall allow Evacuation Admins and Super Admins to declare and manage disaster events with event name, disaster type, and severity. | Must | Vhenz Cernal |
-| FR-EVT-02 | The system shall automatically link operational evacuation centers to active disaster declarations across the municipality. | Must | Vhenz Cernal |
-| FR-EVT-03 | The system shall display active disaster announcements prominently on the operator dashboard without distracting marquee animation. | Must | Klint M. Ruales |
-| FR-EVT-04 | The system shall allow Evacuation Admins to conclude active disaster events, archiving event-scoped evacuation metrics. | Must | Vhenz Cernal |
-| FR-EVT-05 | The system shall track historical disaster events, allowing comparative analytics across past typhoons, floods, and earthquakes. | Should | Klint M. Ruales |
+| FR-EVT-01 | The system shall allow Super Admins and Evacuation Admins to declare a disaster event by specifying the event name, disaster type (e.g., Typhoon, Flood, Earthquake, Fire), and geographic scope. | Must | Vhenz Cernal |
+| FR-EVT-02 | The system shall allow admins to assign operational evacuation centers to an active disaster event. | Must | Vhenz Cernal |
+| FR-EVT-03 | The system shall display the count of active emergencies and closed historical incidents on the Disaster Events management page. | Must | Klint M. Ruales |
+| FR-EVT-04 | The system shall allow Super Admins and Evacuation Admins to end an active disaster event, recording the end timestamp and moving it to the historical events log. | Must | Vhenz Cernal |
+| FR-EVT-05 | The system shall allow operators to filter evacuation records, issue reports, resource requests, alerts, and analytics by disaster event. | Should | Klint M. Ruales |
 
-### 3.2.7 In-Center Needs & Incident Reporting (ISS)
+### 3.2.7 Center Issue & Facility Condition Reporting (ISS)
 
 
-| Req. ID | Verifiable Requirement Description | Priority | Attribution |
+| Req. ID | Requirement Description | Priority | Attribution |
 | --- | --- | --- | --- |
-| FR-ISS-01 | The system shall allow Evacuation Personnel to log in-center issue reports categorized by Facility Damage, Sanitation, Health, or Security. | Must | Anna Rhea Villadolid |
-| FR-ISS-02 | The system shall capture issue severity levels (Low, Medium, High, Critical) and incident descriptions for administrative triage. | Must | Anna Rhea Villadolid |
-| FR-ISS-03 | The system shall enable Evacuation Admins to review, acknowledge, assign, and resolve center issue reports. | Must | Anna Rhea Villadolid |
-| FR-ISS-04 | The system shall maintain an audit history of issue status transitions (Open -> In Progress -> Resolved -> Closed). | Must | Anna Rhea Villadolid |
-| FR-ISS-05 | The system shall display center issue distribution charts and resolution rate KPIs on the administrative analytics dashboard. | Must | Klint M. Ruales |
+| FR-ISS-01 | The system shall allow Evacuation Personnel and Admins to submit center issue reports categorized by issue category (e.g., Facility Damage, Sanitation, Medical/Health, Security). | Must | Anna Rhea Villadolid |
+| FR-ISS-02 | The system shall record the issue title, description, severity level (low, medium, high, critical), reporting user, and assigned evacuation center. | Must | Anna Rhea Villadolid |
+| FR-ISS-03 | The system shall allow Super Admins and Evacuation Admins to update the status of center issue reports (open, in_progress, resolved, closed). | Must | Anna Rhea Villadolid |
+| FR-ISS-04 | The system shall allow Evacuation Personnel to edit or delete their own reported issues while the issue status is still 'open'. | Should | Anna Rhea Villadolid |
+| FR-ISS-05 | The system shall display active center issue counts and severity breakdowns on the Dashboard and Analytics pages. | Must | Klint M. Ruales |
 
-### 3.2.8 Resource Demands & ResQperation Response Routing (RES)
+### 3.2.8 Resource Requests & ResQperation Coordination (RES)
 
 
-| Req. ID | Verifiable Requirement Description | Priority | Attribution |
+| Req. ID | Requirement Description | Priority | Attribution |
 | --- | --- | --- | --- |
-| FR-RES-01 | The system shall allow Evacuation Personnel to submit resource supply requests specifying resource type, quantity demanded, and urgency. | Must | Anna Rhea Villadolid |
-| FR-RES-02 | The system shall allow Evacuation Personnel to request additional response personnel and specialized rescue support from ResQperation. | Must | Anna Rhea Villadolid |
-| FR-RES-03 | The system shall route resource requests to Evacuation Admins and transmit external assistance payloads to ResQperation coordinators. | Must | Anna Rhea Villadolid |
-| FR-RES-04 | The system shall track resource fulfillment lifecycle across Pending, Approved, In Transit, Delivered, and Rejected states. | Must | Anna Rhea Villadolid |
-| FR-RES-05 | The system shall visualize top requested supply categories and volumes in a proportional 3-column progress chart with right-aligned units. | Must | Klint M. Ruales |
-| FR-RES-06 | The system shall compute overall resource fulfillment rates per center and system-wide. | Must | Klint M. Ruales |
+| FR-RES-01 | The system shall allow Evacuation Personnel and Admins to submit resource requests specifying the request type (resource or personnel), item/resource name, quantity needed, description, and evacuation center. | Must | Anna Rhea Villadolid |
+| FR-RES-02 | The system shall route resource and personnel assistance requests to ResQperation (target_agency = 'ResQperation') for external response support. | Must | Anna Rhea Villadolid |
+| FR-RES-03 | The system shall track the status of each resource request (pending, approved, fulfilled, rejected) and display them in a searchable, filterable table. | Must | Anna Rhea Villadolid |
+| FR-RES-04 | The system shall allow external response updates or authorized administrators to update resource request fulfillment statuses. | Must | Anna Rhea Villadolid |
+| FR-RES-05 | The system shall summarize pending and fulfilled resource requests per center on the Dashboard and Analytics modules. | Must | Klint M. Ruales |
 
-### 3.2.9 Emergency Dispatches, SMS & Push Broadcasts (NOTIF)
+### 3.2.9 Emergency Alerts: SMS & Push Notifications (NOTIF)
 
 
-| Req. ID | Verifiable Requirement Description | Priority | Attribution |
+| Req. ID | Requirement Description | Priority | Attribution |
 | --- | --- | --- | --- |
-| FR-NOTIF-01 | The system shall provide an SMS & Push dispatch interface for Evacuation Admins to compose and transmit urgent public evacuation advisories. | Must | Klint M. Ruales |
-| FR-NOTIF-02 | The system shall route SMS alerts to registered household contact numbers lacking active mobile data via cellular SMS gateway. | Must | Klint M. Ruales |
-| FR-NOTIF-03 | The system shall route push notification advisories to residents holding the ResQperation mobile application. | Must | Klint M. Ruales |
-| FR-NOTIF-04 | The system shall allow geographic targeting of advisories by municipality, barangay, or specific evacuation zone. | Must | Klint M. Ruales |
-| FR-NOTIF-05 | The system shall track transmission dispatch logs, recipient counts, and delivery success/failure statuses. | Must | Klint M. Ruales |
-| FR-NOTIF-06 | The system shall export broadcast history logs to CSV for post-disaster audit reporting. | Should | Klint M. Ruales |
+| FR-NOTIF-01 | The system shall provide an Evacuation Alerts interface where Super Admins and Evacuation Admins exclusively can create and broadcast emergency alerts (access is strictly restricted from Evacuation Personnel to centralize disaster directives). | Must | Klint M. Ruales |
+| FR-NOTIF-02 | The system shall send SMS alerts via the TextBee SMS gateway (TextBeeService) to registered household contact numbers for residents without internet access. | Must | Klint M. Ruales |
+| FR-NOTIF-03 | The system shall send mobile push notifications via OneSignal / ResQperation (OneSignalService) to residents with registered device tokens. | Must | Klint M. Ruales |
+| FR-NOTIF-04 | The system shall support targeting alerts by evacuation center, disaster event, or audience filter (`not_evacuated` for pre-disaster calls, `all` for public broadcasts), and support instant, scheduled, or recurring dispatches. | Must | Klint M. Ruales |
+| FR-NOTIF-05 | The system shall log each broadcast in notifications, notification_recipients, and notification_logs, tracking delivery status (sent, failed, pending). | Must | Klint M. Ruales |
+| FR-NOTIF-06 | The system shall provide an automated advisory generator allowing administrators to draft an 'EVATRACK ADVISORY' summarizing real-time shelter occupancy, identifying near-capacity shelters (≥80% full) to avoid, and recommending shelters with open capacity for crowd redirection. | Must | Klint M. Ruales |
 
-### 3.2.10 Evacuation Analytics & Demographic Reporting (ANL)
+### 3.2.10 Evacuation Analytics & Report Exports (ANL)
 
 
-| Req. ID | Verifiable Requirement Description | Priority | Attribution |
+| Req. ID | Requirement Description | Priority | Attribution |
 | --- | --- | --- | --- |
-| FR-ANL-01 | The system shall dynamically aggregate evacuation demographic analytics from verified admission records. | Must | Klint M. Ruales |
-| FR-ANL-02 | The system shall compute age group distributions (infants 0-2, children 3-12, adolescents 13-17, adults 18-59, elderly 60+). | Must | Klint M. Ruales |
-| FR-ANL-03 | The system shall compute total counts and percentages of pregnant women and nursing mothers admitted to evacuation centers. | Must | Klint M. Ruales |
-| FR-ANL-04 | The system shall compute total counts of Persons with Disabilities (PWDs) and individuals requiring critical medical assistance. | Must | Klint M. Ruales |
-| FR-ANL-05 | The system shall compute gender distribution tallies (male vs. female) across verified evacuees. | Must | Klint M. Ruales |
-| FR-ANL-06 | The system shall compute total affected population, total evacuated households, and municipal shelter capacity utilization rates. | Must | Klint M. Ruales |
-| FR-ANL-07 | The system shall filter analytics by Evacuation Center and Date Range and export summary reports to PDF and CSV formats. | Must | Klint M. Ruales |
+| FR-ANL-01 | The system shall compute real-time evacuation analytics from verified evacuation records and evacuated household members via LiveAnalyticsService. | Must | Klint M. Ruales |
+| FR-ANL-02 | The system shall calculate age group breakdowns of evacuated members (Infants 0–2, Children 3–12, Teens 13–17, Adults 18–59, Seniors 60+). | Must | Klint M. Ruales |
+| FR-ANL-03 | The system shall calculate the total number of pregnant women admitted across evacuation centers. | Must | Klint M. Ruales |
+| FR-ANL-04 | The system shall calculate the total number of Persons with Disabilities (PWDs) and Senior Citizens admitted. | Must | Klint M. Ruales |
+| FR-ANL-05 | The system shall calculate gender distribution counts (Male vs. Female) among verified evacuees. | Must | Klint M. Ruales |
+| FR-ANL-06 | The system shall calculate total evacuated households, total evacuated individuals, and center capacity utilization rates. | Must | Klint M. Ruales |
+| FR-ANL-07 | The system shall allow filtering analytics by Evacuation Center, Disaster Event, and Date Range, and support exporting reports to PDF and CSV. | Must | Klint M. Ruales |
 
-### 3.2.11 Audit Logging & Super Admin System Oversight (AUD)
+### 3.2.11 Super Admin System Oversight & In-App Alerts (OVR)
 
 
-| Req. ID | Verifiable Requirement Description | Priority | Attribution |
+| Req. ID | Requirement Description | Priority | Attribution |
 | --- | --- | --- | --- |
-| FR-AUD-01 | The system shall record immutable audit log entries (operator ID, timestamp, IP address, action, target entity) for all security and data operations. | Must | Klint M. Ruales |
-| FR-AUD-02 | The system shall grant Super Admins full oversight of system operations across all evacuation centers and administrative roles. | Must | Klint M. Ruales |
-| FR-AUD-03 | The system shall provide Super Admins with emergency override capabilities to intervene, correct, or unlock records during field emergencies. | Must | Klint M. Ruales |
-| FR-AUD-04 | The system shall log every administrative override action with mandatory justification notes to ensure accountability. | Must | Klint M. Ruales |
-| FR-AUD-05 | The system shall generate consolidated, municipality-wide evacuation summary reports exportable by Super Admins. | Must | Klint M. Ruales |
-
+| FR-OVR-01 | The system shall grant the Super Admin full visibility and management access across all evacuation centers, disaster events, households, issue reports, and resource requests. | Must | Klint M. Ruales |
+| FR-OVR-02 | The system shall allow the Super Admin to override center-level restrictions to edit, admit, checkout, or clean up records across any evacuation center during emergencies. | Must | Klint M. Ruales |
+| FR-OVR-03 | The system shall generate in-app user notifications (user_notifications) to alert operators about new issue reports, resource request updates, and system events. | Must | Klint M. Ruales |
+| FR-OVR-04 | The system shall allow Super Admins and Evacuation Admins to export consolidated center and municipality-wide evacuation reports. | Must | Klint M. Ruales |
 
 ## 3.3 Non-Functional Requirements
 
 ### 3.3.1 Performance
 
-- NFR-PER-01 Response Time: Under a concurrent load of 50 field personnel across 10 centers, 95% of API requests shall complete within 1.5 seconds.
-- NFR-PER-02 Scanning Latency: Optical QR code detection and household lookup shall execute and display results in under 500 milliseconds on standard smartphone hardware.
-- NFR-PER-03 Search Throughput: Full-text household search over 20,000 SafeTrack citizen records shall return paginated matches within 1.0 second.
-- NFR-PER-04 Analytics Aggregation: Analytics KPI computations over 100,000 historic member records shall execute in under 3.0 seconds.
-- NFR-PER-05 Frontend Efficiency: The frontend production bundle shall achieve a Lighthouse Performance score >= 85 and load within 2 seconds over 4G connections.
+- NFR-PER-01 API Response Time: Standard API requests for center details, household lists, and analytics shall respond within 1.5 seconds under normal operational load.
+- NFR-PER-02 Client-Side Caching: The frontend shall cache API responses using TanStack React Query so that revisiting previously loaded pages (Dashboard, Centers, Households, Analytics) renders data immediately without redundant loading spinners.
+- NFR-PER-03 QR Verification Speed: QR code scanning and household lookup shall resolve and display the family member roster within 1 second.
+
 ### 3.3.2 Security & Data Confidentiality
 
-- NFR-SEC-01 Cryptographic Storage: All operator passwords must be hashed using bcrypt with a work factor of 12; plaintext passwords shall never be persisted or logged.
-- NFR-SEC-02 Parameterized Execution: All database queries must use PDO prepared statements via Eloquent ORM to eliminate SQL injection vulnerabilities.
-- NFR-SEC-03 Web Application Armor: State-modifying endpoints must enforce CSRF token verification and strict Content Security Policy (CSP) headers.
-- NFR-SEC-04 Demographic Isolation: SafeTrack demographic records must be isolated behind authenticated server-side controllers and never exposed via public endpoints.
-- NFR-SEC-05 Brute-Force Throttling: The system shall enforce account lockout for 15 minutes after 5 consecutive failed login attempts.
-- NFR-SEC-06 Server-Side Enforcement: Authorization must be evaluated on the server per request; hiding frontend buttons shall never serve as sole security enforcement.
-### 3.3.3 Reliability and Disaster Availability
+- NFR-SEC-01 Password Hashing: All user passwords must be hashed using bcrypt before being stored in the users table.
+- NFR-SEC-02 SQL Injection Prevention: All database queries must use Eloquent ORM or prepared statements to prevent SQL injection.
+- NFR-SEC-03 Demographic Data Isolation: SafeTrack household and member records must only be accessible through authenticated API endpoints and must never be exposed on public routes.
+- NFR-SEC-04 Role Verification: Role permissions must be verified on both the backend controller/middleware layer and the frontend capability matrix.
 
-- NFR-REL-01 Emergency Uptime: The system shall maintain 99.5% operational availability during active disaster declaration windows.
-- NFR-REL-02 Backup & Recovery: Automated database backups must execute daily with retention for 30 days; point-in-time recovery must be verified within 30 minutes.
-- NFR-REL-03 Transactional Integrity: Database transactions must satisfy strict ACID properties; failed admissions shall roll back completely to prevent orphan records.
-- NFR-REL-04 Operational Fallback: Field personnel must be able to switch instantaneously to manual search verification if camera hardware or QR printouts fail.
-### 3.3.4 Usability & Field Accessibility
+### 3.3.3 Reliability and Availability
 
-- NFR-USA-01 Admission Velocity: Evacuation personnel with basic digital literacy shall complete a household admission in under 45 seconds via QR code.
-- NFR-USA-02 Visual Contrast: The UI must satisfy WCAG 2.1 Level AA contrast ratios (minimum 4.5:1 for standard text) across both dark and light modes.
-- NFR-USA-03 Touch Usability: All interactive buttons and touch targets must measure at least 44x44 CSS pixels for accurate field operation on tablets.
-- NFR-USA-04 Error Clarity: Validation errors and system alerts must provide descriptive, non-technical instructions guiding corrective action.
-### 3.3.5 Maintainability & Clean Architecture
+- NFR-REL-01 Data Consistency: Database operations that modify multiple tables (such as admitting a household, recording evacuated members, and updating center occupancy) must run safely so partial failures do not corrupt capacity counts.
+- NFR-REL-02 Manual Verification Fallback: If a household's QR code is damaged or a camera is unavailable, personnel can immediately use the manual search bar to verify and admit the household.
+- NFR-REL-03 Soft Deletion Recovery: Core tables (users, households, household_members, evacuation_centers, accommodation_units, disaster_events) use soft deletes (deleted_at) so historical records are not permanently lost by accident.
 
-- NFR-MNT-01 Architecture Standards: The backend must adhere to PSR-12 coding style and Domain-Driven Design (DDD) separating Actions, Repositories, and Models.
-- NFR-MNT-02 Automated Verification: Automated PHPUnit/Pest feature tests must cover 100% of Must-priority functional workflows prior to release.
-- NFR-MNT-03 Migration Reproducibility: Every database mutation must be codified as version-controlled, rollback-capable Laravel migration files.
-- NFR-MNT-04 Component Modularity: Frontend React components must be modular, adhering to single responsibility with typed store abstractions.
+### 3.3.4 Usability & Accessibility
+
+- NFR-USA-01 Clear Operator Workflow: The user interface provides consistent tables, status badges, confirmation modals, and clear error messages so field personnel can operate the system with minimal training.
+- NFR-USA-02 Visual Readability: Supports both Light Mode and Dark Mode with readable text contrast for indoor or night-time shelter operations.
+
+### 3.3.5 Maintainability & Architecture
+
+- NFR-MNT-01 Modular Backend Domains: The Laravel backend follows a Domain-Driven folder structure where each module has its own Controllers, Actions, DTOs, Requests, Models, and Repositories.
+- NFR-MNT-02 Clean Frontend Architecture: The React frontend separates business logic into custom hooks (e.g., useEvacuationDetail, useCenterUnits, useCenterHouseholds, useVerifyHousehold) and reusable UI components (Button, Card, Table, Modal).
+
 ### 3.3.6 Portability
 
-- NFR-POR-01 Environment Agnostic: The entire application must be deployable across standard cloud VPS or on-premises municipal servers without code alteration.
-- NFR-POR-02 Containerization: The application must support multi-container Docker deployment (Nginx, PHP-FPM, MySQL) for seamless reproduction.
-- NFR-POR-03 Browser Compatibility: The frontend client must function flawlessly across Google Chrome, Mozilla Firefox, Microsoft Edge, and Apple Safari.
-### 3.3.7 Data Privacy and Regulatory Compliance
+- NFR-POR-01 Cross-Device Web Access: The web application runs in any modern desktop or mobile web browser without requiring users to install a native app.
+- NFR-POR-02 Reproducible Setup: Database schema definitions and seeders are maintained in version control for consistent setup across development and production servers.
 
-- NFR-CMP-01 RA 10173 Compliance: Full adherence to Republic Act No. 10173 (Data Privacy Act of 2012) principles of transparency, legitimate purpose, and proportionality.
-- NFR-CMP-02 Purpose Limitation: SafeTrack demographic records must be utilized exclusively for evacuation verification and needs planning, never commercialized.
-- NFR-CMP-03 Anonymized Reporting: Demographic analytics exports must be aggregated and anonymized to protect individual citizen identities in public reports.
-- NFR-CMP-04 NDRRMC Guidelines: Adherence to NDRRMC Joint Memorandum Circular No. 1 guidelines for evacuation center registration and family tracking.
+### 3.3.7 Data Privacy Compliance
+
+- NFR-CMP-01 RA 10173 Compliance: Complies with Republic Act No. 10173 (Data Privacy Act of 2012) by limiting household demographic access strictly to authorized disaster response personnel.
+- NFR-CMP-02 Public Privacy Protection: Publicly accessible pages (Landing and Public Portal) display only aggregated shelter capacities and facility locations, keeping all personal citizen data private.
+
 ## 3.4 Database Requirements
 
-The EvaTrack relational persistence layer is implemented in MySQL 8.0 with InnoDB storage engine and utf8mb4_unicode_ci collation. The schema encompasses 35 dedicated entities designed around Domain-Driven boundaries. The core entities and their relationships are cataloged below:
+The EvaTrack database (shared_db / mysql_v2) is implemented in MySQL 8.0 using the InnoDB engine. The system actively uses the following core database tables organized by functional domain:
 
-| Entity Name | Domain Scope & Description | Key Cardinalities & Relationships |
+| Table Name | System Purpose & Description | Key Relationships |
 | --- | --- | --- |
-| users | System operators across Super Admin, Evacuation Admin, and Evacuation Personnel roles. | N:1 roles; N:1 evacuation_centers (assigned center) |
-| roles | System privilege classifications (super_admin, evac_admin, evac_personnel). | 1:N users |
-| households | Master family unit ingested from SafeTrack with address and contact details. | 1:N household_members; 1:N evacuation_records; 1:N notification_recipients |
-| household_members | Individual citizen records comprising birthdate, gender, and relationships. | N:1 households; N:1 genders; 1:N member_vulnerable_groups; 1:N evacuated_members |
-| vulnerable_groups | Classifications of vulnerability: Senior Citizen, PWD, Pregnant, Infant, Child. | 1:N member_vulnerable_groups |
-| member_vulnerable_groups | Pivot entity linking individual members to one or more vulnerability tags. | N:1 household_members; N:1 vulnerable_groups |
-| evacuation_centers | Registered municipal shelter facilities with capacity and coordinates. | 1:N rooms; 1:N evacuation_records; 1:N users (personnel); 1:N resource_requests |
-| rooms | Designated rooms or sub-zones within an evacuation center with individual limits. | N:1 evacuation_centers; 1:N evacuated_members |
-| disaster_events | Declared municipal disaster incidents with severity and operational lifecycle. | N:1 disaster_types; N:1 severity_levels; 1:N evacuation_records |
-| evacuation_records | Transactional record anchoring a household admission to a center and event. | N:1 households; N:1 evacuation_centers; N:1 disaster_events; 1:N evacuated_members |
-| evacuated_members | Tracks individual member check-in timestamp, assigned room, and status. | N:1 evacuation_records; N:1 household_members; N:1 rooms; N:1 evacuation_statuses |
-| resource_requests | Logistics tickets requested by center personnel and routed to ResQperation. | N:1 evacuation_centers; N:1 resource_request_statuses; N:1 urgency_levels |
-| center_issue_reports | In-center facility, medical, sanitation, and security incident reports. | N:1 evacuation_centers; N:1 issue_statuses; N:1 severity_levels; N:1 categories |
-| notifications | Broadcast transmission records dispatched via SMS and ResQperation push. | 1:N notification_recipients; 1:N notification_logs |
-| audit_logs | Immutable forensic trace capturing operator actions, IP addresses, and before/after states. | N:1 users |
+| users | Stores system operator accounts (Super Admin, Evacuation Admin, Evacuation Personnel) and their assigned center. | Belongs to roles and evacuation_centers; has many user_notifications |
+| roles | Defines the 3 system roles: super_admin (1), evac_admin (2), and evac_personnel (3). | Has many users |
+| user_notifications | Stores in-app notification alerts for logged-in system operators. | Belongs to users |
+| households | Master household records from SafeTrack, including household head name, contact number, and status. | Belongs to addresses; has many household_members and evacuation_records |
+| household_members | Individual family member records including full name, birthdate, gender, civil status, and relationship. | Belongs to households, genders, civil_statuses, relationships; has many member_vulnerable_groups |
+| household_statuses | Lookup statuses for households and members (1 = Not Evacuated, 2 = Evacuated, 6 = Checked Out). | Referenced by evacuation_records and evacuated_members |
+| vulnerable_groups & member_vulnerable_groups | Defines vulnerability categories (Senior Citizen, PWD, Pregnant, Infant, Child) and links them to members. | Many-to-many between household_members and vulnerable_groups |
+| addresses & location tables | Stores household addresses linked to regions, provinces, cities, barangays, sitios, puroks, and zipcodes. | Referenced by households |
+| disaster_events, disaster_types & severity_levels | Stores declared disaster events, their disaster type (Typhoon, Flood, Fire, etc.), severity level, and start/end dates. | Has many evacuation_records, notifications, and analytics |
+| evacuation_centers & center_occupancies | Stores registered evacuation shelters, GPS coordinates, max capacity, current event link, and live occupancy counts. | Has many accommodation_units, evacuation_records, center_issue_reports, and resource_requests |
+| accommodation_types | Lookup table for unit types (Family Room, Dormitory, Tent, Classroom, Gymnasium, Covered Court). | Has many accommodation_units |
+| accommodation_units | Individual rooms, tents, or halls inside an evacuation center with a specific unit type and max capacity. | Belongs to evacuation_centers and accommodation_types; has many unit_allocations |
+| unit_allocations | Records the assignment of an evacuated household (evacuation_id) to a specific accommodation unit (unit_id). | Belongs to evacuation_records, accommodation_units, and users (assigned_by) |
+| evacuation_records | Records a household's check-in admission to an evacuation center during a disaster event, including evacuated_count and checkout_at. | Belongs to households, evacuation_centers, disaster_events, and household_statuses; has many evacuated_members |
+| evacuated_members | Tracks each individual family member's presence status (Evacuated vs. Not Evacuated) for a specific evacuation record. | Belongs to evacuation_records, household_members, and household_statuses |
+| center_issue_reports, center_issue_categories & center_issue_report_statuses | Stores facility, medical, sanitation, and security issues reported at an evacuation center along with severity and resolution status. | Belongs to evacuation_centers and users (reported_by) |
+| resource_requests & resource_request_statuses | Stores supply and personnel assistance requests submitted by centers and routed to ResQperation. | Belongs to evacuation_centers and users (requested_by) |
+| notifications, notification_recipients, notification_logs & device_tokens | Stores SMS and Push broadcast alerts, target household recipients, device push tokens, and delivery logs. | Belongs to evacuation_centers and disaster_events; links to households |
+| analytics, analytics_job_logs & analytics_job_statuses | Stores computed demographic and shelter occupancy snapshots and background analytics job logs. | Belongs to evacuation_centers and disaster_events |
 
-Data Integrity & Archival: Integrity Rules: Foreign key constraints enforce referential integrity with ON DELETE RESTRICT on all operational records to prevent accidental cascading destruction of active shelter data. Soft deletion (deleted_at timestamps) is utilized across users, households, centers, and records to preserve forensic trails.
+Data Integrity & Archival: Foreign key constraints maintain referential integrity across all related tables. Soft deletes (deleted_at) are used on core records so historical evacuation data and analytics remain intact.
+# Appendix A. Entity-Relationship Overview
 
-# Appendix A. Preliminary Entity-Relationship Overview
-
-The conceptual architecture of EvaTrack centers upon the evacuation_records transaction, which serves as the core operational nexus linking a SafeTrack household to an evacuation_center under an active disaster_event. The individual evacuated_members records capture fine-grained presence, room allocation, and decampment status. Supporting operational subsystems branch outward from evacuation_centers: rooms govern spatial allocations; resource_requests track logistics demands routed to ResQperation; center_issue_reports capture facility health; and notifications record multi-channel broadcasts. The full 35-entity diagram is cataloged in the software design artifact evatrack_erd_reference.md.
+The EvaTrack database centers around the evacuation_records table, which connects a SafeTrack household (households) to an evacuation shelter (evacuation_centers) under a declared disaster event (disaster_events). When a household is verified, individual family members are recorded in evacuated_members, and the center's live headcount is updated in center_occupancies. Within each shelter, living spaces are organized into accommodation_units (typed by accommodation_types) and assigned to households through unit_allocations. Operational needs at each shelter are tracked through center_issue_reports and resource_requests, while public advisories are recorded in notifications, notification_recipients, and notification_logs. The complete Entity-Relationship Diagram (ERD) is documented in evatrack_erd_reference.md.
 # Appendix B. Requirements Traceability Matrix
 
-The following matrix maps every explicit Must-Have requirement from EVATRACK-Must-Haves (1).docx to its corresponding Functional Requirement ID, implemented backend/frontend modules, and designated student proponent:
+The table below maps each Must-Have requirement from EVATRACK-Must-Haves (1).docx to its Functional Requirement ID, the actual backend and frontend files in the EvaTrack codebase, and the responsible team member:
 
-| Baseline Must-Have Requirement | FR Mapping | Implementing Module / Action | Proponent |
+| Baseline Must-Have Requirement | FR Mapping | Actual System Module (Backend & Frontend) | Proponent |
 | --- | --- | --- | --- |
-| Retrieve SafeTrack demographic data for identification & verification only; data hidden from households. | FR-STK-01<br>FR-STK-03<br>FR-STK-04 | SafeTrackSyncService<br>HouseholdController | Vhenz Cernal |
-| Track household evacuation status as Evacuated or Not Evacuated. | FR-VER-04<br>FR-STAY-03 | UpdateEvacuatedMemberStatusAction<br>HouseholdRepository | Vhenz Cernal |
-| Automatically update evacuation center capacity when household is verified. | FR-CTR-03<br>FR-VER-04 | AdmitHouseholdAction<br>CenterCapacityService | Vhenz Cernal |
-| Compute evacuation analytics from demographics (age, pregnant, PWD, gender, affected pop). | FR-ANL-01<br>FR-ANL-02<br>FR-ANL-06 | LiveAnalyticsService<br>AnalyticsKPIs.jsx | Klint M. Ruales |
-| Route alerts and assistance requests to households and ResQperation. | FR-RES-03<br>FR-NOTIF-02<br>FR-NOTIF-03 | ResQperationDispatchService<br>SMSGatewayService | Anna Rhea Villadolid |
-| Evacuation Personnel: Log in (evacuation personnel role). | FR-AUTH-01<br>FR-AUTH-02 | LoginAction<br>RoleMiddleware | Anna Rhea Villadolid |
-| Verify evacuated households via QR code scanning or manual input. | FR-VER-01<br>FR-VER-02<br>FR-VER-03 | SearchHouseholdsAction<br>RegistrySearch.jsx | Klint M. Ruales |
-| Update household info post-verification: assign rooms, monitor stay, update status. | FR-STAY-01<br>FR-STAY-02<br>FR-STAY-03 | AssignRoomAction<br>EvacuationDetail.jsx | Danica Gelbolingo |
-| Report in-center needs (shortages of resources and extra personnel requests). | FR-ISS-01<br>FR-RES-01<br>FR-RES-02 | CreateCenterIssueReportAction<br>CreateResourceRequestAction | Anna Rhea Villadolid |
-| Request resources and personnel assistance from ResQperation. | FR-RES-02<br>FR-RES-03 | ResQperationRequestService<br>ResourceRequests.jsx | Anna Rhea Villadolid |
-| Evacuation Admin: Log in (evacuation admin role). | FR-AUTH-01<br>FR-AUTH-02 | LoginAction<br>RoleMiddleware | Anna Rhea Villadolid |
-| Create and configure evacuation centers. | FR-CTR-01<br>FR-CTR-04 | CreateCenterAction<br>EvacuationList.jsx | Vhenz Cernal |
-| Create and configure rooms within an evacuation center. | FR-CTR-02 | CreateRoomAction<br>RoomManagementModal.jsx | Danica Gelbolingo |
-| Monitor ongoing evacuations across centers (status, occupancy, personnel activity). | FR-CTR-04<br>FR-EVT-02 | LiveDashboardService<br>Dashboard.jsx | Klint M. Ruales |
-| Monitor ongoing requests per evacuation centers. | FR-RES-04<br>FR-RES-06 | ListResourceRequestsAction<br>ResourceRequestsAnalytics.jsx | Anna Rhea Villadolid |
-| Send evacuation alerts (SMS for non-internet; push via ResQperation for app). | FR-NOTIF-01<br>FR-NOTIF-02<br>FR-NOTIF-03 | DispatchNotificationAction<br>EvacuationAlerts.jsx | Klint M. Ruales |
-| Super Admin: System-wide reports, full oversight, and emergency override access. | FR-AUD-02<br>FR-AUD-03<br>FR-AUD-05 | AnalyticsExportController<br>SuperAdminOverrideMiddleware | Klint M. Ruales |
-
+| Retrieve SafeTrack demographic data for identification & verification only; data hidden from households. | FR-STK-01<br>FR-STK-03<br>FR-STK-04 | HouseholdController.php<br>SearchHouseholdsAction.php<br>ExternalHouseholdService.php | Vhenz Cernal |
+| Track household evacuation status as Evacuated or Not Evacuated. | FR-VER-04<br>FR-STAY-04 | EvacuationController.php<br>UpdateEvacuatedMemberStatusAction.php<br>HouseholdDetail.jsx | Vhenz Cernal |
+| Automatically update evacuation center capacity when household is verified. | FR-CTR-04<br>FR-STAY-06 | ScanQREvacuationAction.php<br>VerifyManualEvacuationAction.php<br>CenterOccupancy.php | Vhenz Cernal |
+| Compute evacuation analytics from demographics (age, pregnant, PWD, gender, affected pop). | FR-ANL-01<br>to FR-ANL-07 | AnalyticsController.php<br>LiveAnalyticsService.php<br>Analytics.jsx | Klint M. Ruales |
+| Route alerts and assistance requests to households and ResQperation. | FR-RES-02<br>FR-NOTIF-02<br>FR-NOTIF-03 | NotificationService.php<br>TextBeeService.php<br>OneSignalService.php | Anna Rhea Villadolid |
+| Evacuation Personnel: Log in (evacuation personnel role). | FR-AUTH-01<br>FR-AUTH-02<br>FR-AUTH-03 | AuthController.php<br>Login.jsx<br>useUserStore.ts / roles.ts | Anna Rhea Villadolid |
+| Verify evacuated households via QR code scanning or manual input. | FR-VER-01<br>FR-VER-02<br>FR-VER-03 | ScanQREvacuationAction.php<br>VerifyManualEvacuationAction.php<br>VerifyHousehold.jsx | Klint M. Ruales |
+| Update household info post-verification: assign units, monitor stay, update status. | FR-STAY-01<br>to FR-STAY-05 | UnitAllocationController.php<br>AssignUnitAllocationAction.php<br>CheckoutEvacuationAction.php<br>EvacuationDetail.jsx | Danica Gelbolingo |
+| Report in-center needs (facility issues, resource shortages, and personnel requests). | FR-ISS-01<br>FR-RES-01 | CenterIssueReportController.php<br>CreateCenterIssueReportAction.php<br>CenterIssueReports.jsx | Anna Rhea Villadolid |
+| Request resources and personnel assistance from ResQperation. | FR-RES-01<br>FR-RES-02<br>FR-RES-03 | ResourceRequestController.php<br>CreateResourceRequestAction.php<br>ResourceRequests.jsx | Anna Rhea Villadolid |
+| Evacuation Admin: Log in (evacuation admin role). | FR-AUTH-01<br>FR-AUTH-02 | AuthController.php<br>Login.jsx<br>useUserStore.ts / roles.ts | Anna Rhea Villadolid |
+| Create and configure evacuation centers. | FR-CTR-01<br>FR-CTR-05 | EvacuationCenterController.php<br>CreateEvacuationCenterAction.php<br>EvacuationList.jsx | Vhenz Cernal |
+| Create and configure accommodation units (rooms/tents/halls) within an evacuation center. | FR-CTR-02<br>FR-CTR-03 | AccommodationUnitController.php<br>CreateAccommodationUnitAction.php<br>UnitModal.jsx | Danica Gelbolingo |
+| Monitor ongoing evacuations across centers (status, occupancy, personnel activity). | FR-CTR-05<br>FR-EVT-03 | EvacuationCenterController.php<br>Dashboard.jsx<br>EvacuationList.jsx | Klint M. Ruales |
+| Monitor ongoing requests per evacuation center. | FR-RES-03<br>FR-RES-05 | ListResourceRequestsAction.php<br>ResourceRequests.jsx | Anna Rhea Villadolid |
+| Send evacuation alerts (SMS via TextBee for non-internet; push via OneSignal/ResQperation) and generate EVATRACK ADVISORY redirection alerts. | FR-NOTIF-01<br>to FR-NOTIF-06 | NotificationController.php<br>NotificationService.php<br>EvacuationAlerts.jsx | Klint M. Ruales |
+| Super Admin: User registration, system-wide reports, full oversight, and emergency override access. | FR-AUTH-04<br>FR-OVR-01<br>to FR-OVR-04 | UserController.php<br>AnalyticsExportController.php<br>UserManagement.jsx | Klint M. Ruales |
 
 # Appendix C. Capstone Approval & Sign-Off Sheet
 
-By signing below, the capstone adviser, project coordinator, panel evaluators, and student proponents attest that this Software Requirements Specification has been thoroughly evaluated and approved as the definitive technical and functional baseline for EVATRACK (Version 1.0).
+By signing below, the capstone adviser, project coordinator, panel evaluators, and student proponents attest that this Software Requirements Specification has been reviewed and approved as the official baseline for EVATRACK (Version 1.0).
 
 | Role in Capstone Project | Full Name & Academic Title | Signature / Date |
 | --- | --- | --- |
@@ -473,3 +460,4 @@ By signing below, the capstone adviser, project coordinator, panel evaluators, a
 | Capstone Project Coordinator | Mr. Roderick A. Bandalan | _________________________ |
 | Panel Evaluation Chair | Mr. Eric Magto | _________________________ |
 | Panel Evaluator | Ms. Khiara Danielle Rubia | _________________________ |
+

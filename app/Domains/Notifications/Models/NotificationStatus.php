@@ -11,7 +11,7 @@ class NotificationStatus extends Model
     protected $primaryKey = 'status_id';
     public $timestamps = false;
 
-    protected $fillable = ['status_key', 'status_label'];
+    protected $fillable = ['status_id', 'status_key', 'status_label'];
 
     public function logs()
     {

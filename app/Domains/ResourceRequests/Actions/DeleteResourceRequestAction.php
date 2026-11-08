@@ -21,7 +21,7 @@ class DeleteResourceRequestAction
             throw new Exception("Request not found or unauthorized.", 404);
         }
 
-        $pendingStatusId = ResourceRequestStatus::where('status_key', ResourceRequestStatus::PENDING)->value('status_id');
+        $pendingStatusId = ResourceRequestStatus::where('status_key', ResourceRequestStatus::PENDING)->value('status_id') ?? 1;
 
         if ($user->isEvacPersonnel()) {
             if ($request->requested_by !== $user->user_id) {

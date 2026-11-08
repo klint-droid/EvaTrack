@@ -56,16 +56,22 @@ class Address extends Model
         
         if ($this->street_address) {
             $parts[] = $this->street_address;
+        } elseif ($this->street) {
+            $parts[] = $this->street;
         }
         
         if ($this->purok) {
             $parts[] = "Purok {$this->purok->purok_name}";
         } elseif ($this->sitio) {
             $parts[] = "Sitio {$this->sitio->sitio_name}";
+        } elseif ($this->purok_sitio) {
+            $parts[] = $this->purok_sitio;
         }
         
         if ($this->barangay) {
             $parts[] = $this->barangay->barangay_name;
+        } elseif ($this->barangay_name) {
+            $parts[] = $this->barangay_name;
         }
         
         if ($this->barangay && $this->barangay->city) {
@@ -79,7 +85,11 @@ class Address extends Model
         if ($this->zipcode) {
             $parts[] = $this->zipcode->zipcode;
         }
+
+        if (!empty($parts)) {
+            return implode(', ', $parts);
+        }
         
-        return implode(', ', $parts);
+        return $this->attributes['full_address'] ?? '';
     }
 }

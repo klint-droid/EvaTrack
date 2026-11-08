@@ -65,15 +65,16 @@ class EloquentEvacuationEventRepository implements EvacuationEventRepositoryInte
     public function endEvent(DisasterEvent $event): DisasterEvent
     {
         return DB::connection('mysql_v2')->transaction(function () use ($event) {
+            \App\Domains\Households\Models\HouseholdStatus::ensureSeeded();
             EvacuationCenter::where('current_event_id', $event->event_id)->update(['current_event_id' => null]);
             Cache::forget('all_centers_occupancy');
 
             $evacIds = EvacuationRecord::where('event_id', $event->event_id)->pluck('evacuation_id')->toArray();
             if (!empty($evacIds)) {
                 EvacuationRecord::whereIn('evacuation_id', $evacIds)
-                    ->where('household_status_id', 2)
+                    ->where('household_status_id', \App\Domains\Households\Models\HouseholdStatus::EVACUATED)
                     ->update([
-                        'household_status_id' => 6,
+                        'household_status_id' => \App\Domains\Households\Models\HouseholdStatus::CHECKED_OUT,
                         'updated_at'          => now()
                     ]);
                 UnitAllocation::whereIn('evacuation_id', $evacIds)->delete();

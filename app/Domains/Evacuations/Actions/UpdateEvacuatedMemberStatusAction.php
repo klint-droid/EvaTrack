@@ -76,6 +76,10 @@ class UpdateEvacuatedMemberStatusAction
                 ]);
             }
 
+            if (!empty($evacRecord->center_id) && method_exists($this->evacuationRepository, 'syncCenterOccupancy')) {
+                $this->evacuationRepository->syncCenterOccupancy((string) $evacRecord->center_id);
+            }
+
             return $evacMember;
         });
     }

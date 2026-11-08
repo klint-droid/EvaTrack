@@ -15,27 +15,37 @@ class EloquentEvacuationCenterRepository implements EvacuationCenterRepositoryIn
 
     public function getAllWithOccupancy(): Collection
     {
+        HouseholdStatus::ensureSeeded();
+
         EvacuationCenter::whereNotNull('current_event_id')
-            ->whereDoesntHave('currentEvent')
+            ->whereDoesntHave('currentEvent', function ($q) {
+                $q->whereNull('ended_at');
+            })
             ->update(['current_event_id' => null]);
 
         return EvacuationCenter::selectRaw("
                 evacuation_centers.*,
                 (
-                    SELECT COUNT(*)
+                    SELECT COUNT(DISTINCT evacuation_records.household_id)
                     FROM evacuation_records
-                    JOIN disaster_events ON evacuation_records.event_id = disaster_events.event_id
+                    LEFT JOIN disaster_events ON evacuation_records.event_id = disaster_events.event_id
                     WHERE evacuation_records.center_id = evacuation_centers.evacuation_center_id
                       AND evacuation_records.household_status_id = " . HouseholdStatus::EVACUATED . "
-                      AND disaster_events.ended_at IS NULL
+                      AND (
+                          evacuation_records.event_id IS NULL
+                          OR (disaster_events.ended_at IS NULL AND disaster_events.deleted_at IS NULL)
+                      )
                 ) as household_count,
                 (
                     SELECT COALESCE(SUM(evacuation_records.evacuated_count), 0)
                     FROM evacuation_records
-                    JOIN disaster_events ON evacuation_records.event_id = disaster_events.event_id
+                    LEFT JOIN disaster_events ON evacuation_records.event_id = disaster_events.event_id
                     WHERE evacuation_records.center_id = evacuation_centers.evacuation_center_id
                       AND evacuation_records.household_status_id = " . HouseholdStatus::EVACUATED . "
-                      AND disaster_events.ended_at IS NULL
+                      AND (
+                          evacuation_records.event_id IS NULL
+                          OR (disaster_events.ended_at IS NULL AND disaster_events.deleted_at IS NULL)
+                      )
                 ) as current_occupancy
             ")
             ->with('currentEvent')
@@ -81,24 +91,25 @@ class EloquentEvacuationCenterRepository implements EvacuationCenterRepositoryIn
 
     public function getCapacityInfo(EvacuationCenter $center): array
     {
-        // Calculate based on `member_count` of records, or just use the number of people.
-        // Previously EvacuationCenterService used count of records. Let's look at the old query:
-        // $current = EvacuationRecord::where('center_id', $center->evacuation_center_id)
-        //    ->where('household_status_id', HouseholdStatus::EVACUATED)
-        //    ->whereHas('event', function ($q) { $q->whereNull('ended_at'); })->count();
-        // Wait, `member_count` wasn't used in the old `getCapacityInfo`? Let's keep it functionally equivalent.
-        
-        $current = EvacuationRecord::where('center_id', $center->evacuation_center_id)
+        HouseholdStatus::ensureSeeded();
+
+        $baseQuery = EvacuationRecord::where('center_id', $center->evacuation_center_id)
             ->where('household_status_id', HouseholdStatus::EVACUATED)
-            ->whereHas('event', function ($q) {
-                $q->whereNull('ended_at');
-            })
-            ->sum('evacuated_count'); // I'll use sum of evacuated_count because it tracks exactly how many people are evacuated.
+            ->where(function ($q) {
+                $q->whereNull('event_id')
+                  ->orWhereHas('event', function ($eq) {
+                      $eq->whereNull('ended_at');
+                  });
+            });
+
+        $current = (int) (clone $baseQuery)->sum('evacuated_count');
+        $households = (int) (clone $baseQuery)->distinct('household_id')->count('household_id');
 
         return [
             'capacity'           => $center->capacity,
-            'current_occupancy'  => (int) $current,
-            'available_capacity' => max(0, $center->capacity - (int) $current),
+            'current_occupancy'  => $current,
+            'household_count'    => $households,
+            'available_capacity' => max(0, $center->capacity - $current),
         ];
     }
 

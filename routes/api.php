@@ -219,7 +219,7 @@ Route::middleware('auth:sanctum')->group(function () {
 */
 
 Route::prefix('notifications')
-    ->middleware('auth:sanctum')
+    ->middleware(['auth:sanctum', 'role:super_admin,evac_admin'])
     ->group(function () {
         // Preview & send
         Route::get('/preview', [NotificationController::class, 'preview']);

@@ -9,9 +9,41 @@ use Exception;
 
 class EloquentResourceRequestRepository implements ResourceRequestRepositoryInterface
 {
+    private function ensureStatusesSeeded(): void
+    {
+        $defaults = [
+            ['status_id' => 1, 'status_key' => ResourceRequestStatus::PENDING,      'status_label' => 'Pending'],
+            ['status_id' => 2, 'status_key' => ResourceRequestStatus::ACKNOWLEDGED, 'status_label' => 'Acknowledged'],
+            ['status_id' => 3, 'status_key' => ResourceRequestStatus::APPROVED,     'status_label' => 'Approved'],
+            ['status_id' => 4, 'status_key' => ResourceRequestStatus::REJECTED,     'status_label' => 'Rejected'],
+            ['status_id' => 5, 'status_key' => ResourceRequestStatus::DELIVERED,    'status_label' => 'Delivered'],
+        ];
+
+        ResourceRequestStatus::upsert($defaults, ['status_id'], ['status_key', 'status_label']);
+    }
+
     private function getStatusIds(): array
     {
-        return ResourceRequestStatus::pluck('status_id', 'status_key')->toArray();
+        $statusIds = array_change_key_case(
+            ResourceRequestStatus::pluck('status_id', 'status_key')->toArray(),
+            CASE_LOWER
+        );
+
+        if (
+            !isset($statusIds[ResourceRequestStatus::PENDING]) ||
+            !isset($statusIds[ResourceRequestStatus::ACKNOWLEDGED]) ||
+            !isset($statusIds[ResourceRequestStatus::APPROVED]) ||
+            !isset($statusIds[ResourceRequestStatus::REJECTED]) ||
+            !isset($statusIds[ResourceRequestStatus::DELIVERED])
+        ) {
+            $this->ensureStatusesSeeded();
+            $statusIds = array_change_key_case(
+                ResourceRequestStatus::pluck('status_id', 'status_key')->toArray(),
+                CASE_LOWER
+            );
+        }
+
+        return $statusIds;
     }
 
     private function requestRelations(): array
@@ -91,7 +123,7 @@ class EloquentResourceRequestRepository implements ResourceRequestRepositoryInte
     public function createRequest(array $data): ResourceRequest
     {
         $statusIds = $this->getStatusIds();
-        $data['status_id'] = $statusIds[ResourceRequestStatus::PENDING];
+        $data['status_id'] = $statusIds[ResourceRequestStatus::PENDING] ?? 1;
         $data['handled_by'] = null;
 
         $requestRecord = ResourceRequest::create($data);

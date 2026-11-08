@@ -31,7 +31,7 @@ EvaTrack streamlines evacuation operations, real-time center occupancy tracking,
 |-------|-----------|-----------------------------|
 | **Super Admin** | Primary System Actor | Full system oversight across all municipal shelters and administrative jurisdictions. **Exclusively authorized to register new user accounts** (`POST /api/users`). Retains emergency override access over all Evac Admin and Personnel actions for crisis intervention. |
 | **Evacuation Admin** | Primary System Actor | Coordinates center operations across assigned evacuation shelters. Configures shelters and accommodation units, assigns personnel to centers, monitors ongoing resource requests and issue reports, broadcasts emergency SMS and push alerts, and manages disaster events. |
-| **Evacuation Personnel** | Primary System Actor | Stationed at an assigned evacuation center. Performs rapid intake verification via QR scanning or demographic search, admits households, allocates rooms/units, logs in-center incident/health reports, requests resource supplies, and processes departures/checkouts. |
+| **Evacuation Personnel** | Primary System Actor | Stationed at an assigned evacuation center. Performs rapid intake verification via QR scanning or demographic search, admits households, allocates rooms/units, logs in-center incident/health reports, requests resource supplies, and processes departures/checkouts. **Strictly restricted from municipal SMS & Push alert broadcasting to ensure centralized command authority and prevent conflicting directives.** |
 | **Households / Residents** | Secondary Actor (Passive) | Displaced citizens. Possess no interactive system credentials. Receive SMS/Push warnings, present official SafeTrack QR codes or identification upon arrival, and receive shelter allocations. |
 | **SafeTrack System** | External Integration | Authoritative demographic repository. Provides pre-registered household rosters, addresses, and vulnerability tags for verification and analytics. |
 | **ResQperation System** | External Integration | Emergency response coordination engine. Receives forwarded resource/personnel aid requests from EvaTrack and serves as the push notification gateway for smartphone alerts. |
@@ -124,28 +124,29 @@ flowchart LR
         UC41["UC-41: Route Supply / Personnel Aid to ResQperation"]
     end
 
-    subgraph UC_NOTIF["📢 9. SMS & Mobile Push Alerts"]
+    subgraph UC_NOTIF["📢 9. SMS & Mobile Push Alerts (Admin Exclusive)"]
         direction TB
         UC42["UC-42: Broadcast SMS Alerts (Offline Citizens)"]
         UC43["UC-43: Dispatch Mobile Push Alerts (ResQperation)"]
         UC44["UC-44: Configure Recurring Broadcast Dispatches"]
-        UC45["UC-45: Preview Target Audience & Recipient Count"]
-        UC46["UC-46: Monitor Dispatch Logs & Delivery Success Rates"]
-        UC47["UC-47: Cancel / Abort Scheduled Broadcast"]
+        UC45["UC-45: Filter Target Audience (Non-Evacuated / Public / Center)"]
+        UC46["UC-46: Auto-Draft Center Status & Redirection Advisory (EVATRACK ADVISORY)"]
+        UC47["UC-47: Monitor Dispatch Logs & Delivery Success Rates"]
+        UC48["UC-48: Cancel / Abort Scheduled Broadcast"]
     end
 
     subgraph UC_EVENT["⚡ 10. Disaster Event Coordination"]
         direction TB
-        UC48["UC-48: Declare Disaster Event"]
-        UC49["UC-49: Track Active & Historical Disaster Scenarios"]
-        UC50["UC-50: Terminate Disaster Event"]
+        UC49["UC-49: Declare Disaster Event"]
+        UC50["UC-50: Track Active & Historical Disaster Scenarios"]
+        UC51["UC-51: Terminate Disaster Event"]
     end
 
     subgraph UC_OVERRIDE["🛡️ 11. Emergency Intervention & Oversight"]
         direction TB
-        UC51["UC-51: Emergency Override of Evac Admin Decisions"]
-        UC52["UC-52: Emergency Override of Personnel Actions"]
-        UC53["UC-53: Global System Oversight & Audit Inspection"]
+        UC52["UC-52: Emergency Override of Evac Admin Decisions"]
+        UC53["UC-53: Emergency Override of Personnel Actions"]
+        UC54["UC-54: Global System Oversight & Audit Inspection"]
     end
 
     %% Actor Connections
@@ -468,35 +469,42 @@ flowchart LR
 
 ---
 
-### Package 9: SMS & Mobile Push Alerts
+### Package 9: SMS & Mobile Push Alerts (Admin Exclusive)
+
+> **Access Control Rule:** Evacuation Personnel are strictly barred from creating or transmitting municipal SMS and Push alerts to prevent decentralized panic, contradictory evacuation directives, and uncoordinated telco gateway expenses. All public warning broadcasts are restricted to Evacuation Admins and Super Admins.
 
 #### UC-42: Broadcast SMS Alerts (Offline Citizens)
-* **Actors:** Evacuation Admin, Super Admin
+* **Actors:** Evacuation Admin, Super Admin *(Evacuation Personnel Restricted)*
 * **Description:** Dispatches critical disaster advisories and evacuation orders over GSM cellular networks directly to resident phones.
 * **API Endpoint & DB Tables:** `POST /api/notifications` | `notifications`, `notification_logs`.
 
 #### UC-43: Dispatch Mobile Push Alerts (ResQperation)
-* **Actors:** Evacuation Admin, Super Admin
+* **Actors:** Evacuation Admin, Super Admin *(Evacuation Personnel Restricted)*
 * **Description:** Sends high-priority push notifications with sound alerts to citizens using the ResQperation mobile app.
 * **API Endpoint & DB Tables:** `POST /api/notifications` | `notifications`, `notification_logs`.
 
 #### UC-44: Configure Recurring Broadcast Dispatches
 * **Actors:** Evacuation Admin, Super Admin
-* **Description:** Automates repeating announcements (e.g. hourly weather updates) with designated cutoff dates.
+* **Description:** Automates repeating announcements (e.g. hourly weather updates or daily situationers) with designated intervals (`hourly`, `daily`, `weekly`) and cutoff dates.
 * **Input Payload:** `is_recurring = true`, `recurrence_type` (`hourly`, `daily`, `weekly`), `recurrence_end_at`.
 * **API Endpoint & DB Tables:** `POST /api/notifications` | `notifications`.
 
-#### UC-45: Preview Target Audience & Recipient Count
+#### UC-45: Filter Target Audience & Recipient Scopes
 * **Actors:** Evacuation Admin, Super Admin
-* **Description:** Queries target criteria (`all`, `evacuated`, `not_evacuated`, or specific center) to inspect recipient volume before firing broadcast.
-* **API Endpoint & DB Tables:** `GET /api/notifications/preview` | `notifications`, `households`.
+* **Description:** Selects explicit delivery scopes (`not_evacuated` for pre-disaster evacuation calls, `all` for public broadcasts, or specific evacuation centers for in-shelter notices) to prevent alert fatigue and optimize SMS delivery.
+* **API Endpoint & DB Tables:** `POST /api/notifications` | `notifications`, `households`.
 
-#### UC-46: Monitor Dispatch Logs & Delivery Success Rates
+#### UC-46: Auto-Draft Center Status & Redirection Advisory (EVATRACK ADVISORY)
+* **Actors:** Evacuation Admin, Super Admin
+* **Description:** Computes real-time occupancy and capacity rates across all operational evacuation centers, automatically auto-drafting an official "EVATRACK ADVISORY" that flags near-capacity shelters (≥80% full) to avoid and recommends open shelters with space available for optimal citizen crowd redirection.
+* **API Endpoint & DB Tables:** `GET /api/evacuation-centers`, `POST /api/notifications` | `evacuation_centers`, `evacuation_records`, `notifications`.
+
+#### UC-47: Monitor Dispatch Logs & Delivery Success Rates
 * **Actors:** Evacuation Admin, Super Admin
 * **Description:** Inspects individual recipient delivery statuses (`sent`, `failed`, `pending`) and computes delivery success percentages.
 * **API Endpoint & DB Tables:** `GET /api/notifications/{notification}/logs` | `notification_logs`.
 
-#### UC-47: Cancel / Abort Scheduled Broadcast
+#### UC-48: Cancel / Abort Scheduled Broadcast
 * **Actors:** Evacuation Admin, Super Admin
 * **Description:** Immediately terminates recurring dispatches or cancels scheduled alerts prior to transmission.
 * **API Endpoint & DB Tables:** `DELETE /api/notifications/{notification}` | `notifications`.
@@ -505,17 +513,17 @@ flowchart LR
 
 ### Package 10: Disaster Event Coordination
 
-#### UC-48: Declare Disaster Event
+#### UC-49: Declare Disaster Event
 * **Actors:** Evacuation Admin, Super Admin
 * **Description:** Initializes a new emergency umbrella (typhoon, flood, landslide, earthquake) with disaster type, severity, and operational jurisdiction.
 * **API Endpoint & DB Tables:** `POST /api/events` | `disaster_events`, `disaster_types`.
 
-#### UC-49: Track Active & Historical Disaster Scenarios
+#### UC-50: Track Active & Historical Disaster Scenarios
 * **Actors:** Evacuation Personnel, Evacuation Admin, Super Admin
 * **Description:** Monitors live operational events and reviews completed past disaster operations.
 * **API Endpoint & DB Tables:** `GET /api/events/active`, `GET /api/events/history` | `disaster_events`.
 
-#### UC-50: Terminate Disaster Event
+#### UC-51: Terminate Disaster Event
 * **Actors:** Evacuation Admin, Super Admin
 * **Description:** Formally concludes the disaster operational phase, setting `ended_at` and archiving associated center deployments.
 * **API Endpoint & DB Tables:** `PATCH /api/events/{id}/end` | `disaster_events`.
@@ -524,15 +532,15 @@ flowchart LR
 
 ### Package 11: Emergency Intervention & Oversight
 
-#### UC-51: Emergency Override of Evac Admin Decisions
+#### UC-52: Emergency Override of Evac Admin Decisions
 * **Actors:** Super Admin Only
 * **Description:** Protocol-level override power to countermand center closures, re-allocate critical assets, or modify administrative settings during catastrophic contingencies.
 
-#### UC-52: Emergency Override of Personnel Actions
+#### UC-53: Emergency Override of Personnel Actions
 * **Actors:** Super Admin Only
 * **Description:** Direct administrative override to correct intake data, adjust erroneous allocations, or remediate shelter discrepancies.
 
-#### UC-53: Global System Oversight & Audit Inspection
+#### UC-54: Global System Oversight & Audit Inspection
 * **Actors:** Super Admin Only
 * **Description:** Continuous monitoring across all system metrics, user actions, and error logs for accountability and governance compliance.
 * **API Endpoint & DB Tables:** `GET /api/reports/system-wide` | System-wide audit inspection.
@@ -587,12 +595,13 @@ flowchart LR
 | **UC-42 Broadcast Emergency SMS** | ✓ | ✓ | — | **Receives** | — | — |
 | **UC-43 Dispatch Mobile Push Alerts** | ✓ | ✓ | — | **Receives** | — | **Gateway** |
 | **UC-44 Configure Recurring Dispatches** | ✓ | ✓ | — | **Receives** | — | **Gateway** |
-| **UC-45 Preview Recipient Volume** | ✓ | ✓ | — | — | — | — |
-| **UC-46 Monitor Dispatch Logs & Rates** | ✓ | ✓ | — | — | — | — |
-| **UC-47 Cancel / Abort Scheduled Alert** | ✓ | ✓ | — | — | — | — |
-| **UC-48 Declare Disaster Event** | ✓ | ✓ | — | — | — | — |
-| **UC-49 Track Active & Historical Events**| ✓ | ✓ | ✓ | — | — | — |
-| **UC-50 Terminate Disaster Event** | ✓ | ✓ | — | — | — | — |
-| **UC-51 Emergency Override of Admins** | **✓ (Exclusive)** | — | — | — | — | — |
-| **UC-52 Emergency Override of Personnel**| **✓ (Exclusive)** | — | — | — | — | — |
-| **UC-53 Global System Oversight** | **✓ (Exclusive)** | — | — | — | — | — |
+| **UC-45 Filter Target Audience** | ✓ | ✓ | — | — | — | — |
+| **UC-46 Auto-Draft EVATRACK ADVISORY** | ✓ | ✓ | — | **Receives** | — | — |
+| **UC-47 Monitor Dispatch Logs & Rates** | ✓ | ✓ | — | — | — | — |
+| **UC-48 Cancel / Abort Scheduled Alert** | ✓ | ✓ | — | — | — | — |
+| **UC-49 Declare Disaster Event** | ✓ | ✓ | — | — | — | — |
+| **UC-50 Track Active & Historical Events**| ✓ | ✓ | ✓ | — | — | — |
+| **UC-51 Terminate Disaster Event** | ✓ | ✓ | — | — | — | — |
+| **UC-52 Emergency Override of Admins** | **✓ (Exclusive)** | — | — | — | — | — |
+| **UC-53 Emergency Override of Personnel**| **✓ (Exclusive)** | — | — | — | — | — |
+| **UC-54 Global System Oversight** | **✓ (Exclusive)** | — | — | — | — | — |

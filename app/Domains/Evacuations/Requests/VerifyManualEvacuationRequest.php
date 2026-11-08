@@ -34,7 +34,14 @@ class VerifyManualEvacuationRequest extends FormRequest
             ],
             'member_count' => 'nullable|integer|min:1',
             'member_ids'   => 'nullable|array',
-            'member_ids.*' => 'exists:household_members,member_id',
+            'member_ids.*' => [
+                function ($attribute, $value, $fail) {
+                    if ($value && !\App\Domains\Households\Models\HouseholdMember::where('member_id', $value)->exists()) {
+                        $fail('One or more selected household members are invalid.');
+                    }
+                },
+            ],
+            'unit_id'      => 'nullable|integer',
         ];
     }
 }

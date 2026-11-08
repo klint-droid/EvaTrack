@@ -38,21 +38,37 @@ class OneSignalService
 
         try {
             $postData = [
-                'app_id'             => $this->appId,
-                'include_player_ids' => $playerIds,
-                'headings'           => ['en' => $title],
-                'contents'           => ['en' => $body],
-                'data'               => empty($data) ? new \stdClass() : $data,
+                'app_id'   => $this->appId,
+                'headings' => ['en' => $title],
+                'contents' => ['en' => $body],
+                'data'     => empty($data) ? new \stdClass() : $data,
             ];
 
             if (!empty($data['url'])) {
                 $postData['url'] = $data['url'];
             }
 
+            // Target modern OneSignal User IDs and Subscription IDs
+            $postData['include_aliases'] = [
+                'onesignal_id' => array_values($playerIds),
+            ];
+            $postData['target_channel'] = 'push';
+            $postData['include_subscription_ids'] = array_values($playerIds);
+
             $response = Http::withHeaders([
                 'Authorization' => "Basic {$this->apiKey}",
                 'Content-Type'  => 'application/json',
             ])->post("{$this->baseUrl}/notifications", $postData);
+
+            // If include_subscription_ids or include_aliases failed, fallback to legacy include_player_ids
+            if (!$response->successful() && str_contains($response->body(), 'include_subscription_ids')) {
+                unset($postData['include_aliases'], $postData['target_channel'], $postData['include_subscription_ids']);
+                $postData['include_player_ids'] = array_values($playerIds);
+                $response = Http::withHeaders([
+                    'Authorization' => "Basic {$this->apiKey}",
+                    'Content-Type'  => 'application/json',
+                ])->post("{$this->baseUrl}/notifications", $postData);
+            }
 
             if ($response->successful()) {
                 $notificationId = $response->json('id');

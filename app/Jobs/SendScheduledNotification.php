@@ -76,13 +76,17 @@ class SendScheduledNotification implements ShouldQueue
                 'hourly' => now()->addHour(),
                 'daily'  => now()->addDay(),
                 'weekly' => now()->addWeek(),
+                'custom' => now()->addMinutes(max(1, (int)($notification->recurrence_interval_minutes ?: 60))),
                 default  => now()->addDay(),
             };
 
             // only schedule next if before end date
             if (!$notification->recurrence_end_at || now()->parse($nextRun)->isBefore($notification->recurrence_end_at)) {
                 // reset status to scheduled for next run
-                $notification->update(['status' => 'scheduled']);
+                $notification->update([
+                    'status' => 'scheduled',
+                    'scheduled_at' => $nextRun,
+                ]);
                 self::dispatch($this->notifId)->delay($nextRun);
             } else {
                 $notification->update(['status' => 'completed']);

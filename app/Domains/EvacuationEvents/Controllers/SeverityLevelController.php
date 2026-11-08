@@ -17,7 +17,16 @@ class SeverityLevelController extends Controller
     )]
     #[OA\Response(response: 200, description: 'Success')]
     public function index(){
-        $severityLevels = SeverityLevel::orderBy('severity_label')->get();
+        if (SeverityLevel::count() === 0) {
+            SeverityLevel::upsert([
+                ['severity_id' => 1, 'severity_key' => 'low',      'severity_label' => 'Low'],
+                ['severity_id' => 2, 'severity_key' => 'medium',   'severity_label' => 'Medium'],
+                ['severity_id' => 3, 'severity_key' => 'high',     'severity_label' => 'High'],
+                ['severity_id' => 4, 'severity_key' => 'critical', 'severity_label' => 'Critical'],
+            ], ['severity_id'], ['severity_key', 'severity_label']);
+        }
+
+        $severityLevels = SeverityLevel::orderBy('severity_id')->get();
 
         return response()->json(['data' => $severityLevels]);
     }
