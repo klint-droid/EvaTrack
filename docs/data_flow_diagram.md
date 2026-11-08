@@ -114,7 +114,7 @@ flowchart TB
     %% DATA STORES
     %% ══════════════════════════════════════════════════════════════════════════
     subgraph STORES["💽 System Data Stores (mysql_v2 / shared_db)"]
-        D1[("D1: Users & Roles\n(users, roles, user_notifications)")]
+        D1[("D1: Users, Roles & Station Assignments\n(users, roles, center_personnel_assignments, user_notifications)")]
         D2[("D2: Evacuation Centers & Occupancy\n(evacuation_centers, center_occupancies)")]
         D3[("D3: Accommodation Units\n(accommodation_units, unit_allocations)")]
         D4[("D4: Disaster Events\n(disaster_events, disaster_types, severities)")]
@@ -131,7 +131,7 @@ flowchart TB
     %% ══════════════════════════════════════════════════════════════════════════
 
     subgraph P_ADMIN["🔐 Subsystem 1: Administration & Setup"]
-        P1(["1.0\nUser Provisioning\n& Access Control"])
+        P1(["1.0\nUser Provisioning,\nStation Assignment\n& Security Auth"])
         P2(["2.0\nCenter & Room\nConfiguration"])
         P3(["3.0\nDisaster Event &\nSeverity Activation"])
     end
@@ -155,14 +155,15 @@ flowchart TB
     %% DATA FLOW CONNECTIONS
     %% ══════════════════════════════════════════════════════════════════════════
 
-    %% Process 1.0 (Auth & User Provisioning)
-    SA -->|"Create accounts, assign roles (SUP/EAD/EPE)"| P1
-    EA -->|"Login credentials"| P1
+    %% Process 1.0 (Auth, User Provisioning & Station Assignment)
+    SA -->|"Create accounts, assign roles (SUP/EAD/EPE),\nassign personnel to station"| P1
+    EA -->|"Assign/transfer personnel to shelter station,\nlogin credentials"| P1
     EP -->|"Login credentials"| P1
-    P1 <-->|"Read/write credentials, roles, user notifs"| D1
-    P1 -->|"Auth tokens, profile data"| SA
-    P1 -->|"Auth tokens, assigned center"| EA
-    P1 -->|"Auth tokens, assigned center"| EP
+    P1 <-->|"Read/write credentials, roles, station assignment\naudit log, user notifications"| D1
+    P1 <-->|"Validate center existence & link personnel"| D2
+    P1 -->|"HttpOnly secure auth cookies, profile data"| SA
+    P1 -->|"HttpOnly secure auth cookies, assigned station"| EA
+    P1 -->|"HttpOnly secure auth cookies, assigned station"| EP
 
     %% Process 2.0 (Center & Room Config)
     SA -->|"Register evacuation centers, GPS, capacities"| P2
@@ -186,7 +187,7 @@ flowchart TB
     P4 -->|"Verified household payload"| P5
 
     %% Process 5.0 (Admission, Room Allocation & Checkout)
-    EP -->|"Check-in members present, select accommodation unit"| P5
+    EP -->|"Check-in members present, allocate/change room unit\n(via Unit Grid or Evacuated Household Details drawer)"| P5
     EP -->|"Process evacuee checkout on return home"| P5
     HH -->|"Present QR code / ID, verify present members"| P5
     P5 <-->|"Create/update admission tickets, status ('Evacuated'/'Not Evacuated')"| D6
@@ -251,17 +252,20 @@ flowchart TB
 
 ## 4. Sub-Process Functional Specifications
 
-### 1.0 User Provisioning & Access Control
-- **Purpose:** Securely manages user identity, role-based access control (RBAC), authentication tokens, and user-to-center assignments.
+### 1.0 User Provisioning, Station Assignment & Security Access Control
+- **Purpose:** Securely manages user identity, role-based access control (RBAC), multi-tier authentication security (HttpOnly session cookies, brute-force rate limiting), and personnel-to-center station assignment lifecycle with full historical auditing.
 - **Inputs:** 
   - Super Admin: Staff creation requests (names, email, role selection: `SUP`, `EAD`, `EPE`, center assignment).
-  - All Users: Login credentials (email/username, password).
-- **Outputs:** Sanctum API bearer tokens, user profile payloads, authorization gates, and in-app user notifications.
-- **Data Stores Accessed:** `D1 Users & Roles`.
+  - Evacuation Admin: Personnel center station assignment, transfer, and relief commands.
+  - All Users: Login credentials (User ID / email, password).
+- **Outputs:** HttpOnly `access_token` cookies (web SPA) and Sanctum API bearer tokens (mobile), user profile payloads, station assignment audit records, in-app alerts, and SMS assignment notifications.
+- **Data Stores Accessed:** `D1 Users, Roles & Station Assignments`, `D2 Evacuation Centers & Occupancy`.
 - **Business Logic:**
   - Enforces exclusive user creation rights to Super Admin.
   - Automatically generates formatted User IDs (`SUP-YYYY-XXXXXX`, `EAD-YYYY-XXXXXX`, `EPE-YYYY-XXXXXX`).
-  - Restricts Evacuation Personnel access strictly to their assigned evacuation center (`assigned_center_id`).
+  - **Station Assignment Audit Lifecycle:** When personnel are assigned to a shelter, an immutable record is logged in `center_personnel_assignments` with `status = 'active'`, `assigned_by`, and `assigned_at`. Reassigning transfers the prior record to `status = 'transferred'` with `relieved_at = now()`, while relieving marks it `completed`. The `users.assigned_center_id` serves as a high-speed cached pointer.
+  - **Station Alerts:** Assignment or transfer dispatches an instant in-app notification and SMS alert via TextBee to the personnel's contact number.
+  - **Security & Session Hardening:** Authentication issues `HttpOnly`, `SameSite=Lax` cookies with 7-day sliding expiration and enforces brute-force rate-limiting (`throttle:6,1` on login) to prevent unauthorized credential harvesting.
 
 ### 2.0 Center & Room Configuration
 - **Purpose:** Maintains the physical inventory of evacuation shelters and internal living quarters.
@@ -295,15 +299,16 @@ flowchart TB
   - If a household record is updated in SafeTrack, the latest demographic snapshot is synchronized with EvaTrack's cache (`households`, `household_members`).
 
 ### 5.0 Admission, Room Allocation & Checkout
-- **Purpose:** Handles the physical intake, member headcount verification, living space assignment, and departure of displaced families.
+- **Purpose:** Handles physical intake, member headcount verification, living space / accommodation unit assignment (both at intake and dynamically via the Evacuated Household Details drawer), and departure of displaced families.
 - **Inputs:**
-  - Evacuation Personnel: Checkbox selection of physically present members, accommodation unit assignment (`unit_id`), departure/checkout trigger.
+  - Evacuation Personnel: Checkbox selection of physically present members, accommodation unit assignment (`unit_id`), unit transfers/unallocations, departure/checkout trigger.
   - Households: Presentation of QR code or physical ID.
-- **Outputs:** Admission confirmation, room assignment ticket, auto-updated center headcount.
+- **Outputs:** Admission confirmation, room assignment ticket, auto-updated center headcount, room allocation status.
 - **Data Stores Accessed:** `D6 Evacuation Records`, `D3 Accommodation Units`, `D2 Evacuation Centers & Occupancy`.
 - **Business Logic:**
   - Admission creates an `evacuation_records` entry, marks `household_status_id` = `Evacuated`, and logs verified individuals in `evacuated_members`.
   - Atomically increments `center_occupancies.current_occupancy` and updates room allocation slots in `unit_allocations`.
+  - **Dynamic Unit Allocation:** Frontline staff can directly assign, reassign, or release rooms/units from within the Evacuated Household Details drawer, with automated modal confirmation and room capacity validation.
   - Processing checkout changes `household_status_id` = `Not Evacuated`, frees accommodation unit capacity, and decrements `center_occupancies.current_occupancy`.
 
 ### 6.0 In-Center Incident & Health Issue Triage
@@ -359,7 +364,7 @@ flowchart TB
 
 | Data Store | Primary Tables | Schema Key Elements | Functional Purpose |
 |---|---|---|---|
-| **D1: Users & Roles** | `users`, `roles`, `user_notifications` | `user_id` (PK), `role_id` (FK), `assigned_center_id` (FK), `email`, `password` | Stores administrative credentials, authorization tiers, and staff center assignments. |
+| **D1: Users, Roles & Station Assignments** | `users`, `roles`, `center_personnel_assignments`, `user_notifications` | `user_id` (PK), `role_id` (FK), `assigned_center_id` (FK), `assignment_id` (PK), `email`, `password` | Stores administrative credentials, authorization tiers, personnel station assignments, and historical station audit trails. |
 | **D2: Evacuation Centers & Occupancy** | `evacuation_centers`, `center_occupancies` | `evacuation_center_id` (PK), `capacity`, `latitude`, `longitude`, `current_occupancy` | Maintains shelter facility locations, maximum capacities, and live headcount counters. |
 | **D3: Accommodation Units** | `accommodation_units`, `accommodation_types`, `unit_allocations` | `unit_id` (PK), `center_id` (FK), `max_capacity`, `allocation_id` (PK), `evacuation_id` (FK) | Tracks individual rooms, classrooms, and modular tents and their family assignments. |
 | **D4: Disaster Events** | `disaster_events`, `disaster_types`, `severity_levels`, `disaster_event_types` | `event_id` (PK), `type_id` (FK), `severity_level_id` (FK), `started_at`, `ended_at` | Maintains operational disaster incidents, warning signals, and active shelter associations. |

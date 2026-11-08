@@ -33,6 +33,21 @@ erDiagram
         varchar role_name
     }
 
+    center_personnel_assignments {
+        bigint assignment_id PK
+        varchar user_id FK
+        varchar evacuation_center_id FK
+        varchar assigned_by FK
+        varchar event_id FK
+        varchar role_at_center
+        varchar status
+        timestamp assigned_at
+        timestamp relieved_at
+        text remarks
+        timestamp created_at
+        timestamp updated_at
+    }
+
     user_notifications {
         bigint id PK
         varchar user_id FK
@@ -466,6 +481,15 @@ erDiagram
     users }o--o| evacuation_centers : "assigned_center_id"
     users }o--o| households : "household_id"
     users ||--o{ user_notifications : "user_id"
+    users ||--o{ center_personnel_assignments : "user_id"
+    users ||--o{ center_personnel_assignments : "assigned_by"
+
+    center_personnel_assignments }o--|| users : "user_id"
+    center_personnel_assignments }o--|| evacuation_centers : "evacuation_center_id"
+    center_personnel_assignments }o--o| users : "assigned_by"
+    center_personnel_assignments }o--o| disaster_events : "event_id"
+
+    evacuation_centers ||--o{ center_personnel_assignments : "evacuation_center_id"
 
     households }o--o| addresses : "address_id"
     households ||--|{ household_members : "household_id"

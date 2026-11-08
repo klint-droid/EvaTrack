@@ -53,8 +53,8 @@ flowchart LR
     %% Subsystems / Packages
     subgraph UC_AUTH["🔐 1. Authentication & Profile"]
         direction TB
-        UC01["UC-01: Login with Credentials / OTP"]
-        UC02["UC-02: Logout & Revoke Session"]
+        UC01["UC-01: Login with Credentials / OTP\n(HttpOnly Cookie & Rate Limited)"]
+        UC02["UC-02: Logout & Clear Cookie / Revoke Session"]
         UC03["UC-03: View & Update Profile"]
         UC04["UC-04: Change Password"]
     end
@@ -65,7 +65,9 @@ flowchart LR
         UC06["UC-06: Register User Account (Super Admin Only)"]
         UC07["UC-07: Update User Profile & Role"]
         UC08["UC-08: Deactivate / Soft-Delete User"]
-        UC09["UC-09: Assign Personnel to Center Station"]
+        UC09["UC-09: Assign / Transfer Personnel Station & Audit History"]
+        UC09A["UC-09A: View Personnel Assignment History"]
+        UC09B["UC-09B: View Center Assigned Personnel Roster"]
     end
 
     subgraph UC_CENTER["🏛️ 3. Evacuation Center & Room Configuration"]
@@ -83,7 +85,7 @@ flowchart LR
         UC16["UC-16: Verify Household via QR Code Scanner"]
         UC17["UC-17: Verify Household via Demographic Search"]
         UC18["UC-18: Admit Household & Update Status to Evacuated"]
-        UC19["UC-19: Allocate Accommodation Unit / Room"]
+        UC19["UC-19: Allocate Accommodation Unit / Room\n(Direct & Household Drawer)"]
         UC20["UC-20: Monitor In-Center Stay Duration"]
         UC21["UC-21: Update Member-Level Evacuation Status"]
         UC22["UC-22: Process Household Checkout & Release Unit"]
@@ -169,6 +171,8 @@ flowchart LR
     EA --> UC07
     EA --> UC08
     EA --> UC09
+    EA --> UC09A
+    EA --> UC09B
     EA --> UC_CENTER
     EA --> UC_EVAC
     EA --> UC_SAFETRACK
@@ -221,22 +225,25 @@ flowchart LR
 
 #### UC-01: User Login & Session Establishment
 * **Actors:** Super Admin, Evacuation Admin, Evacuation Personnel
-* **Description:** User authenticates into EvaTrack using registered credentials (Username, Mobile Number, or Email) and password, establishing an encrypted Sanctum bearer token session.
+* **Description:** User authenticates into EvaTrack using registered credentials (User ID or Email) and password, establishing an encrypted session secured by an `HttpOnly` cookie and protected by brute-force rate-limiting.
 * **Preconditions:** Account exists and has `is_active = 1`.
-* **Postconditions:** Bearer token generated in `personal_access_tokens`; user redirected to role-tailored dashboard.
+* **Postconditions:** Active token generated in `personal_access_tokens`; `HttpOnly`, `SameSite=Lax` `access_token` cookie attached to HTTP response (with Bearer token fallback for native mobile apps); user redirected to role-tailored dashboard.
 * **Main Flow:**
-  1. User navigates to `/login` and provides identifier (e.g., `09888888888` or `EPE-2026-PERS1`) and password.
-  2. System validates input against Bcrypt hash in `users.password`.
-  3. System loads assigned role (`roles`) and station (`evacuation_centers`).
-  4. System issues API token and sets local session store.
+  1. User navigates to `/login` and provides identifier (e.g., `EPE-2026-PERS1` or email) and password.
+  2. System evaluates rate limiter (`throttle:6,1` on `/api/login`).
+  3. System validates input against Bcrypt hash in `users.password`.
+  4. System invalidates any prior tokens (`$user->tokens()->delete()`) to guarantee single-session integrity.
+  5. System generates personal access token, issues `access_token` in an `HttpOnly`, `SameSite=Lax` cookie with 7-day sliding expiration, loads assigned role (`roles`), cached center pointer (`assigned_center_id`), and current assignment record.
+  6. Frontend receives sanitized user profile and navigates to the authorized workspace without storing the auth token in `localStorage`.
 * **Alternative Flows:**
-  * Invalid password → Rejection prompt with failed attempt notice.
+  * Rate limit exceeded (more than 6 attempts in 1 min) → HTTP 429 Too Many Requests lockout.
+  * Invalid credentials → Rejection prompt with failed attempt warning.
   * Inactive account (`is_active = 0`) → Displays "Account deactivated. Contact Administrator."
 * **API Endpoint & DB Tables:** `POST /api/login` | `users`, `roles`, `personal_access_tokens`.
 
 #### UC-02: User Logout
 * **Actors:** All Authenticated Users
-* **Description:** User terminates their current operational session; the system revokes the active personal access token.
+* **Description:** User terminates their current operational session; the system revokes the active token from the database, expires the `HttpOnly` `access_token` cookie in the client browser, and cleans up client-side memory stores.
 * **API Endpoint & DB Tables:** `POST /api/logout` | `personal_access_tokens`.
 
 #### UC-03: View & Update Profile
@@ -280,11 +287,40 @@ flowchart LR
 * **Description:** Executes a soft-delete (`deleted_at`) or flips `is_active = 0` to immediately block login access.
 * **API Endpoint & DB Tables:** `DELETE /api/users/{id}` | `users`.
 
-#### UC-09: Assign Personnel to Center Station
+#### UC-09: Assign / Transfer Personnel to Center Station & Audit History
 * **Actors:** Super Admin, Evacuation Admin
-* **Description:** Associates an Evacuation Personnel operator with a specific physical shelter.
-* **Postconditions:** `users.assigned_center_id` updated to target `evacuation_center_id`.
-* **API Endpoint & DB Tables:** `POST /api/users/{user}/assign-center` | `users`, `evacuation_centers`.
+* **Description:** Station an Evacuation Personnel operator at a specific physical shelter facility, execute staff transfers, or relieve assignments with full audit tracking.
+* **Preconditions:** Caller is Super Admin or Evacuation Admin; target user exists and has role `evac_personnel`. Target evacuation center exists in `evacuation_centers`.
+* **Postconditions:** 
+  - Previous active assignment for user in `center_personnel_assignments` marked `status = 'transferred'` with `relieved_at = now()`.
+  - New assignment record inserted in `center_personnel_assignments` with `status = 'active'`, `assigned_by`, `assigned_at = now()`, and `event_id` (if disaster event active).
+  - High-speed cached pointer `users.assigned_center_id` synchronized in the same atomic database transaction.
+  - In-app notification (`user_notifications`) and TextBee SMS alert dispatched to personnel's contact number.
+* **Main Flow:**
+  1. Admin opens User Management panel, selects personnel, and opens the Station Assignment selector.
+  2. Admin selects the target Evacuation Center and submits.
+  3. System prompts confirmation modal with target center name: *"Are you sure you want to assign [Personnel Name] to [Evacuation Center Name]?"*.
+  4. Upon confirmation, system executes atomic transaction:
+     - Relieves active assignment (sets `relieved_at = now()`, `status = 'transferred'`).
+     - Inserts new active record into `center_personnel_assignments`.
+     - Updates cached pointer `users.assigned_center_id`.
+  5. System generates in-app notification and sends SMS alert via TextBee.
+  6. Frontend table and side-details drawer instantly update station badge.
+* **Alternative Flows:**
+  * Unassign / Relieve personnel → Sets active assignment in `center_personnel_assignments` to `status = 'completed'`, `relieved_at = now()`, sets `users.assigned_center_id = NULL`, and sends unassignment SMS.
+  * Idempotent assignment (already stationed at selected center) → Returns no-op confirmation without creating duplicate rows.
+  * Target center does not exist → HTTP 404 error returned.
+* **API Endpoint & DB Tables:** `POST /api/users/{user}/assign-center` | `center_personnel_assignments`, `users`, `evacuation_centers`, `user_notifications`.
+
+#### UC-09A: View Personnel Assignment History
+* **Actors:** Super Admin, Evacuation Admin
+* **Description:** Retrieves the complete historical and active station assignment audit log for a personnel user, showing assigned shelters, dates, relieving timestamps, assigned by admin names, and transfer remarks.
+* **API Endpoint & DB Tables:** `GET /api/users/{user}/assignments` | `center_personnel_assignments`, `evacuation_centers`, `users`.
+
+#### UC-09B: View Center Assigned Personnel Roster
+* **Actors:** Super Admin, Evacuation Admin, Evacuation Personnel
+* **Description:** Retrieves the active personnel roster and historical staff assignments for a given evacuation center facility.
+* **API Endpoint & DB Tables:** `GET /api/evacuation-centers/{center}/personnel` | `center_personnel_assignments`, `users`, `roles`.
 
 ---
 
@@ -339,10 +375,21 @@ flowchart LR
 * **Description:** Personnel checks off arriving members and confirms admission. Creates an admission record, sets household status to `Evacuated` (`household_status_id = 2`), and triggers automated center capacity increment.
 * **API Endpoint & DB Tables:** `POST /api/evacuations/admit` | `evacuation_records`, `evacuated_members`, `evacuation_centers`.
 
-#### UC-19: Allocate Accommodation Unit / Room
+#### UC-19: Allocate Accommodation Unit / Room (Direct & Household Drawer)
 * **Actors:** Evacuation Personnel, Evacuation Admin
-* **Description:** Assigns admitted household to a designated room or space inside the shelter.
-* **API Endpoint & DB Tables:** `POST /api/units/{unitId}/allocations` | `unit_allocations`, `accommodation_units`.
+* **Description:** Assigns, transfers, or releases living quarters (classroom, tent, designated space) for an admitted household. Can be executed either from the Accommodation Units management grid or directly inside the Evacuated Household Details side drawer.
+* **Preconditions:** Household is verified and in `Evacuated` status (`household_status_id = 2`).
+* **Postconditions:** `unit_allocations` record created or updated; unit occupancy count updated; evacuated household drawer updates assigned room badge.
+* **Main Flow (Direct from Household Details Drawer):**
+  1. Personnel opens Evacuated Households list and clicks a household row to open the side details drawer.
+  2. Personnel navigates to the "Assigned Accommodation Unit" section and clicks "Assign Unit" or the unit dropdown.
+  3. System lists available rooms with remaining bed/family capacity.
+  4. Personnel selects target room/unit and confirms prompt: *"Are you sure you want to assign [Household Name] to [Unit Name]?"*.
+  5. System allocates unit in `unit_allocations` and refreshes allocation status.
+* **Alternative Flows:**
+  * Room is at maximum capacity → Selection disabled with warning: *"Unit at full capacity"*.
+  * Release / Unassign Unit → Removes unit allocation without checking out household.
+* **API Endpoint & DB Tables:** `POST /api/centers/{centerId}/units`, `POST /api/units/{unitId}/allocations`, `DELETE /api/allocations/{id}` | `unit_allocations`, `accommodation_units`, `evacuation_records`.
 
 #### UC-20: Monitor In-Center Stay Duration
 * **Actors:** Evacuation Personnel, Evacuation Admin, Super Admin

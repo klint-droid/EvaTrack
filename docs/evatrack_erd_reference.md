@@ -18,6 +18,15 @@ erDiagram
     users }o--o| evacuation_centers : "assigned_center_id"
     users }o--o| households : "household_id"
     users ||--o{ user_notifications : "user_id"
+    users ||--o{ center_personnel_assignments : "user_id"
+    users ||--o{ center_personnel_assignments : "assigned_by"
+
+    center_personnel_assignments }o--|| users : "user_id"
+    center_personnel_assignments }o--|| evacuation_centers : "evacuation_center_id"
+    center_personnel_assignments }o--o| users : "assigned_by"
+    center_personnel_assignments }o--o| disaster_events : "event_id"
+
+    evacuation_centers ||--o{ center_personnel_assignments : "evacuation_center_id"
 
     %% ══════════════════════════════════════════
     %% HOUSEHOLDS & MEMBERS
@@ -193,6 +202,27 @@ Enumeration of user authorization tiers.
 | `role_id` | int | **PK** | 1 = Super Admin, 2 = Evacuation Admin, 3 = Evacuation Personnel |
 | `role_key` | varchar(50) | UNIQUE | Machine key (`super_admin`, `evac_admin`, `evac_personnel`) |
 | `role_name` | varchar(100) | | Human readable title |
+
+#### `center_personnel_assignments`
+Historical and active personnel assignment records associating staff operators with specific evacuation centers. Serves as the authoritative audit trail and station tracking subsystem.
+
+> [!TIP]
+> **Active Pointer Pattern:** The `users.assigned_center_id` column serves as an in-memory denormalized cached pointer for fast zero-join queries, while `center_personnel_assignments` serves as the authoritative historical audit log recording all assignment, transfer, and relief lifecycles.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| `assignment_id` | bigint unsigned | **PK**, auto-increment | Assignment record unique identifier |
+| `user_id` | varchar(255) | **FK → users.user_id**, ON DELETE CASCADE | Assigned personnel operator |
+| `evacuation_center_id` | varchar(255) | **FK → evacuation_centers.evacuation_center_id**, ON DELETE CASCADE | Target shelter facility |
+| `assigned_by` | varchar(255) | **FK → users.user_id**, ON DELETE SET NULL, nullable | Administrator who executed the station assignment |
+| `event_id` | varchar(255) | **FK → disaster_events.event_id**, ON DELETE SET NULL, nullable | Active disaster event during which assignment was active |
+| `role_at_center` | varchar(100) | default 'personnel' | Operational on-site role designation |
+| `status` | enum('active','completed','transferred') | default 'active' | Current lifecycle status of the assignment |
+| `assigned_at` | timestamp | default CURRENT_TIMESTAMP | Assignment activation timestamp |
+| `relieved_at` | timestamp | nullable | Timestamp when staff was relieved or transferred |
+| `remarks` | text | nullable | Operational transfer notes / relief remarks |
+| `created_at` | timestamp | default CURRENT_TIMESTAMP | Record creation timestamp |
+| `updated_at` | timestamp | nullable | Record update timestamp |
 
 #### `user_notifications`
 In-app notifications and alerts targeted to authenticated administrative users.
