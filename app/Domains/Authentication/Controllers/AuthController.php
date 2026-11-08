@@ -64,10 +64,25 @@ class AuthController extends Controller
 
         $token = $user->createToken('api-token')->plainTextToken;
 
+        $minutes = (int) (config('sanctum.expiration') ?: 10080);
+        $isSecure = config('app.env') === 'production' || $request->isSecure();
+
+        $cookie = cookie(
+            name: 'access_token',
+            value: $token,
+            minutes: $minutes,
+            path: '/',
+            domain: null,
+            secure: $isSecure,
+            httpOnly: true,
+            raw: false,
+            sameSite: 'Lax'
+        );
+
         return response()->json([
             'token' => $token,
-            'user'  => new UserResource($user->load(['role', 'assignedCenter'])),
-        ]);
+            'user'  => new UserResource($user->load(['role', 'assignedCenter', 'currentPersonnelAssignment.center'])),
+        ])->withCookie($cookie);
     }
 
     #[OA\Post(
@@ -80,10 +95,20 @@ class AuthController extends Controller
     #[OA\Response(response: 401, description: 'Unauthenticated')]
     public function apiLogout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $user = $request->user();
+        if ($user) {
+            $currentToken = $user->currentAccessToken();
+            if ($currentToken && method_exists($currentToken, 'delete')) {
+                $currentToken->delete();
+            } else {
+                $user->tokens()->delete();
+            }
+        }
+
+        $cookie = cookie()->forget('access_token');
 
         return response()->json([
             'message' => 'Logged out successfully'
-        ]);
+        ])->withCookie($cookie);
     }
 }

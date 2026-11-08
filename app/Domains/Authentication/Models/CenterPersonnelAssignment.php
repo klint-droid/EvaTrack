@@ -85,3 +85,4 @@ class CenterPersonnelAssignment extends Model
         return $this->belongsTo(DisasterEvent::class, 'event_id', 'event_id');
     }
 }
+

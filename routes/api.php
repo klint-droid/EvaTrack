@@ -33,11 +33,11 @@ use App\Domains\Analytics\Controllers\AnalyticsExportController;
 |--------------------------------------------------------------------------
 */
 
-Route::post('/login', [AuthController::class, 'apiLogin']);
-Route::post('/forgot-password/lookup', [ForgotPasswordController::class, 'lookup']);
-Route::post('/forgot-password/send-otp', [ForgotPasswordController::class, 'sendOtp']);
-Route::post('/forgot-password/verify-otp', [ForgotPasswordController::class, 'verifyOtp']);
-Route::post('/forgot-password/reset', [ForgotPasswordController::class, 'resetPassword']);
+Route::post('/login', [AuthController::class, 'apiLogin'])->middleware('throttle:6,1');
+Route::post('/forgot-password/lookup', [ForgotPasswordController::class, 'lookup'])->middleware('throttle:10,1');
+Route::post('/forgot-password/send-otp', [ForgotPasswordController::class, 'sendOtp'])->middleware('throttle:5,1');
+Route::post('/forgot-password/verify-otp', [ForgotPasswordController::class, 'verifyOtp'])->middleware('throttle:10,1');
+Route::post('/forgot-password/reset', [ForgotPasswordController::class, 'resetPassword'])->middleware('throttle:5,1');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'apiLogout']);
