@@ -74,8 +74,8 @@ class OneSignalService
                 $notificationId = $response->json('id');
                 $errors = $response->json('errors');
 
-                if (!empty($errors) || empty($notificationId)) {
-                    $errorMsg = is_array($errors) ? implode('; ', $errors) : ($errors ?? 'Empty notification ID returned');
+                if (empty($notificationId)) {
+                    $errorMsg = is_array($errors) ? json_encode($errors) : ($errors ?? 'Empty notification ID returned');
                     Log::warning('[OneSignal] Notification rejected/unsubscribed', [
                         'status' => $response->status(),
                         'errors' => $errors,
@@ -87,6 +87,13 @@ class OneSignalService
                         'notification_id' => null,
                         'error'           => $errorMsg,
                     ];
+                }
+
+                if (!empty($errors)) {
+                    Log::info('[OneSignal] Notification sent with partial errors/warnings', [
+                        'notification_id' => $notificationId,
+                        'errors'          => $errors,
+                    ]);
                 }
 
                 return [
