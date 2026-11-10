@@ -29,192 +29,100 @@ EvaTrack streamlines evacuation operations, real-time center occupancy tracking,
 
 | Actor | Role Type | Description & System Scope |
 |-------|-----------|-----------------------------|
-| **Super Admin** | Primary System Actor | Full system oversight across all municipal shelters and administrative jurisdictions. **Exclusively authorized to register new user accounts** (`POST /api/users`). Retains emergency override access over all Evac Admin and Personnel actions for crisis intervention. |
-| **Evacuation Admin** | Primary System Actor | Coordinates center operations across assigned evacuation shelters. Configures shelters and accommodation units, assigns personnel to centers, monitors ongoing resource requests and issue reports, broadcasts emergency SMS and push alerts, and manages disaster events. |
-| **Evacuation Personnel** | Primary System Actor | Stationed at an assigned evacuation center. Performs rapid intake verification via QR scanning or demographic search, admits households, allocates rooms/units, logs in-center incident/health reports, requests resource supplies, and processes departures/checkouts. **Strictly restricted from municipal SMS & Push alert broadcasting to ensure centralized command authority and prevent conflicting directives.** |
-| **Households / Residents** | Secondary Actor (Passive) | Displaced citizens. Possess no interactive system credentials. Receive SMS/Push warnings, present official SafeTrack QR codes or identification upon arrival, and receive shelter allocations. |
+| **Super Admin** | Primary System Actor | Dedicated solely to system-level user account administration. **Exclusively authorized to register new user accounts** (`POST /api/users`), assign roles, and activate/deactivate accounts. |
+| **Evacuation Admin** | Primary System Actor | Coordinates center operations and emergency directives. Declares disaster events, configures evacuation centers, assigns personnel to centers, broadcasts emergency SMS and push alerts, monitors resource logistics and center issues, and analyzes demographic reports. |
+| **Evacuation Personnel** | Primary System Actor | Stationed at an assigned evacuation center. Performs on-site intake verification via QR scanning or demographic search, admits households, configures accommodation units, allocates living spaces, tracks member stay and departure checkout, reports facility issues, and submits resource requests. |
+| **Households / Residents** | Secondary Actor (Passive) | Displaced citizens. Possess no login credentials. View shelter availability on the public map portal, receive SMS/Push warnings, and present official SafeTrack QR codes or identification upon arriving at a center. |
 | **SafeTrack System** | External Integration | Authoritative demographic repository. Provides pre-registered household rosters, addresses, and vulnerability tags for verification and analytics. |
-| **ResQperation System** | External Integration | Emergency response coordination engine. Receives forwarded resource/personnel aid requests from EvaTrack and serves as the push notification gateway for smartphone alerts. |
+| **ResQperation System** | External Integration | Emergency response coordination platform. Receives forwarded resource/personnel aid requests from EvaTrack and serves as the push notification delivery gateway for smartphone alerts. |
 
 ---
 
-## 3. High-Fidelity Use Case Diagram
+## 3. Core Use Case Diagram (Color-Coded by Actor)
 
 ```mermaid
 flowchart LR
-    %% Actors
-    SA["👤 Super Admin"]
-    EA["👤 Evacuation Admin"]
-    EP["👤 Evacuation Personnel"]
-    HH["📱 Households (Passive)"]
-    ST["🌐 SafeTrack System"]
-    RQ["🌐 ResQperation System"]
-
-    %% Subsystems / Packages
-    subgraph UC_AUTH["🔐 1. Authentication & Profile"]
+    %% Actor Definitions
+    subgraph ACTORS ["System Actors"]
         direction TB
-        UC01["UC-01: Login with Credentials / OTP\n(HttpOnly Cookie & Rate Limited)"]
-        UC02["UC-02: Logout & Clear Cookie / Revoke Session"]
-        UC03["UC-03: View & Update Profile"]
-        UC04["UC-04: Change Password"]
+        SA["👤 Super Admin"]:::superAdmin
+        EA["👤 Evacuation Admin"]:::evacAdmin
+        EP["👤 Evacuation Personnel"]:::evacPersonnel
+        HH["📱 Resident / Household (Passive)"]:::residentActor
+        ST["🌐 SafeTrack System"]:::extSystem
+        RQ["🌐 ResQperation System"]:::extSystem
     end
 
-    subgraph UC_USERMGT["👥 2. User & Personnel Management"]
+    %% Use Case System Boundary
+    subgraph EVATRACK ["EVATRACK PLATFORM"]
         direction TB
-        UC05["UC-05: List System Users"]
-        UC06["UC-06: Register User Account (Super Admin Only)"]
-        UC07["UC-07: Update User Profile & Role"]
-        UC08["UC-08: Deactivate / Soft-Delete User"]
-        UC09["UC-09: Assign / Transfer Personnel Station & Audit History"]
-        UC09A["UC-09A: View Personnel Assignment History"]
-        UC09B["UC-09B: View Center Assigned Personnel Roster"]
+        
+        %% Super Admin Scope
+        UC_USERS(["Manage User Accounts"]):::superAdminUC
+        
+        %% Evacuation Admin Scope
+        UC_EVENTS(["Manage Disaster Events"]):::evacAdminUC
+        UC_CENTERS(["Manage Centers & Assign Personnel"]):::evacAdminUC
+        UC_ALERTS(["Broadcast Emergency Alerts (SMS & Push)"]):::evacAdminUC
+        UC_ANALYTICS(["View & Export Evacuation Analytics"]):::evacAdminUC
+
+        %% Shared Management
+        UC_ISSUES(["Report & Monitor Center Issues"]):::sharedUC
+        UC_RESOURCES(["Request & Track Logistics Assistance"]):::sharedUC
+
+        %% Evacuation Personnel Scope
+        UC_VERIFY(["Verify & Admit Households (QR / Manual)"]):::personnelUC
+        UC_UNITS(["Configure Units & Allocate Families"]):::personnelUC
+        UC_CHECKOUT(["Track Member Stay & Process Checkout"]):::personnelUC
+
+        %% Public / Resident Scope
+        UC_PORTAL(["View Public Evacuation Map"]):::publicUC
     end
 
-    subgraph UC_CENTER["🏛️ 3. Evacuation Center & Room Configuration"]
-        direction TB
-        UC10["UC-10: Create Evacuation Center"]
-        UC11["UC-11: Configure Accommodation Units (Rooms/Halls)"]
-        UC12["UC-12: Update Center Details & Operational Status"]
-        UC13["UC-13: Monitor Center Capacity & Occupancy Rates"]
-        UC14["UC-14: Auto-Update Shelter Capacity Count"]
-        UC15["UC-15: Assign Shelters to Disaster Umbrella"]
-    end
+    %% Super Admin Connections
+    SA --> UC_USERS
 
-    subgraph UC_EVAC["🚨 4. Evacuation Operations, Intake & Tracking"]
-        direction TB
-        UC16["UC-16: Verify Household via QR Code Scanner"]
-        UC17["UC-17: Verify Household via Demographic Search"]
-        UC18["UC-18: Admit Household & Update Status to Evacuated"]
-        UC19["UC-19: Allocate Accommodation Unit / Room\n(Direct & Household Drawer)"]
-        UC20["UC-20: Monitor In-Center Stay Duration"]
-        UC21["UC-21: Update Member-Level Evacuation Status"]
-        UC22["UC-22: Process Household Checkout & Release Unit"]
-        UC23["UC-23: View Live & Historical Evacuation Records"]
-    end
-
-    subgraph UC_SAFETRACK["🔗 5. SafeTrack Demographics & Privacy Isolation"]
-        direction TB
-        UC24["UC-24: Sync Master Demographics from SafeTrack"]
-        UC25["UC-25: Restrict Demographic Data to Personnel Only"]
-    end
-
-    subgraph UC_ANALYTICS["📊 6. Evacuation Analytics & Intelligence"]
-        direction TB
-        UC26["UC-26: Compute Real-Time Vulnerability Metrics"]
-        UC27["UC-27: View Age Cohorts (Children / Adults / Elderly)"]
-        UC28["UC-28: View Pregnant & Lactating Women Count"]
-        UC29["UC-29: View PWD & Special Needs Count"]
-        UC30["UC-30: View Gender Demographics"]
-        UC31["UC-31: View Total Population Affected"]
-        UC32["UC-32: Export Analytics & System-Wide Summaries"]
-    end
-
-    subgraph UC_ISSUES["🛠️ 7. Center Incident & Condition Reporting"]
-        direction TB
-        UC33["UC-33: Report Facility / Medical / Safety Incident"]
-        UC34["UC-34: Upload Photo / Evidence Attachment"]
-        UC35["UC-35: Monitor Shelter Health via Issues Kanban"]
-        UC36["UC-36: Triage & Transition Issue Status & Severity"]
-        UC37["UC-37: Resolve or Delete Incident Report"]
-    end
-
-    subgraph UC_RESOURCE["📦 8. Resource Requests & Response Routing"]
-        direction TB
-        UC38["UC-38: File In-Center Resource Supply Request"]
-        UC39["UC-39: Monitor Requests via Kanban / List Board"]
-        UC40["UC-40: Update Logistics Request Status"]
-        UC41["UC-41: Route Supply / Personnel Aid to ResQperation"]
-    end
-
-    subgraph UC_NOTIF["📢 9. SMS & Mobile Push Alerts (Admin Exclusive)"]
-        direction TB
-        UC42["UC-42: Broadcast SMS Alerts (Offline Citizens)"]
-        UC43["UC-43: Dispatch Mobile Push Alerts (ResQperation)"]
-        UC44["UC-44: Configure Recurring Broadcast Dispatches"]
-        UC45["UC-45: Filter Target Audience (Non-Evacuated / Public / Center)"]
-        UC46["UC-46: Auto-Draft Center Status & Redirection Advisory (EVATRACK ADVISORY)"]
-        UC47["UC-47: Monitor Dispatch Logs & Delivery Success Rates"]
-        UC48["UC-48: Cancel / Abort Scheduled Broadcast"]
-    end
-
-    subgraph UC_EVENT["⚡ 10. Disaster Event Coordination"]
-        direction TB
-        UC49["UC-49: Declare Disaster Event"]
-        UC50["UC-50: Track Active & Historical Disaster Scenarios"]
-        UC51["UC-51: Terminate Disaster Event"]
-    end
-
-    subgraph UC_OVERRIDE["🛡️ 11. Emergency Intervention & Oversight"]
-        direction TB
-        UC52["UC-52: Emergency Override of Evac Admin Decisions"]
-        UC53["UC-53: Emergency Override of Personnel Actions"]
-        UC54["UC-54: Global System Oversight & Audit Inspection"]
-    end
-
-    %% Actor Connections
-    %% Super Admin (Blue)
-    SA --> UC_AUTH
-    SA --> UC_USERMGT
-    SA --> UC_CENTER
-    SA --> UC_EVAC
-    SA --> UC_SAFETRACK
-    SA --> UC_ANALYTICS
-    SA --> UC_ISSUES
-    SA --> UC_RESOURCE
-    SA --> UC_NOTIF
-    SA --> UC_EVENT
-    SA --> UC_OVERRIDE
-
-    %% Evacuation Admin (Orange)
-    EA --> UC_AUTH
-    EA --> UC05
-    EA --> UC07
-    EA --> UC08
-    EA --> UC09
-    EA --> UC09A
-    EA --> UC09B
-    EA --> UC_CENTER
-    EA --> UC_EVAC
-    EA --> UC_SAFETRACK
+    %% Evacuation Admin Connections
+    EA --> UC_EVENTS
+    EA --> UC_CENTERS
+    EA --> UC_ALERTS
     EA --> UC_ANALYTICS
     EA --> UC_ISSUES
-    EA --> UC_RESOURCE
-    EA --> UC_NOTIF
-    EA --> UC_EVENT
+    EA --> UC_RESOURCES
 
-    %% Evacuation Personnel (Green)
-    EP --> UC_AUTH
-    EP --> UC_EVAC
-    EP --> UC_SAFETRACK
+    %% Evacuation Personnel Connections
+    EP --> UC_VERIFY
+    EP --> UC_UNITS
+    EP --> UC_CHECKOUT
     EP --> UC_ISSUES
-    EP --> UC38
-    EP --> UC39
+    EP --> UC_RESOURCES
 
-    %% Passive Secondary Actors
-    HH -.->|"Receives Emergency SMS"| UC42
-    HH -.->|"Receives Mobile Push"| UC43
-    HH -.->|"Presents QR / ID for Admission"| UC16
-    HH -.->|"Presents QR / ID for Admission"| UC17
+    %% Resident Connections
+    HH -.-> UC_PORTAL
+    HH -.-> UC_ALERTS
+    HH -.-> UC_VERIFY
 
-    %% External Systems
-    UC24 <-->|"Ingest Household Roster"| ST
-    UC41 -->|"Forward Logistics Demand"| RQ
-    UC43 -->|"Push Gateway Dispatch"| RQ
+    %% External System Integrations
+    UC_VERIFY -.->|"queries demographics"| ST
+    UC_RESOURCES -.->|"routes requests"| RQ
+    UC_ALERTS -.->|"delivers push notifications"| RQ
 
-    %% Node Styling
-    classDef superAdmin    fill:#1d4ed8,stroke:#1e40af,stroke-width:2px,color:#fff,font-weight:bold
-    classDef evacAdmin     fill:#ea580c,stroke:#c2410c,stroke-width:2px,color:#fff,font-weight:bold
-    classDef evacPersonnel fill:#16a34a,stroke:#15803d,stroke-width:2px,color:#fff,font-weight:bold
-    classDef household     fill:#475569,stroke:#334155,stroke-width:2px,color:#fff,font-weight:bold
-    classDef safetrack     fill:#4f46e5,stroke:#4338ca,stroke-width:2px,color:#fff,font-weight:bold
-    classDef resqop        fill:#e11d48,stroke:#be123c,stroke-width:2px,color:#fff,font-weight:bold
+    %% Color Styling Classes
+    classDef superAdmin fill:#581c87,stroke:#9333ea,color:#ffffff,stroke-width:2px;
+    classDef superAdminUC fill:#7e22ce,stroke:#c084fc,color:#ffffff,stroke-width:2px;
 
-    class SA superAdmin
-    class EA evacAdmin
-    class EP evacPersonnel
-    class HH household
-    class ST safetrack
-    class RQ resqop
+    classDef evacAdmin fill:#1e3a8a,stroke:#3b82f6,color:#ffffff,stroke-width:2px;
+    classDef evacAdminUC fill:#1d4ed8,stroke:#60a5fa,color:#ffffff,stroke-width:2px;
+
+    classDef evacPersonnel fill:#064e3b,stroke:#10b981,color:#ffffff,stroke-width:2px;
+    classDef personnelUC fill:#047857,stroke:#34d399,color:#ffffff,stroke-width:2px;
+
+    classDef sharedUC fill:#b45309,stroke:#fbbf24,color:#ffffff,stroke-width:2px;
+
+    classDef residentActor fill:#0e7490,stroke:#06b6d4,color:#ffffff,stroke-width:2px;
+    classDef publicUC fill:#0284c7,stroke:#38bdf8,color:#ffffff,stroke-width:2px;
+
+    classDef extSystem fill:#334155,stroke:#94a3b8,color:#ffffff,stroke-width:2px;
 ```
 
 ---
