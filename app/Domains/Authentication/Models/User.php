@@ -65,6 +65,9 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'temp_password',
+        'security_answer_1',
+        'security_answer_2',
     ];
     protected function casts(): array
     {
@@ -185,12 +188,28 @@ class User extends Authenticatable
             return true;
         }
 
-        return (string) $this->assigned_center_id === (string) $centerId;
+        if ((string) $this->assigned_center_id === (string) $centerId) {
+            return true;
+        }
+
+        if ($this->relationLoaded('currentAssignment')) {
+            return $this->currentAssignment && (string) $this->currentAssignment->evacuation_center_id === (string) $centerId;
+        }
+
+        return false;
     }
 
     public function isAssigned()
     {
-        return !is_null($this->assigned_center_id);
+        if (!is_null($this->assigned_center_id)) {
+            return true;
+        }
+
+        if ($this->relationLoaded('currentAssignment')) {
+            return !is_null($this->currentAssignment);
+        }
+
+        return false;
     }
 
     public function verifiedEvacuationRecords(){
