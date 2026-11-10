@@ -38,51 +38,56 @@ EvaTrack streamlines evacuation operations, real-time center occupancy tracking,
 
 ---
 
-## 3. Core Use Case Diagram (Color-Coded by Actor)
+## 3. Core Use Case Diagram (Black & White Elements with Color-Coded Arrows)
 
 ```mermaid
 flowchart LR
-    %% Actor Definitions
+    %% LEFT: Human Actors
     subgraph ACTORS ["System Actors"]
         direction TB
-        SA["👤 Super Admin"]:::superAdmin
-        EA["👤 Evacuation Admin"]:::evacAdmin
-        EP["👤 Evacuation Personnel"]:::evacPersonnel
-        HH["📱 Resident / Household (Passive)"]:::residentActor
-        ST["🌐 SafeTrack System"]:::extSystem
-        RQ["🌐 ResQperation System"]:::extSystem
+        SA["👤 Super Admin"]:::bwNode
+        EA["👤 Evacuation Admin"]:::bwNode
+        EP["👤 Evacuation Personnel"]:::bwNode
+        HH["📱 Resident / Household (Passive)"]:::bwNode
     end
 
-    %% Use Case System Boundary
+    %% CENTER: EvaTrack Core Platform
     subgraph EVATRACK ["EVATRACK PLATFORM"]
         direction TB
         
-        %% Super Admin Scope
-        UC_USERS(["Manage User Accounts"]):::superAdminUC
+        %% Super Admin
+        UC_USERS(["Manage User Accounts"]):::bwUC
         
-        %% Evacuation Admin Scope
-        UC_EVENTS(["Manage Disaster Events"]):::evacAdminUC
-        UC_CENTERS(["Manage Centers & Assign Personnel"]):::evacAdminUC
-        UC_ALERTS(["Broadcast Emergency Alerts (SMS & Push)"]):::evacAdminUC
-        UC_ANALYTICS(["View & Export Evacuation Analytics"]):::evacAdminUC
+        %% Evacuation Admin
+        UC_EVENTS(["Manage Disaster Events"]):::bwUC
+        UC_CENTERS(["Manage Centers & Assign Personnel"]):::bwUC
+        UC_ALERTS(["Broadcast Emergency Alerts (SMS & Push)"]):::bwUC
+        UC_ANALYTICS(["View & Export Evacuation Analytics"]):::bwUC
 
-        %% Shared Management
-        UC_ISSUES(["Report & Monitor Center Issues"]):::sharedUC
-        UC_RESOURCES(["Request & Track Logistics Assistance"]):::sharedUC
+        %% Shared Collaborative Operations
+        UC_ISSUES(["Report & Monitor Center Issues"]):::bwUC
+        UC_RESOURCES(["Request & Track Logistics Assistance"]):::bwUC
 
-        %% Evacuation Personnel Scope
-        UC_VERIFY(["Verify & Admit Households (QR / Manual)"]):::personnelUC
-        UC_UNITS(["Configure Units & Allocate Families"]):::personnelUC
-        UC_CHECKOUT(["Track Member Stay & Process Checkout"]):::personnelUC
+        %% Evacuation Personnel
+        UC_VERIFY(["Verify & Admit Households (QR / Manual)"]):::bwUC
+        UC_UNITS(["Configure Units & Allocate Families"]):::bwUC
+        UC_CHECKOUT(["Track Member Stay & Process Checkout"]):::bwUC
 
-        %% Public / Resident Scope
-        UC_PORTAL(["View Public Evacuation Map"]):::publicUC
+        %% Resident Public View
+        UC_PORTAL(["View Public Evacuation Map"]):::bwUC
     end
 
-    %% Super Admin Connections
+    %% RIGHT: External Partner Systems
+    subgraph EXTERNAL ["External Systems"]
+        direction TB
+        ST["🌐 SafeTrack System"]:::bwNode
+        RQ["🌐 ResQperation System"]:::bwNode
+    end
+
+    %% Super Admin Connections (Purple)
     SA --> UC_USERS
 
-    %% Evacuation Admin Connections
+    %% Evacuation Admin Connections (Blue)
     EA --> UC_EVENTS
     EA --> UC_CENTERS
     EA --> UC_ALERTS
@@ -90,39 +95,59 @@ flowchart LR
     EA --> UC_ISSUES
     EA --> UC_RESOURCES
 
-    %% Evacuation Personnel Connections
+    %% Evacuation Personnel Connections (Green)
     EP --> UC_VERIFY
     EP --> UC_UNITS
     EP --> UC_CHECKOUT
     EP --> UC_ISSUES
     EP --> UC_RESOURCES
 
-    %% Resident Connections
+    %% Resident Connections (Teal / Dashed)
     HH -.-> UC_PORTAL
     HH -.-> UC_ALERTS
     HH -.-> UC_VERIFY
 
-    %% External System Integrations
-    UC_VERIFY -.->|"queries demographics"| ST
-    UC_RESOURCES -.->|"routes requests"| RQ
-    UC_ALERTS -.->|"delivers push notifications"| RQ
+    %% External System Connections (Center to Right)
+    UC_VERIFY -->|"Demographics Query"| ST
+    UC_RESOURCES -->|"Logistics Demand"| RQ
+    UC_ALERTS -->|"Push Notification Dispatch"| RQ
 
-    %% Color Styling Classes
-    classDef superAdmin fill:#581c87,stroke:#9333ea,color:#ffffff,stroke-width:2px;
-    classDef superAdminUC fill:#7e22ce,stroke:#c084fc,color:#ffffff,stroke-width:2px;
+    %% Node Styling (Clean Black and White / Grayscale)
+    classDef bwNode fill:#ffffff,stroke:#0f172a,stroke-width:2px,color:#0f172a,font-weight:bold;
+    classDef bwUC fill:#ffffff,stroke:#334155,stroke-width:1.8px,color:#0f172a;
 
-    classDef evacAdmin fill:#1e3a8a,stroke:#3b82f6,color:#ffffff,stroke-width:2px;
-    classDef evacAdminUC fill:#1d4ed8,stroke:#60a5fa,color:#ffffff,stroke-width:2px;
+    style ACTORS fill:#f8fafc,stroke:#94a3b8,stroke-width:1.5px,stroke-dasharray: 4 4;
+    style EVATRACK fill:#ffffff,stroke:#0f172a,stroke-width:2px;
+    style EXTERNAL fill:#f8fafc,stroke:#94a3b8,stroke-width:1.5px,stroke-dasharray: 4 4;
 
-    classDef evacPersonnel fill:#064e3b,stroke:#10b981,color:#ffffff,stroke-width:2px;
-    classDef personnelUC fill:#047857,stroke:#34d399,color:#ffffff,stroke-width:2px;
+    %% Color-Coded Arrows (linkStyle)
+    %% Link 0: Super Admin (Purple)
+    linkStyle 0 stroke:#9333ea,stroke-width:2.5px;
 
-    classDef sharedUC fill:#b45309,stroke:#fbbf24,color:#ffffff,stroke-width:2px;
+    %% Links 1-6: Evacuation Admin (Blue)
+    linkStyle 1 stroke:#2563eb,stroke-width:2.5px;
+    linkStyle 2 stroke:#2563eb,stroke-width:2.5px;
+    linkStyle 3 stroke:#2563eb,stroke-width:2.5px;
+    linkStyle 4 stroke:#2563eb,stroke-width:2.5px;
+    linkStyle 5 stroke:#2563eb,stroke-width:2.5px;
+    linkStyle 6 stroke:#2563eb,stroke-width:2.5px;
 
-    classDef residentActor fill:#0e7490,stroke:#06b6d4,color:#ffffff,stroke-width:2px;
-    classDef publicUC fill:#0284c7,stroke:#38bdf8,color:#ffffff,stroke-width:2px;
+    %% Links 7-11: Evacuation Personnel (Green)
+    linkStyle 7 stroke:#059669,stroke-width:2.5px;
+    linkStyle 8 stroke:#059669,stroke-width:2.5px;
+    linkStyle 9 stroke:#059669,stroke-width:2.5px;
+    linkStyle 10 stroke:#059669,stroke-width:2.5px;
+    linkStyle 11 stroke:#059669,stroke-width:2.5px;
 
-    classDef extSystem fill:#334155,stroke:#94a3b8,color:#ffffff,stroke-width:2px;
+    %% Links 12-14: Resident / Public (Teal)
+    linkStyle 12 stroke:#0891b2,stroke-width:2px;
+    linkStyle 13 stroke:#0891b2,stroke-width:2px;
+    linkStyle 14 stroke:#0891b2,stroke-width:2px;
+
+    %% Links 15-17: External Systems (SafeTrack Indigo & ResQperation Rose)
+    linkStyle 15 stroke:#4f46e5,stroke-width:2.5px;
+    linkStyle 16 stroke:#e11d48,stroke-width:2.5px;
+    linkStyle 17 stroke:#e11d48,stroke-width:2.5px;
 ```
 
 ---
