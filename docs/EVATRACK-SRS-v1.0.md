@@ -349,7 +349,7 @@ The functional requirements below are organized by system module. Every requirem
 | FR-OVR-01 | The system shall grant the Super Admin full visibility and management access across all evacuation centers, disaster events, households, issue reports, and resource requests. | Must | Klint M. Ruales |
 | FR-OVR-02 | The system shall allow the Super Admin to override center-level restrictions to edit, admit, checkout, or clean up records across any evacuation center during emergencies. | Must | Klint M. Ruales |
 | FR-OVR-03 | The system shall generate in-app user notifications (user_notifications) to alert operators about new issue reports, resource request updates, and system events. | Must | Klint M. Ruales |
-| FR-OVR-04 | The system shall allow Super Admins and Evacuation Admins to export consolidated center and municipality-wide evacuation reports. | Must | Klint M. Ruales |
+| FR-OVR-04 | The system shall allow Super Admins and Evacuation Admins to export consolidated center and barangay-wide evacuation reports. | Must | Klint M. Ruales |
 
 ## 3.3 Non-Functional Requirements
 

@@ -389,7 +389,7 @@ flowchart LR
 
 #### UC-32: Export Analytics & System-Wide Summaries
 * **Actors:** Super Admin
-* **Description:** Exports consolidated demographic intelligence into formal CSV/PDF reports for municipal DRRMO and council briefing.
+* **Description:** Exports consolidated demographic intelligence into formal CSV/PDF reports for Barangay DRRMC (BDRRMC) and council briefing.
 * **API Endpoint & DB Tables:** `GET /api/analytics/export` | `analytics`, `evacuation_centers`.
 
 ---
@@ -451,7 +451,7 @@ flowchart LR
 
 ### Package 9: SMS & Mobile Push Alerts (Admin Exclusive)
 
-> **Access Control Rule:** Evacuation Personnel are strictly barred from creating or transmitting municipal SMS and Push alerts to prevent decentralized panic, contradictory evacuation directives, and uncoordinated telco gateway expenses. All public warning broadcasts are restricted to Evacuation Admins and Super Admins.
+> **Access Control Rule:** Evacuation Personnel are strictly barred from creating or transmitting barangay-wide SMS and Push alerts to prevent decentralized panic, contradictory evacuation directives, and uncoordinated telco gateway expenses. All public warning broadcasts are restricted to Evacuation Admins and Super Admins.
 
 #### UC-42: Broadcast SMS Alerts (Offline Citizens)
 * **Actors:** Evacuation Admin, Super Admin *(Evacuation Personnel Restricted)*

@@ -19,7 +19,7 @@ flowchart TB
     %% ==========================================
     subgraph CLIENT_TIER ["1. Client & User Tier"]
         direction LR
-        U_ADMIN["👤 Municipal & Camp Operators<br/>(Super Admin & Evac Admin)"]:::bwNode
+        U_ADMIN["👤 Barangay & Camp Operators<br/>(Super Admin & Evac Admin)"]:::bwNode
         U_STAFF["👤 On-Site Shelter Personnel<br/>(Evacuation Personnel)"]:::bwNode
         U_PUBLIC["📱 Evacuees & Citizens<br/>(Public Portal / Mobile Devices)"]:::bwNode
     end
@@ -166,7 +166,7 @@ flowchart TB
 
 ### Tier 1: Client & User Tier
 The platform serves three distinct user classes across various devices:
-* **Municipal & Camp Administrators (Super Admin & Evacuation Admin):** Use desktop and tablet browsers to oversee shelter logistics, declare disaster scenarios, assign personnel, review facility condition tickets, and dispatch broadcasts.
+* **Barangay & Camp Administrators (Super Admin & Evacuation Admin):** Use desktop and tablet browsers to oversee shelter logistics, declare disaster scenarios, assign personnel, review facility condition tickets, and dispatch broadcasts.
 * **On-Site Shelter Personnel (Evacuation Personnel):** Stationed at physical evacuation shelters. They operate the camera-based QR scanner or manual search to admit evacuees, manage accommodation units, track members, and log local incident tickets.
 * **Citizens & Displaced Households (Public):** Require no login credentials. They access the public portal map to view available shelter spaces and receive emergency warnings via SMS and smartphone push notifications.
 
@@ -226,3 +226,4 @@ The platform serves three distinct user classes across various devices:
 1. **Demographic Privacy Isolation:** In accordance with the Data Privacy Act of 2012 (Republic Act No. 10173), household demographic rosters and vulnerable sector tags are restricted exclusively to authenticated operators for intake verification and analytics. Personal resident records are strictly excluded from public portal endpoints.
 2. **Credential Security:** All operator credentials are encrypted using Bcrypt (`BCRYPT_ROUNDS=12`) with personal access tokens revoked immediately upon session logout.
 3. **Auditability & Integrity:** Database operations modifying multiple tables (e.g., admitting evacuees and updating center headcount) execute within atomic database transactions (`DB::transaction`) to guarantee capacity consistency.
+
