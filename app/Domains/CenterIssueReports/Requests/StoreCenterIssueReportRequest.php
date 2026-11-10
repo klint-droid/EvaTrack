@@ -24,7 +24,7 @@ class StoreCenterIssueReportRequest extends FormRequest
             'evacuation_center_id' => 'nullable|exists:evacuation_centers,evacuation_center_id',
             'category'             => 'required|in:incident,facility_issue,health_issue,safety_issue,other',
             'title'                => 'required|string|max:150',
-            'description'          => 'required|string',
+            'description'          => 'nullable|string',
             'severity'             => 'required|in:low,medium,high,critical',
             'attachment'           => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:5120',
         ];

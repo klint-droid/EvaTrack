@@ -73,9 +73,19 @@ class UpdateCenterIssueReportRequestTest extends TestCase
         $image = UploadedFile::fake()->image('damage.jpg');
 
         $validator = Validator::make([
-            'title'      => 'Resolved leak issue',
-            'severity'   => 'low',
-            'attachment' => $image,
+            'title'       => 'Resolved leak issue',
+            'description' => null,
+            'severity'    => 'low',
+            'attachment'  => $image,
+        ], $this->request->rules());
+
+        $this->assertFalse($validator->fails());
+    }
+
+    public function test_validation_passes_when_description_is_null(): void
+    {
+        $validator = Validator::make([
+            'description' => null,
         ], $this->request->rules());
 
         $this->assertFalse($validator->fails());

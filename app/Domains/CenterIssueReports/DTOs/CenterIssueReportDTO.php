@@ -12,6 +12,7 @@ class CenterIssueReportDTO
         public readonly ?string $title,
         public readonly ?string $description,
         public readonly ?string $severity,
+        public readonly bool $hasDescription = false,
     ) {}
 
     public static function fromRequest(FormRequest $request): self
@@ -22,17 +23,24 @@ class CenterIssueReportDTO
             title:              $request->input('title'),
             description:        $request->input('description'),
             severity:           $request->input('severity'),
+            hasDescription:     $request->has('description'),
         );
     }
     
     public function toArray(): array
     {
-        return array_filter([
+        $data = array_filter([
             'evacuation_center_id' => $this->evacuationCenterId,
             'category'             => $this->category,
             'title'                => $this->title,
             'description'          => $this->description,
             'severity'             => $this->severity,
         ], fn($value) => $value !== null);
+
+        if ($this->hasDescription && $this->description === null) {
+            $data['description'] = null;
+        }
+
+        return $data;
     }
 }

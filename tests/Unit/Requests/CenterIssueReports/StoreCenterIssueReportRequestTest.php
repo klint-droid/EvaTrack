@@ -56,8 +56,19 @@ class StoreCenterIssueReportRequestTest extends TestCase
         $this->assertTrue($validator->fails());
         $this->assertTrue($validator->errors()->has('category'));
         $this->assertTrue($validator->errors()->has('title'));
-        $this->assertTrue($validator->errors()->has('description'));
+        $this->assertFalse($validator->errors()->has('description'));
         $this->assertTrue($validator->errors()->has('severity'));
+    }
+
+    public function test_validation_passes_when_description_is_null_or_omitted(): void
+    {
+        $validator = Validator::make([
+            'category'    => 'facility_issue',
+            'title'       => 'Broken Window',
+            'severity'    => 'low',
+        ], $this->request->rules());
+
+        $this->assertFalse($validator->fails());
     }
 
     public function test_validation_fails_when_category_is_invalid(): void

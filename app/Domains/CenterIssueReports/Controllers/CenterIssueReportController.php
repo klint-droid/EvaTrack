@@ -63,12 +63,12 @@ class CenterIssueReportController extends BaseApiController
     #[OA\RequestBody(
         required: true,
         content: new OA\JsonContent(
-            required: ['category', 'title', 'description', 'severity'],
+            required: ['category', 'title', 'severity'],
             properties: [
                 new OA\Property(property: 'evacuation_center_id', type: 'integer', nullable: true),
                 new OA\Property(property: 'category', type: 'string'),
                 new OA\Property(property: 'title', type: 'string'),
-                new OA\Property(property: 'description', type: 'string'),
+                new OA\Property(property: 'description', type: 'string', nullable: true),
                 new OA\Property(property: 'severity', type: 'string'),
             ]
         )
@@ -140,7 +140,7 @@ class CenterIssueReportController extends BaseApiController
             properties: [
                 new OA\Property(property: 'category', type: 'string'),
                 new OA\Property(property: 'title', type: 'string'),
-                new OA\Property(property: 'description', type: 'string'),
+                new OA\Property(property: 'description', type: 'string', nullable: true),
                 new OA\Property(property: 'severity', type: 'string'),
             ]
         )
