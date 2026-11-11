@@ -30,30 +30,30 @@ flowchart TD
     %% ══════════════════════════════════════════════════════════════════════════
     %% STRONG ENTITIES (Single Border Rectangles)
     %% ══════════════════════════════════════════════════════════════════════════
-    EC["🏢 EVACUATION_CENTERS\n(Strong Entity)"]:::strongEntity
-    ROLE["🛡️ ROLES\n(Strong Entity)"]:::strongEntity
-    USER["👤 USERS\n(Strong Entity)"]:::strongEntity
-    ACTYPE["🏷️ ACCOMMODATION_TYPES\n(Strong Entity)"]:::strongEntity
-    RRSTAT["📊 RESOURCE_REQUEST_STATUS\n(Strong Entity)"]:::strongEntity
-    CICAT["🗂️ CENTER_ISSUE_CATEGORIES\n(Strong Entity)"]:::strongEntity
-    CISTAT["📌 CENTER_ISSUE_REPORT_STATUSES\n(Strong Entity)"]:::strongEntity
-    NOTIF["🔔 NOTIFICATIONS\n(Strong Entity)"]:::strongEntity
+    EC["EVACUATION_CENTERS\n(Strong Entity)"]:::strongEntity
+    ROLE["ROLES\n(Strong Entity)"]:::strongEntity
+    USER["USERS\n(Strong Entity)"]:::strongEntity
+    ACTYPE["ACCOMMODATION_TYPES\n(Strong Entity)"]:::strongEntity
+    RRSTAT["RESOURCE_REQUEST_STATUS\n(Strong Entity)"]:::strongEntity
+    CICAT["CENTER_ISSUE_CATEGORIES\n(Strong Entity)"]:::strongEntity
+    CISTAT["CENTER_ISSUE_REPORT_STATUSES\n(Strong Entity)"]:::strongEntity
+    NOTIF["NOTIFICATIONS\n(Strong Entity)"]:::strongEntity
 
     %% ── External Partner Strong Entities (Bridges) ──
-    HH["📋 HOUSEHOLDS\n(SafeTrack External Strong)"]:::extEntity
-    EVT["⚡ DISASTER_EVENTS\n(ResQ External Strong)"]:::extEntity
+    HH["HOUSEHOLDS\n(SafeTrack External Strong)"]:::extEntity
+    EVT["DISASTER_EVENTS\n(ResQ External Strong)"]:::extEntity
 
     %% ══════════════════════════════════════════════════════════════════════════
     %% WEAK / ASSOCIATIVE ENTITIES (Double Border Rectangles)
     %% ══════════════════════════════════════════════════════════════════════════
-    UNIT[["🚪 ACCOMMODATION_UNITS\n(Weak to Centers)"]]:::weakEntity
-    ALLOC[["🛏️ UNIT_ALLOCATIONS\n(Associative Weak)"]]:::weakEntity
-    EVAC[["📑 EVACUATION_RECORDS\n(Transactional Weak)"]]:::weakEntity
-    MEM[["👥 EVACUATED_MEMBERS\n(Weak to Evac Record)"]]:::weakEntity
-    ASSIGN[["📋 CENTER_PERSONNEL_ASSIGNMENTS\n(Associative Weak)"]]:::weakEntity
-    RR[["📦 RESOURCE_REQUESTS\n(Weak to Centers/Users)"]]:::weakEntity
-    CIR[["⚠️ CENTER_ISSUE_REPORTS\n(Weak to Centers/Users)"]]:::weakEntity
-    RECP[["📨 NOTIFICATION_RECIPIENTS\n(Associative Weak)"]]:::weakEntity
+    UNIT[["ACCOMMODATION_UNITS\n(Weak to Centers)"]]:::weakEntity
+    ALLOC[["UNIT_ALLOCATIONS\n(Associative Weak)"]]:::weakEntity
+    EVAC[["EVACUATION_RECORDS\n(Transactional Weak)"]]:::weakEntity
+    MEM[["EVACUATED_MEMBERS\n(Weak to Evac Record)"]]:::weakEntity
+    ASSIGN[["CENTER_PERSONNEL_ASSIGNMENTS\n(Associative Weak)"]]:::weakEntity
+    RR[["RESOURCE_REQUESTS\n(Weak to Centers/Users)"]]:::weakEntity
+    CIR[["CENTER_ISSUE_REPORTS\n(Weak to Centers/Users)"]]:::weakEntity
+    RECP[["NOTIFICATION_RECIPIENTS\n(Associative Weak)"]]:::weakEntity
 
     %% ══════════════════════════════════════════════════════════════════════════
     %% RELATIONSHIP DIAMONDS
@@ -171,9 +171,9 @@ Models evacuation center facilities, internal modular accommodation units, and l
 flowchart TD
 
     %% ── Entities ──
-    EC["🏢 EVACUATION_CENTERS\n(Strong Entity)"]:::strongEntity
-    UNIT[["🚪 ACCOMMODATION_UNITS\n(Weak Entity)"]]:::weakEntity
-    ALLOC[["🛏️ UNIT_ALLOCATIONS\n(Weak Entity)"]]:::weakEntity
+    EC["EVACUATION_CENTERS\n(Strong Entity)"]:::strongEntity
+    UNIT[["ACCOMMODATION_UNITS\n(Weak Entity)"]]:::weakEntity
+    ALLOC[["UNIT_ALLOCATIONS\n(Weak Entity)"]]:::weakEntity
 
     %% ── Center Attributes (Ovals) ──
     A_EC_ID(["<u>evacuation_center_id</u>"]):::pkOval
@@ -241,10 +241,10 @@ Models resident arrival, verification method (`qr` vs. `manual`), and individual
 flowchart TD
 
     %% ── Entities ──
-    EC["🏢 EVACUATION_CENTERS"]:::strongEntity
-    HH["📋 HOUSEHOLDS\n(SafeTrack)"]:::extEntity
-    EVAC[["📑 EVACUATION_RECORDS\n(Transactional Weak)"]]:::weakEntity
-    MEM[["👥 EVACUATED_MEMBERS\n(Weak Entity)"]]:::weakEntity
+    EC["EVACUATION_CENTERS"]:::strongEntity
+    HH["HOUSEHOLDS\n(SafeTrack)"]:::extEntity
+    EVAC[["EVACUATION_RECORDS\n(Transactional Weak)"]]:::weakEntity
+    MEM[["EVACUATED_MEMBERS\n(Weak Entity)"]]:::weakEntity
 
     %% ── Evacuation Record Attributes ──
     A_ER_ID(["<u>evacuation_id</u>"]):::pkOval
@@ -295,10 +295,10 @@ Models the **Barangay IT / System Administrator (Super Admin)**, **Camp Commande
 flowchart TD
 
     %% ── Entities ──
-    ROLE["🛡️ ROLES\n(Strong Entity)"]:::strongEntity
-    USER["👤 USERS\n(Strong Entity)"]:::strongEntity
-    ASSIGN[["📋 CENTER_PERSONNEL_ASSIGNMENTS\n(Associative Weak)"]]:::weakEntity
-    EC["🏢 EVACUATION_CENTERS\n(Strong Entity)"]:::strongEntity
+    ROLE["ROLES\n(Strong Entity)"]:::strongEntity
+    USER["USERS\n(Strong Entity)"]:::strongEntity
+    ASSIGN[["CENTER_PERSONNEL_ASSIGNMENTS\n(Associative Weak)"]]:::weakEntity
+    EC["EVACUATION_CENTERS\n(Strong Entity)"]:::strongEntity
 
     %% ── Role Attributes ──
     A_R_ID(["<u>role_id</u>"]):::pkOval
@@ -367,12 +367,12 @@ Models requisitions (food, water, medical kits) and facility/medical issues logg
 flowchart TD
 
     %% ── Entities ──
-    EC["🏢 EVACUATION_CENTERS"]:::strongEntity
-    USER["👤 USERS"]:::strongEntity
-    RR[["📦 RESOURCE_REQUESTS\n(Weak Entity)"]]:::weakEntity
-    CIR[["⚠️ CENTER_ISSUE_REPORTS\n(Weak Entity)"]]:::weakEntity
-    RR_STAT["📊 RESOURCE_REQUEST_STATUS"]:::strongEntity
-    CI_CAT["🗂️ CENTER_ISSUE_CATEGORIES"]:::strongEntity
+    EC["EVACUATION_CENTERS"]:::strongEntity
+    USER["USERS"]:::strongEntity
+    RR[["RESOURCE_REQUESTS\n(Weak Entity)"]]:::weakEntity
+    CIR[["CENTER_ISSUE_REPORTS\n(Weak Entity)"]]:::weakEntity
+    RR_STAT["RESOURCE_REQUEST_STATUS"]:::strongEntity
+    CI_CAT["CENTER_ISSUE_CATEGORIES"]:::strongEntity
 
     %% ── Resource Request Attributes ──
     A_RR_ID(["<u>request_id</u>"]):::pkOval
@@ -456,4 +456,3 @@ flowchart TD
 | **`Originates`** | `EVACUATION_CENTERS` | `RESOURCE_REQUESTS` | **1 : N** | Optional (1) to Optional (N) | Shelters submitting logistics/supply replenishment requests. |
 | **`Logs_Incident`**| `EVACUATION_CENTERS` | `CENTER_ISSUE_REPORTS` | **1 : N** | Optional (1) to Optional (N) | Center incident tracking (sanitation, medical, security). |
 | **`Dispatched_To`**| `NOTIFICATIONS` | `HOUSEHOLDS` | **M : N** (via `RECIPIENTS`) | Optional (M) to Optional (N) | Broadcast SMS and Push emergency alerts dispatched to residents. |
-
