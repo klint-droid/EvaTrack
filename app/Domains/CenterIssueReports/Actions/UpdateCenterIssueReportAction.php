@@ -23,13 +23,13 @@ class UpdateCenterIssueReportAction
             throw new Exception("Report not found or unauthorized.", 404);
         }
 
+        if ($report->status && $report->status->status_key !== 'open') {
+            throw new Exception("Only open reports can be edited.", 400);
+        }
+
         if ($user->isEvacPersonnel()) {
             if ($report->reported_by !== $user->user_id) {
                 throw new Exception("You can only update your own report.", 403);
-            }
-
-            if ($report->status && $report->status->status_key !== 'open') {
-                throw new Exception("Only open reports can be edited.", 400);
             }
         }
 

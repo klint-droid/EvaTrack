@@ -20,13 +20,13 @@ class DeleteCenterIssueReportAction
             throw new Exception("Report not found or unauthorized.", 404);
         }
 
+        if ($report->status && $report->status->status_key !== 'open') {
+            throw new Exception("Only open reports can be deleted.", 400);
+        }
+
         if ($user->isEvacPersonnel()) {
             if ($report->reported_by !== $user->user_id) {
                 throw new Exception("You can only delete your own report.", 403);
-            }
-
-            if ($report->status && $report->status->status_key !== 'open') {
-                throw new Exception("Only open reports can be deleted.", 400);
             }
         }
 

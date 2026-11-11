@@ -18,9 +18,11 @@ EvaTrack operates as the central camp coordination and evacuation management pla
 5. **OneSignal Gateway (External Push Gateway):** Mobile push notification delivery gateway targeting smartphone app users via registered device player tokens and subscription IDs.
 6. **Households / Residents (End Beneficiaries):** Present SafeTrack QR codes or identification at evacuation centers, receive real-time SMS broadcasts and mobile push alerts.
 7. **System Operators:**
-   - **Super Admin (MDRRMO):** System-wide administrator managing all user accounts, role provisioning (`SUP`), global center registrations, disaster event activations, and cross-center analytics.
-   - **Evacuation Admin (Camp Commander):** Camp Incident Commander managing shelter capacities (`EAD`), room assignments, staff shifts, resource request approvals, and local emergency broadcast dispatches.
-   - **Evacuation Personnel (Frontline Desk Registrar):** Frontline desk staff (`EPE`) verifying evacuees against SafeTrack records, checking in/out households, logging room allocations, reporting facility/medical incidents, and drafting supply requisitions.
+   - **Super Admin (IT / System Administrator):** Technical IT and systems administrator managing system infrastructure, user accounts, credential security, role provisioning (`SUP`), global system configurations, database health, and immutable audit logs.
+   - **Evacuation Admin (Barangay Camp Commander / BDRRMC Operations Lead):** Barangay disaster operations manager (`EAD`) overseeing camp operations, shelter capacities, room configurations, personnel center assignments, resource requisition approvals, and local emergency alert broadcasts.
+   - **Evacuation Personnel (Barangay Frontline Desk Registrar / Camp Staff):** On-site frontline staff (`EPE`) stationed at barangay evacuation centers, verifying evacuees against SafeTrack records, admitting/checking out households, logging room allocations, reporting facility/medical incidents, and drafting supply requisitions.
+
+> **Operational Scope Note:** EvaTrack is strictly **Barangay-based** (operating under the Barangay Disaster Risk Reduction and Management Committee / BDRRMC and Barangay LGU). There is **no MDRRMO** entity in this system; municipal/higher-level functions are not within this system's scope, and the **Super Admin** acts strictly as the **IT / System Administrator**.
 
 ---
 
@@ -33,9 +35,9 @@ flowchart LR
 
     %% ── Internal Actors (Left) ──
     subgraph GRP_INTERNAL["👥 System Operators"]
-        SA["👤 Super Admin\n(MDRRMO / System Lead)"]
-        EA["👤 Evacuation Admin\n(Camp Commander)"]
-        EP["👤 Evacuation Personnel\n(Frontline Desk Registrar)"]
+        SA["👤 Super Admin\n(IT / System Admin)"]
+        EA["👤 Evacuation Admin\n(Barangay Camp Commander / BDRRMC)"]
+        EP["👤 Evacuation Personnel\n(Barangay Frontline Desk Staff)"]
     end
 
     %% ── Central System ──
@@ -52,8 +54,8 @@ flowchart LR
     HH["📱 Households / Residents\n(Displaced Evacuees)"]
 
     %% ── Super Admin Flows ──
-    SA -->|"User registration, role provisioning,\nglobal center config, disaster event declaration"| SYS
-    SYS -->|"System audit logs, cross-center analytics,\nglobal occupancy reports"| SA
+    SA -->|"User registration, role provisioning,\nsystem configuration & IT oversight"| SYS
+    SYS -->|"System audit logs, error diagnostics,\ntechnical health & aggregated analytics"| SA
 
     %% ── Evacuation Admin Flows ──
     EA -->|"Accommodation room setup, staff monitoring,\nresource approvals, local alert dispatches"| SYS
@@ -107,9 +109,9 @@ flowchart TB
     %% EXTERNAL ENTITIES
     %% ══════════════════════════════════════════════════════════════════════════
     subgraph ACTORS["👥 System Operators & External Systems"]
-        SA["👤 Super Admin"]
-        EA["👤 Evacuation Admin"]
-        EP["👤 Evacuation Personnel"]
+        SA["👤 Super Admin (IT / System Admin)"]
+        EA["👤 Evacuation Admin (Barangay Camp Commander)"]
+        EP["👤 Evacuation Personnel (Barangay Desk Staff)"]
         ST["📋 SafeTrack Platform"]
         RQ["🚑 ResQperation Platform"]
         TB["📡 TextBee SMS Gateway"]
@@ -237,7 +239,7 @@ flowchart TB
     D2 -->|"Capacity vs occupancy counts"| P9
     P9 <-->|"Persist computed periodic & live snapshots"| D10
     P9 -->|"Demographic breakdown (Age, Gender, PWD, Pregnant), Occupancy Rate"| EA
-    P9 -->|"Cross-center disaster rollup, city-wide humanitarian metrics"| SA
+    P9 -->|"Cross-center disaster rollup, barangay-wide humanitarian metrics"| SA
     RQ -->|"Request external DROMIC & utilization reports"| P9
     P9 -->|"Generated PDF/CSV report stream"| RQ
 
@@ -456,7 +458,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     autonumber
-    actor ExternalPartner as 🏢 Partner System / MDRRMO Executive
+    actor ExternalPartner as 🏢 Partner System / BDRRMC Executive
     participant EvaAPI as ⚙️ EvaTrack External Reports API
     participant Middleware as 🛡️ ValidateExternalApiKey
     participant DB as 💽 Local DB (D2, D5, D6, D10)

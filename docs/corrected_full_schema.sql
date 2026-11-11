@@ -1,7 +1,8 @@
 -- ============================================================================
 -- KLINT UNIFIED DATABASE — COMPLETE CORRECTED SCHEMA (MySQL 8.0+ / InnoDB)
 -- Subsystems Supported: EvaTrack, ResQ / ResQperation, and BIDRCS
--- Total Objects: 111 Base Tables + 2 Analytical Views
+-- Total Objects: 122 Base Tables + 2 Analytical Views (124 Total)
+-- Generated Date: 2026-11-11 23:09:25
 -- Character Set: utf8mb4 | Collation: utf8mb4_0900_ai_ci
 -- ============================================================================
 
@@ -88,7 +89,7 @@ CREATE TABLE `accommodation_units` (
   `created_at` datetime DEFAULT NULL,
   `deleted_at` datetime DEFAULT NULL,
   PRIMARY KEY (`unit_id`),
-  KEY `idx_accomm_units_center_deleted` (`center_id`, `deleted_at`),
+  KEY `idx_accomm_units_center_deleted` (`center_id`,`deleted_at`),
   KEY `idx_accomm_units_type` (`type_id`),
   CONSTRAINT `fk_accomm_units_center` FOREIGN KEY (`center_id`) REFERENCES `evacuation_centers` (`evacuation_center_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_accomm_units_type` FOREIGN KEY (`type_id`) REFERENCES `accommodation_types` (`type_id`) ON DELETE SET NULL ON UPDATE CASCADE
@@ -125,9 +126,10 @@ CREATE TABLE `addresses` (
   KEY `idx_addresses_sitio` (`sitio_id`),
   KEY `idx_addresses_purok` (`purok_id`),
   KEY `idx_addresses_zipcode` (`zipcode_id`),
+  KEY `idx_addresses_barangay_deleted` (`barangay_id`,`deleted_at`),
   CONSTRAINT `fk_addresses_barangay` FOREIGN KEY (`barangay_id`) REFERENCES `barangays` (`barangay_id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_addresses_sitio` FOREIGN KEY (`sitio_id`) REFERENCES `sitios` (`sitio_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_addresses_purok` FOREIGN KEY (`purok_id`) REFERENCES `puroks` (`purok_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_addresses_sitio` FOREIGN KEY (`sitio_id`) REFERENCES `sitios` (`sitio_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_addresses_zipcode` FOREIGN KEY (`zipcode_id`) REFERENCES `zipcodes` (`zipcode_id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -151,11 +153,12 @@ CREATE TABLE `affected_areas` (
   KEY `idx_affected_areas_sitio` (`sitio_id`),
   KEY `idx_affected_areas_barangay` (`barangay_id`),
   KEY `idx_affected_areas_severity` (`severity_id`),
+  KEY `resq_060e64d606d09f13_idx` (`disaster_id`,`purok_id`),
+  CONSTRAINT `fk_affected_areas_barangay` FOREIGN KEY (`barangay_id`) REFERENCES `barangays` (`barangay_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_affected_areas_disaster` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_affected_areas_severity` FOREIGN KEY (`severity_id`) REFERENCES `severity_levels` (`severity_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_affected_areas_purok` FOREIGN KEY (`purok_id`) REFERENCES `puroks` (`purok_id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_affected_areas_sitio` FOREIGN KEY (`sitio_id`) REFERENCES `sitios` (`sitio_id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_affected_areas_barangay` FOREIGN KEY (`barangay_id`) REFERENCES `barangays` (`barangay_id`) ON DELETE SET NULL ON UPDATE CASCADE
+  CONSTRAINT `fk_affected_areas_severity` FOREIGN KEY (`severity_id`) REFERENCES `severity_levels` (`severity_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_affected_areas_sitio` FOREIGN KEY (`sitio_id`) REFERENCES `sitios` (`sitio_id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -191,11 +194,12 @@ CREATE TABLE `analytics` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`analytic_id`),
-  KEY `idx_analytics_event_center_period` (`evacuation_event_id`, `evacuation_center_id`, `record_period`),
+  KEY `idx_analytics_event_center_period` (`evacuation_event_id`,`evacuation_center_id`,`record_period`),
   KEY `idx_analytics_barangay` (`barangay_id`),
-  CONSTRAINT `fk_analytics_event` FOREIGN KEY (`evacuation_event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  KEY `fk_analytics_center` (`evacuation_center_id`),
+  CONSTRAINT `fk_analytics_barangay` FOREIGN KEY (`barangay_id`) REFERENCES `barangays` (`barangay_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_analytics_center` FOREIGN KEY (`evacuation_center_id`) REFERENCES `evacuation_centers` (`evacuation_center_id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_analytics_barangay` FOREIGN KEY (`barangay_id`) REFERENCES `barangays` (`barangay_id`) ON DELETE SET NULL ON UPDATE CASCADE
+  CONSTRAINT `fk_analytics_event` FOREIGN KEY (`evacuation_event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -209,7 +213,7 @@ CREATE TABLE `analytics_job_logs` (
   `finished_at` datetime DEFAULT NULL,
   `message` text,
   PRIMARY KEY (`job_id`),
-  KEY `idx_analytics_job_logs_status` (`status_id`, `started_at`),
+  KEY `idx_analytics_job_logs_status` (`status_id`,`started_at`),
   CONSTRAINT `fk_analytics_job_logs_status` FOREIGN KEY (`status_id`) REFERENCES `analytics_job_status` (`status_id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -244,9 +248,10 @@ CREATE TABLE `audit_logs` (
   `created_at` datetime DEFAULT NULL,
   PRIMARY KEY (`audit_log_id`),
   KEY `idx_audit_logs_created` (`created_at`),
-  KEY `idx_audit_logs_user_created` (`user_id`, `created_at`),
-  KEY `idx_audit_logs_module_action` (`module`, `action`),
-  KEY `idx_audit_logs_reference` (`reference_table`, `reference_id`)
+  KEY `idx_audit_logs_user_created` (`user_id`,`created_at`),
+  KEY `idx_audit_logs_module_action` (`module`,`action`),
+  KEY `idx_audit_logs_reference` (`reference_table`,`reference_id`),
+  CONSTRAINT `resq_7e9e267e7c9af499_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -379,16 +384,16 @@ CREATE TABLE `center_issue_reports` (
   `updated_at` datetime DEFAULT NULL,
   `attachment_path` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`report_id`),
-  KEY `idx_cir_status_created` (`status_id`, `created_at`),
-  KEY `idx_cir_center_status` (`evacuation_center_id`, `status_id`),
+  KEY `idx_cir_status_created` (`status_id`,`created_at`),
+  KEY `idx_cir_center_status` (`evacuation_center_id`,`status_id`),
   KEY `idx_cir_category` (`category_id`),
   KEY `idx_cir_severity` (`severity_id`),
   KEY `idx_cir_reported_by` (`reported_by`),
   KEY `idx_cir_handled_by` (`handled_by`),
-  CONSTRAINT `fk_cir_center` FOREIGN KEY (`evacuation_center_id`) REFERENCES `evacuation_centers` (`evacuation_center_id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_cir_reported_by` FOREIGN KEY (`reported_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_cir_handled_by` FOREIGN KEY (`handled_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_cir_category` FOREIGN KEY (`category_id`) REFERENCES `center_issue_categories` (`category_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_cir_center` FOREIGN KEY (`evacuation_center_id`) REFERENCES `evacuation_centers` (`evacuation_center_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_cir_handled_by` FOREIGN KEY (`handled_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_cir_reported_by` FOREIGN KEY (`reported_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_cir_severity` FOREIGN KEY (`severity_id`) REFERENCES `severity_levels` (`severity_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_cir_status` FOREIGN KEY (`status_id`) REFERENCES `center_issue_report_statuses` (`status_id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -414,6 +419,8 @@ CREATE TABLE `center_personnel_assignments` (
   KEY `idx_cpa_user_status` (`user_id`,`status`),
   KEY `idx_cpa_center_status` (`evacuation_center_id`,`status`),
   KEY `idx_cpa_assigned_at` (`assigned_at`),
+  KEY `fk_cpa_assigned_by` (`assigned_by`),
+  KEY `fk_cpa_event` (`event_id`),
   CONSTRAINT `fk_cpa_assigned_by` FOREIGN KEY (`assigned_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL,
   CONSTRAINT `fk_cpa_center` FOREIGN KEY (`evacuation_center_id`) REFERENCES `evacuation_centers` (`evacuation_center_id`) ON DELETE CASCADE,
   CONSTRAINT `fk_cpa_event` FOREIGN KEY (`event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL,
@@ -524,11 +531,13 @@ CREATE TABLE `device_tokens` (
   KEY `idx_device_tokens_member` (`member_id`),
   KEY `idx_device_tokens_user` (`user_id`),
   KEY `idx_device_tokens_responder` (`responder_id`),
+  KEY `resq_7e18a8a3a40fd914_fk` (`selection_token_id`),
   CONSTRAINT `fk_device_tokens_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_device_tokens_member` FOREIGN KEY (`member_id`) REFERENCES `household_members` (`member_id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_device_tokens_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_device_tokens_responder` FOREIGN KEY (`responder_id`) REFERENCES `responders` (`responder_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_device_tokens_team` FOREIGN KEY (`team_id`) REFERENCES `rescue_teams` (`team_id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_device_tokens_responder` FOREIGN KEY (`responder_id`) REFERENCES `responders` (`responder_id`) ON DELETE SET NULL ON UPDATE CASCADE
+  CONSTRAINT `fk_device_tokens_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `resq_7e18a8a3a40fd914_fk` FOREIGN KEY (`selection_token_id`) REFERENCES `personal_access_tokens` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -550,12 +559,12 @@ CREATE TABLE `device_tracking_logs` (
   `signal_strength` int DEFAULT NULL,
   `logged_at` datetime NOT NULL,
   PRIMARY KEY (`tracking_id`),
-  KEY `idx_dev_tracking_token_time` (`device_token_id`, `logged_at`),
-  KEY `idx_dev_tracking_household` (`household_id`, `logged_at`),
-  KEY `idx_dev_tracking_member` (`member_id`, `logged_at`),
-  CONSTRAINT `fk_dev_tracking_token` FOREIGN KEY (`device_token_id`) REFERENCES `device_tokens` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  KEY `idx_dev_tracking_token_time` (`device_token_id`,`logged_at`),
+  KEY `idx_dev_tracking_household` (`household_id`,`logged_at`),
+  KEY `idx_dev_tracking_member` (`member_id`,`logged_at`),
   CONSTRAINT `fk_dev_tracking_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_dev_tracking_member` FOREIGN KEY (`member_id`) REFERENCES `household_members` (`member_id`) ON DELETE SET NULL ON UPDATE CASCADE
+  CONSTRAINT `fk_dev_tracking_member` FOREIGN KEY (`member_id`) REFERENCES `household_members` (`member_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_dev_tracking_token` FOREIGN KEY (`device_token_id`) REFERENCES `device_tokens` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -592,12 +601,13 @@ CREATE TABLE `disaster_broadcasts` (
   `push_accepted_count` int unsigned DEFAULT NULL,
   `onesignal_id` varchar(36) DEFAULT NULL,
   PRIMARY KEY (`broadcast_id`),
-  KEY `idx_disaster_broadcasts_event` (`disaster_id`, `sent_at`),
+  KEY `idx_disaster_broadcasts_event` (`disaster_id`,`sent_at`),
   KEY `idx_disaster_broadcasts_notif` (`notification_id`),
   KEY `idx_disaster_broadcasts_weather` (`weather_log_id`),
+  KEY `idx_disaster_broadcasts_severity` (`severity_id`),
   CONSTRAINT `fk_disaster_broadcasts_event` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_disaster_broadcasts_severity` FOREIGN KEY (`severity_id`) REFERENCES `severity_levels` (`severity_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_disaster_broadcasts_notif` FOREIGN KEY (`notification_id`) REFERENCES `notifications` (`notif_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_disaster_broadcasts_severity` FOREIGN KEY (`severity_id`) REFERENCES `severity_levels` (`severity_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_disaster_broadcasts_weather` FOREIGN KEY (`weather_log_id`) REFERENCES `weather_logs` (`weather_log_id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -610,7 +620,7 @@ CREATE TABLE `disaster_event_types` (
   `event_id` varchar(255) DEFAULT NULL,
   `type_id` int NOT NULL,
   PRIMARY KEY (`event_type_id`),
-  UNIQUE KEY `uk_disaster_event_types_pair` (`event_id`, `type_id`),
+  UNIQUE KEY `uk_disaster_event_types_pair` (`event_id`,`type_id`),
   KEY `idx_disaster_event_types_type` (`type_id`),
   CONSTRAINT `fk_det_event` FOREIGN KEY (`event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_det_type` FOREIGN KEY (`type_id`) REFERENCES `disaster_types` (`type_id`) ON DELETE RESTRICT ON UPDATE CASCADE
@@ -630,13 +640,29 @@ CREATE TABLE `disaster_events` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   `deleted_at` timestamp NULL DEFAULT NULL,
+  `rescue_priority_version` bigint unsigned DEFAULT NULL,
   PRIMARY KEY (`event_id`),
-  KEY `idx_disaster_events_active` (`deleted_at`, `ended_at`, `started_at`),
+  KEY `idx_disaster_events_active` (`deleted_at`,`ended_at`,`started_at`),
   KEY `idx_disaster_events_type` (`type_id`),
   KEY `idx_disaster_events_severity` (`severity_level_id`),
+  KEY `resq_c56346aee4be5eea_idx` (`ended_at`),
+  CONSTRAINT `fk_disaster_events_severity` FOREIGN KEY (`severity_level_id`) REFERENCES `severity_levels` (`severity_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_disaster_events_type` FOREIGN KEY (`type_id`) REFERENCES `disaster_types` (`type_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT `fk_disaster_events_severity` FOREIGN KEY (`severity_level_id`) REFERENCES `severity_levels` (`severity_id`) ON DELETE SET NULL ON UPDATE CASCADE
+  CONSTRAINT `chk_de_event_timeline` CHECK (((`ended_at` is null) or (`started_at` is null) or (`ended_at` >= `started_at`)))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------------------------------------------------------
+-- Table: `disaster_type_severity_levels`
+-- ----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `disaster_type_severity_levels`;
+CREATE TABLE `disaster_type_severity_levels` (
+  `type_id` int NOT NULL,
+  `severity_id` int NOT NULL,
+  PRIMARY KEY (`type_id`,`severity_id`),
+  KEY `disaster_type_severity_levels_severity_id_foreign` (`severity_id`),
+  CONSTRAINT `disaster_type_severity_levels_severity_id_foreign` FOREIGN KEY (`severity_id`) REFERENCES `severity_levels` (`severity_id`) ON DELETE CASCADE,
+  CONSTRAINT `disaster_type_severity_levels_type_id_foreign` FOREIGN KEY (`type_id`) REFERENCES `disaster_types` (`type_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
 -- Table: `disaster_types`
@@ -724,10 +750,10 @@ CREATE TABLE `evacuated_members` (
   `member_id` varchar(255) DEFAULT NULL,
   `verified_at` datetime DEFAULT NULL,
   PRIMARY KEY (`evacuated_member_id`),
-  UNIQUE KEY `uk_evac_members_evac_member` (`evacuation_id`, `member_id`),
+  UNIQUE KEY `uk_evac_members_evac_member` (`evacuation_id`,`member_id`),
   KEY `idx_evac_members_member` (`member_id`),
-  CONSTRAINT `fk_evac_members_record` FOREIGN KEY (`evacuation_id`) REFERENCES `evacuation_records` (`evacuation_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_evac_members_member` FOREIGN KEY (`member_id`) REFERENCES `household_members` (`member_id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `fk_evac_members_member` FOREIGN KEY (`member_id`) REFERENCES `household_members` (`member_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_evac_members_record` FOREIGN KEY (`evacuation_id`) REFERENCES `evacuation_records` (`evacuation_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -752,9 +778,13 @@ CREATE TABLE `evacuation_centers` (
   `notes` text,
   `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`evacuation_center_id`),
-  KEY `idx_evac_centers_status` (`deleted_at`, `status`),
+  KEY `idx_evac_centers_status` (`deleted_at`,`status`),
   KEY `idx_evac_centers_event` (`current_event_id`),
-  CONSTRAINT `fk_evac_centers_event` FOREIGN KEY (`current_event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE
+  CONSTRAINT `fk_evac_centers_event` FOREIGN KEY (`current_event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `chk_ec_capacity` CHECK (((`capacity` is null) or (`capacity` >= 0))),
+  CONSTRAINT `chk_ec_latitude` CHECK (((`latitude` is null) or (`latitude` between -(90.0000000) and 90.0000000))),
+  CONSTRAINT `chk_ec_longitude` CHECK (((`longitude` is null) or (`longitude` between -(180.0000000) and 180.0000000))),
+  CONSTRAINT `chk_ec_occupancy` CHECK (((`current_occupancy` is null) or (`current_occupancy` >= 0)))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -775,13 +805,13 @@ CREATE TABLE `evacuation_records` (
   `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`evacuation_id`),
   KEY `idx_evac_records_status_center` (`center_id`,`household_status_id`,`household_id`),
-  KEY `idx_evac_records_event_household` (`event_id`, `household_id`),
+  KEY `idx_evac_records_event_household` (`event_id`,`household_id`),
   KEY `idx_evac_records_household` (`household_id`),
   KEY `idx_evac_records_status` (`household_status_id`),
   KEY `idx_evac_records_verified_by` (`verified_by`),
+  CONSTRAINT `fk_evac_records_center` FOREIGN KEY (`center_id`) REFERENCES `evacuation_centers` (`evacuation_center_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_evac_records_event` FOREIGN KEY (`event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_evac_records_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_evac_records_center` FOREIGN KEY (`center_id`) REFERENCES `evacuation_centers` (`evacuation_center_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_evac_records_status` FOREIGN KEY (`household_status_id`) REFERENCES `household_statuses` (`status_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_evac_records_verifier` FOREIGN KEY (`verified_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -799,9 +829,37 @@ CREATE TABLE `event_center_history` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `event_center_unique` (`event_id`,`evacuation_center_id`),
   KEY `idx_event_center_history_center` (`evacuation_center_id`),
-  CONSTRAINT `fk_ech_event` FOREIGN KEY (`event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_ech_center` FOREIGN KEY (`evacuation_center_id`) REFERENCES `evacuation_centers` (`evacuation_center_id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `fk_ech_center` FOREIGN KEY (`evacuation_center_id`) REFERENCES `evacuation_centers` (`evacuation_center_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_ech_event` FOREIGN KEY (`event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------------------------------------------------------
+-- Table: `external_report_requests`
+-- ----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `external_report_requests`;
+CREATE TABLE `external_report_requests` (
+  `id` char(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `source_system` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `reference` varchar(120) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `event_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `sections` json NOT NULL,
+  `format` varchar(8) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `purpose` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `status` varchar(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
+  `decision_note` text COLLATE utf8mb4_unicode_ci,
+  `decided_by` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `decided_at` timestamp NULL DEFAULT NULL,
+  `approved_summary` json DEFAULT NULL,
+  `file` json DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `api_version` varchar(8) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '2.0',
+  `sitio_id` varchar(120) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `external_report_requests_status_index` (`status`),
+  KEY `resq_72e67152b620c50c_fk` (`event_id`),
+  CONSTRAINT `resq_72e67152b620c50c_fk` FOREIGN KEY (`event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
 -- Table: `failed_jobs`
@@ -903,6 +961,28 @@ CREATE TABLE `household_disasters` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
+-- Table: `household_geographic_classifications`
+-- ----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `household_geographic_classifications`;
+CREATE TABLE `household_geographic_classifications` (
+  `household_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `status` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `latitude` decimal(10,7) NOT NULL,
+  `longitude` decimal(10,7) NOT NULL,
+  `sitio_id` int DEFAULT NULL,
+  `purok_id` int DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`household_id`),
+  KEY `household_geographic_classifications_status_index` (`status`),
+  KEY `resq_79ef643b0ca93a73_fk` (`purok_id`),
+  KEY `resq_99abdeb64f2c90cb_fk` (`sitio_id`),
+  CONSTRAINT `resq_22b65cda8c001677_fk` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_79ef643b0ca93a73_fk` FOREIGN KEY (`purok_id`) REFERENCES `puroks` (`purok_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_99abdeb64f2c90cb_fk` FOREIGN KEY (`sitio_id`) REFERENCES `sitios` (`sitio_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------------------------
 -- Table: `household_members`
 -- ----------------------------------------------------------------------------
 DROP TABLE IF EXISTS `household_members`;
@@ -946,13 +1026,32 @@ CREATE TABLE `household_members` (
   KEY `idx_hm_education` (`education_level_id`),
   KEY `idx_hm_occupation` (`occupation`),
   KEY `idx_hm_deleted` (`deleted_at`),
-  CONSTRAINT `fk_hm_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_hm_gender` FOREIGN KEY (`gender_id`) REFERENCES `genders` (`gender_id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_hm_relationship` FOREIGN KEY (`relationship_id`) REFERENCES `relationships` (`relationship_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_hm_civil_status` FOREIGN KEY (`civil_status_id`) REFERENCES `civil_statuses` (`status_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_hm_education` FOREIGN KEY (`education_level_id`) REFERENCES `education_levels` (`education_level_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_hm_gender` FOREIGN KEY (`gender_id`) REFERENCES `genders` (`gender_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_hm_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_hm_occupation` FOREIGN KEY (`occupation`) REFERENCES `occupations` (`occuaption_id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_hm_education` FOREIGN KEY (`education_level_id`) REFERENCES `education_levels` (`education_level_id`) ON DELETE SET NULL ON UPDATE CASCADE
+  CONSTRAINT `fk_hm_relationship` FOREIGN KEY (`relationship_id`) REFERENCES `relationships` (`relationship_id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------------------------------------------------------
+-- Table: `household_mobile_notifications`
+-- ----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `household_mobile_notifications`;
+CREATE TABLE `household_mobile_notifications` (
+  `notification_id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `household_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `type` varchar(80) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `title` varchar(180) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `message` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `connection_id` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `read_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`notification_id`),
+  KEY `household_mobile_notifications_household_id_created_at_index` (`household_id`,`created_at`),
+  CONSTRAINT `resq_de2d65f74bfa2dd0_fk` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
 -- Table: `household_status_logs`
@@ -982,11 +1081,11 @@ CREATE TABLE `household_status_logs` (
   PRIMARY KEY (`status_log_id`),
   KEY `idx_hsl_event_household` (`disaster_id`,`household_id`,`created_at`),
   KEY `fk_hsl_status` (`status_id`),
-  KEY `idx_hsl_household` (`household_id`, `created_at`),
+  KEY `idx_hsl_household` (`household_id`,`created_at`),
   KEY `idx_hsl_responder` (`responder_id`),
-  CONSTRAINT `fk_hsl_status` FOREIGN KEY (`status_id`) REFERENCES `household_statuses` (`status_id`),
+  CONSTRAINT `fk_hsl_event` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_hsl_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_hsl_event` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE
+  CONSTRAINT `fk_hsl_status` FOREIGN KEY (`status_id`) REFERENCES `household_statuses` (`status_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -1085,7 +1184,7 @@ CREATE TABLE `import_logs` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `idx_import_logs_source_status` (`data_source_id`, `status`),
+  KEY `idx_import_logs_source_status` (`data_source_id`,`status`),
   CONSTRAINT `fk_import_logs_source` FOREIGN KEY (`data_source_id`) REFERENCES `data_sources` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -1104,8 +1203,11 @@ CREATE TABLE `incident_archives` (
   `archived_at` datetime NOT NULL,
   `created_at` datetime DEFAULT NULL,
   PRIMARY KEY (`archive_id`),
-  KEY `idx_incident_archives_disaster` (`disaster_id`, `archive_type`),
-  KEY `idx_incident_archives_ref` (`reference_table`, `reference_id`)
+  KEY `idx_incident_archives_disaster` (`disaster_id`,`archive_type`),
+  KEY `idx_incident_archives_ref` (`reference_table`,`reference_id`),
+  KEY `resq_d85e1801ac3fda4f_fk` (`archived_by_admin_id`),
+  CONSTRAINT `resq_d85e1801ac3fda4f_fk` FOREIGN KEY (`archived_by_admin_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_f7d5b96efe64094f_fk` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -1153,7 +1255,7 @@ CREATE TABLE `jobs` (
   `available_at` int unsigned NOT NULL,
   `created_at` int unsigned NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `jobs_queue_index` (`queue`, `reserved_at`)
+  KEY `jobs_queue_index` (`queue`,`reserved_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -1175,8 +1277,9 @@ CREATE TABLE `landing_inquiries` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`inquiry_id`),
-  KEY `idx_landing_inquiries_status` (`status`, `created_at`),
-  KEY `idx_landing_inquiries_handler` (`handled_by_user_id`)
+  KEY `idx_landing_inquiries_status` (`status`,`created_at`),
+  KEY `idx_landing_inquiries_handler` (`handled_by_user_id`),
+  CONSTRAINT `resq_0e1dae93e28724cc_fk` FOREIGN KEY (`handled_by_user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -1192,7 +1295,7 @@ CREATE TABLE `map_tile_metadata` (
   `cached_at` datetime NOT NULL,
   `expires_at` datetime DEFAULT NULL,
   PRIMARY KEY (`tile_id`),
-  UNIQUE KEY `uk_map_tile_zxy` (`zoom_level`, `tile_x`, `tile_y`)
+  UNIQUE KEY `uk_map_tile_zxy` (`zoom_level`,`tile_x`,`tile_y`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -1201,7 +1304,7 @@ CREATE TABLE `map_tile_metadata` (
 DROP TABLE IF EXISTS `mapping_hazard_layers`;
 CREATE TABLE `mapping_hazard_layers` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `barangay_id` varchar(255) NOT NULL,
+  `barangay_id` int NOT NULL,
   `name` varchar(255) NOT NULL,
   `source` varchar(255) NOT NULL,
   `source_url` varchar(255) DEFAULT NULL,
@@ -1210,7 +1313,8 @@ CREATE TABLE `mapping_hazard_layers` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `mapping_hazard_layers_barangay_id_index` (`barangay_id`)
+  KEY `mapping_hazard_layers_barangay_id_index` (`barangay_id`),
+  CONSTRAINT `resq_77025190d59483ff_fk` FOREIGN KEY (`barangay_id`) REFERENCES `barangays` (`barangay_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -1291,7 +1395,22 @@ CREATE TABLE `member_status_logs` (
   PRIMARY KEY (`member_status_log_id`),
   KEY `idx_msl_member_time` (`member_id`,`logged_at`),
   KEY `idx_msl_event` (`disaster_id`,`logged_at`),
-  KEY `idx_msl_household` (`household_id`,`logged_at`)
+  KEY `idx_msl_household` (`household_id`,`logged_at`),
+  KEY `resq_844996646fa2d02b_fk` (`from_status_id`),
+  KEY `resq_c7815a85001a4c39_fk` (`to_status_id`),
+  KEY `resq_8e17c1f43c343e6b_fk` (`reported_by_user_id`),
+  KEY `resq_24280c3ab56db0ea_fk` (`reported_by_member_id`),
+  KEY `resq_1bb82f76ed97afd9_fk` (`responder_id`),
+  KEY `resq_9ecdc0a83c933c65_fk` (`device_token_id`),
+  CONSTRAINT `resq_1bb82f76ed97afd9_fk` FOREIGN KEY (`responder_id`) REFERENCES `responders` (`responder_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_24280c3ab56db0ea_fk` FOREIGN KEY (`reported_by_member_id`) REFERENCES `household_members` (`member_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_6978563e9169effa_fk` FOREIGN KEY (`member_id`) REFERENCES `household_members` (`member_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_844996646fa2d02b_fk` FOREIGN KEY (`from_status_id`) REFERENCES `member_statuses` (`status_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_8e17c1f43c343e6b_fk` FOREIGN KEY (`reported_by_user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_9ecdc0a83c933c65_fk` FOREIGN KEY (`device_token_id`) REFERENCES `device_tokens` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_c7815a85001a4c39_fk` FOREIGN KEY (`to_status_id`) REFERENCES `member_statuses` (`status_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_d1454f446a6c172a_fk` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_e2907eafd56b71fb_fk` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -1327,10 +1446,10 @@ CREATE TABLE `member_vulnerable_groups` (
   `member_id` varchar(255) DEFAULT NULL,
   `vulnerable_group_id` int NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_mvg_member_group` (`member_id`, `vulnerable_group_id`),
+  UNIQUE KEY `uk_mvg_member_group` (`member_id`,`vulnerable_group_id`),
   KEY `idx_mvg_group` (`vulnerable_group_id`),
-  CONSTRAINT `fk_mvg_member` FOREIGN KEY (`member_id`) REFERENCES `household_members` (`member_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_mvg_group` FOREIGN KEY (`vulnerable_group_id`) REFERENCES `vulnerable_groups` (`vulnerable_group_id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `fk_mvg_group` FOREIGN KEY (`vulnerable_group_id`) REFERENCES `vulnerable_groups` (`vulnerable_group_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_mvg_member` FOREIGN KEY (`member_id`) REFERENCES `household_members` (`member_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -1371,12 +1490,12 @@ CREATE TABLE `notification_logs` (
   `external_message_id` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`log_id`),
   KEY `idx_notif_logs_notif` (`notification_id`),
-  KEY `idx_notif_logs_household` (`household_id`, `status_id`),
+  KEY `idx_notif_logs_household` (`household_id`,`status_id`),
   KEY `idx_notif_logs_channel` (`channel_id`),
   KEY `idx_notif_logs_status` (`status_id`),
-  CONSTRAINT `fk_notif_logs_notif` FOREIGN KEY (`notification_id`) REFERENCES `notifications` (`notif_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_notif_logs_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_notif_logs_channel` FOREIGN KEY (`channel_id`) REFERENCES `notification_channels` (`channel_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_notif_logs_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_notif_logs_notif` FOREIGN KEY (`notification_id`) REFERENCES `notifications` (`notif_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_notif_logs_status` FOREIGN KEY (`status_id`) REFERENCES `notification_statuses` (`status_id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -1391,10 +1510,10 @@ CREATE TABLE `notification_recipients` (
   `read_at` datetime DEFAULT NULL,
   `acknowledged_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_notif_recip_notif_hh` (`notification_id`, `household_id`),
+  UNIQUE KEY `uk_notif_recip_notif_hh` (`notification_id`,`household_id`),
   KEY `idx_notif_recip_household` (`household_id`),
-  CONSTRAINT `fk_notif_recip_notif` FOREIGN KEY (`notification_id`) REFERENCES `notifications` (`notif_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_notif_recip_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `fk_notif_recip_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_notif_recip_notif` FOREIGN KEY (`notification_id`) REFERENCES `notifications` (`notif_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -1439,15 +1558,15 @@ CREATE TABLE `notifications` (
   PRIMARY KEY (`notif_id`),
   UNIQUE KEY `resq_advisory_fingerprint_unique` (`advisory_fingerprint`),
   UNIQUE KEY `resq_notification_source_unique` (`source_key`),
-  KEY `idx_notifications_sched` (`status`, `scheduled_at`),
-  KEY `idx_notifications_event` (`evacuation_event_id`, `created_at`),
-  KEY `idx_notifications_center` (`evacuation_center_id`, `created_at`),
+  KEY `idx_notifications_sched` (`status`,`scheduled_at`),
+  KEY `idx_notifications_event` (`evacuation_event_id`,`created_at`),
+  KEY `idx_notifications_center` (`evacuation_center_id`,`created_at`),
   KEY `idx_notifications_sent_by` (`sent_by`),
   KEY `idx_notifications_recurrence` (`recurrence_type_id`),
-  CONSTRAINT `fk_notifications_sender` FOREIGN KEY (`sent_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_notifications_event` FOREIGN KEY (`evacuation_event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_notifications_center` FOREIGN KEY (`evacuation_center_id`) REFERENCES `evacuation_centers` (`evacuation_center_id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_notifications_recurrence` FOREIGN KEY (`recurrence_type_id`) REFERENCES `recurrence_types` (`type_id`) ON DELETE SET NULL ON UPDATE CASCADE
+  CONSTRAINT `fk_notifications_event` FOREIGN KEY (`evacuation_event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_notifications_recurrence` FOREIGN KEY (`recurrence_type_id`) REFERENCES `recurrence_types` (`type_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_notifications_sender` FOREIGN KEY (`sent_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -1516,7 +1635,10 @@ CREATE TABLE `password_reset_requests` (
   UNIQUE KEY `password_reset_requests_token_hash_unique` (`token_hash`),
   UNIQUE KEY `resq_otp_subject_unique` (`otp_subject_key`),
   KEY `password_reset_requests_user_id_consumed_at_index` (`user_id`,`consumed_at`),
-  KEY `password_reset_requests_expires_at_consumed_at_index` (`expires_at`,`consumed_at`)
+  KEY `password_reset_requests_expires_at_consumed_at_index` (`expires_at`,`consumed_at`),
+  KEY `resq_f282227758b5c771_fk` (`household_id`),
+  CONSTRAINT `resq_2792ce2041a6b947_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_f282227758b5c771_fk` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -1547,7 +1669,7 @@ CREATE TABLE `personal_access_tokens` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `personal_access_tokens_token_unique` (`token`),
-  KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`, `tokenable_id`)
+  KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`,`tokenable_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -1576,6 +1698,20 @@ CREATE TABLE `provinces` (
   KEY `idx_provinces_region` (`region_id`),
   CONSTRAINT `fk_provinces_region` FOREIGN KEY (`region_id`) REFERENCES `regions` (`region_id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------------------------------------------------------
+-- Table: `purok_boundaries`
+-- ----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `purok_boundaries`;
+CREATE TABLE `purok_boundaries` (
+  `purok_id` int NOT NULL,
+  `geometry_json` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `source` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`purok_id`),
+  CONSTRAINT `resq_f1a504a4e34ddae2_fk` FOREIGN KEY (`purok_id`) REFERENCES `puroks` (`purok_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
 -- Table: `puroks`
@@ -1671,7 +1807,8 @@ CREATE TABLE `remembered_devices` (
   PRIMARY KEY (`remembered_device_id`),
   UNIQUE KEY `remembered_devices_token_hash_unique` (`token_hash`),
   KEY `remembered_devices_user_id_revoked_at_index` (`user_id`,`revoked_at`),
-  KEY `remembered_devices_expires_at_revoked_at_index` (`expires_at`,`revoked_at`)
+  KEY `remembered_devices_expires_at_revoked_at_index` (`expires_at`,`revoked_at`),
+  CONSTRAINT `resq_0e9a7f3f11c8990f_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -1708,9 +1845,74 @@ CREATE TABLE `request_validations` (
   PRIMARY KEY (`validation_id`),
   KEY `idx_req_validations_request` (`request_id`),
   KEY `idx_req_validations_validator` (`validator_user_id`),
+  KEY `resq_b6477439f5d5e08a_idx` (`request_id`,`created_at`),
   CONSTRAINT `fk_req_validations_request` FOREIGN KEY (`request_id`) REFERENCES `resource_requests` (`request_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_req_validations_validator` FOREIGN KEY (`validator_user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------------------------------------------------------
+-- Table: `rescue_criteria_contact_baselines`
+-- ----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `rescue_criteria_contact_baselines`;
+CREATE TABLE `rescue_criteria_contact_baselines` (
+  `event_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `household_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `no_contact` tinyint(1) NOT NULL,
+  `captured_at` timestamp NOT NULL,
+  PRIMARY KEY (`event_id`,`household_id`),
+  KEY `resq_6f1f8b058f28b61c_fk` (`household_id`),
+  CONSTRAINT `resq_6477cf95f637ff7a_fk` FOREIGN KEY (`event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_6f1f8b058f28b61c_fk` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------------------------
+-- Table: `rescue_criteria_line_snapshots`
+-- ----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `rescue_criteria_line_snapshots`;
+CREATE TABLE `rescue_criteria_line_snapshots` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `event_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `bucket_hour` int unsigned NOT NULL,
+  `observed_at` timestamp NOT NULL,
+  `impact_open` int unsigned NOT NULL,
+  `household_total` int unsigned NOT NULL,
+  `special_open` int unsigned NOT NULL,
+  `vulnerable_total` int unsigned NOT NULL,
+  `unreported_open` int unsigned NOT NULL,
+  `member_total` int unsigned NOT NULL,
+  `no_contact_open` int unsigned NOT NULL,
+  `no_contact_total` int unsigned NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `rescue_priority_version` bigint unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `rescue_criteria_event_bucket_unique` (`event_id`,`bucket_hour`),
+  KEY `resq_31d787d3b1908fca_fk` (`rescue_priority_version`),
+  CONSTRAINT `resq_31d787d3b1908fca_fk` FOREIGN KEY (`rescue_priority_version`) REFERENCES `rescue_priority_settings` (`version`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_bf9c5df1878e11ac_fk` FOREIGN KEY (`event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------------------------
+-- Table: `rescue_criteria_snapshots`
+-- ----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `rescue_criteria_snapshots`;
+CREATE TABLE `rescue_criteria_snapshots` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `event_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `observed_at` timestamp NOT NULL,
+  `impact` decimal(5,1) DEFAULT NULL,
+  `special_needs` decimal(5,1) DEFAULT NULL,
+  `unreported` decimal(5,1) DEFAULT NULL,
+  `no_contact` decimal(5,1) DEFAULT NULL,
+  `purok_count` int unsigned NOT NULL,
+  `rescue_priority_version` bigint unsigned DEFAULT NULL,
+  `definition_version` tinyint unsigned NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `rescue_criteria_snapshots_event_id_observed_at_unique` (`event_id`,`observed_at`),
+  KEY `resq_5a227d93d486e431_fk` (`rescue_priority_version`),
+  CONSTRAINT `resq_5a227d93d486e431_fk` FOREIGN KEY (`rescue_priority_version`) REFERENCES `rescue_priority_settings` (`version`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_a925bd424181332c_fk` FOREIGN KEY (`event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
 -- Table: `rescue_priority_settings`
@@ -1725,7 +1927,13 @@ CREATE TABLE `rescue_priority_settings` (
   `updated_by_user_id` varchar(255) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`version`)
+  `change_reason` varchar(255) DEFAULT NULL,
+  `high_percent` decimal(5,1) NOT NULL DEFAULT '40.0',
+  `medium_percent` decimal(5,1) NOT NULL DEFAULT '20.0',
+  `deploy_first_percent` decimal(5,1) NOT NULL DEFAULT '20.0',
+  PRIMARY KEY (`version`),
+  KEY `resq_68ee510152684dbb_fk` (`updated_by_user_id`),
+  CONSTRAINT `resq_68ee510152684dbb_fk` FOREIGN KEY (`updated_by_user_id`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -1749,7 +1957,8 @@ CREATE TABLE `rescue_teams` (
   UNIQUE KEY `uk_rescue_teams_code` (`team_code`),
   KEY `idx_rescue_teams_purok` (`assigned_purok_id`),
   KEY `idx_rescue_teams_leader` (`leader_responder_id`),
-  CONSTRAINT `fk_rescue_teams_purok` FOREIGN KEY (`assigned_purok_id`) REFERENCES `puroks` (`purok_id`) ON DELETE SET NULL ON UPDATE CASCADE
+  CONSTRAINT `fk_rescue_teams_purok` FOREIGN KEY (`assigned_purok_id`) REFERENCES `puroks` (`purok_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `resq_b8b8912433edb420_fk` FOREIGN KEY (`leader_responder_id`) REFERENCES `responders` (`responder_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -1792,13 +2001,13 @@ CREATE TABLE `resource_requests` (
   `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`request_id`),
   KEY `idx_resource_req_status_created` (`status_id`,`created_at`),
-  KEY `idx_rr_center_created` (`evacuation_center_id`, `created_at`),
+  KEY `idx_rr_center_created` (`evacuation_center_id`,`created_at`),
   KEY `idx_rr_requested_by` (`requested_by`),
   KEY `idx_rr_handled_by` (`handled_by`),
   KEY `idx_rr_validated_by` (`validated_by_user_id`),
   CONSTRAINT `fk_rr_center` FOREIGN KEY (`evacuation_center_id`) REFERENCES `evacuation_centers` (`evacuation_center_id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_rr_requested_by` FOREIGN KEY (`requested_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_rr_handled_by` FOREIGN KEY (`handled_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_rr_requested_by` FOREIGN KEY (`requested_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_rr_status` FOREIGN KEY (`status_id`) REFERENCES `resource_request_status` (`status_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_rr_validated_by` FOREIGN KEY (`validated_by_user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -1832,18 +2041,21 @@ CREATE TABLE `responder_assignments` (
   `responder_count` smallint unsigned NOT NULL DEFAULT '1',
   `dispatch_type` varchar(30) NOT NULL DEFAULT 'rescue',
   PRIMARY KEY (`assignment_id`),
-  KEY `responder_assignments_dispatch_type_index` (`dispatch_type`),
   UNIQUE KEY `uk_responder_assignments_code` (`assignment_code`),
-  KEY `idx_ra_disaster_status` (`disaster_id`, `status`),
-  KEY `idx_ra_responder` (`responder_id`, `status`),
-  KEY `idx_ra_team` (`team_id`, `status`),
+  KEY `responder_assignments_dispatch_type_index` (`dispatch_type`),
+  KEY `idx_ra_disaster_status` (`disaster_id`,`status`),
+  KEY `idx_ra_responder` (`responder_id`,`status`),
+  KEY `idx_ra_team` (`team_id`,`status`),
   KEY `idx_ra_household` (`household_id`),
   KEY `idx_ra_status` (`status`),
-  CONSTRAINT `fk_ra_responder` FOREIGN KEY (`responder_id`) REFERENCES `responders` (`responder_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT `fk_ra_team` FOREIGN KEY (`team_id`) REFERENCES `rescue_teams` (`team_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  KEY `resq_15fe6c020a727519_idx` (`disaster_id`,`assigned_at`),
+  KEY `resq_4ed1f5a1527836f8_fk` (`affected_area_id`),
   CONSTRAINT `fk_ra_disaster` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_ra_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_ra_status` FOREIGN KEY (`status`) REFERENCES `dispatch_statuses` (`status_key`) ON DELETE SET NULL ON UPDATE CASCADE
+  CONSTRAINT `fk_ra_responder` FOREIGN KEY (`responder_id`) REFERENCES `responders` (`responder_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_ra_status` FOREIGN KEY (`status`) REFERENCES `dispatch_statuses` (`status_key`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_ra_team` FOREIGN KEY (`team_id`) REFERENCES `rescue_teams` (`team_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `resq_4ed1f5a1527836f8_fk` FOREIGN KEY (`affected_area_id`) REFERENCES `affected_areas` (`affected_area_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -1867,13 +2079,19 @@ CREATE TABLE `responder_check_ins` (
   `checked_out_at` datetime DEFAULT NULL,
   `verified_by` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`check_in_id`),
-  KEY `idx_rci_disaster_responder` (`disaster_id`, `responder_id`),
+  KEY `idx_rci_disaster_responder` (`disaster_id`,`responder_id`),
   KEY `idx_rci_household` (`household_id`),
   KEY `idx_rci_team` (`team_id`),
-  CONSTRAINT `fk_rci_responder` FOREIGN KEY (`responder_id`) REFERENCES `responders` (`responder_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  KEY `resq_246080cfbc80e122_idx` (`responder_id`,`checked_in_at`),
+  KEY `resq_dd5b0744848cf706_idx` (`disaster_id`,`household_id`),
+  KEY `resq_d91b5f847846ce32_fk` (`affected_area_id`),
+  KEY `resq_64f15fb7b5ec9834_fk` (`member_id`),
   CONSTRAINT `fk_rci_disaster` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_rci_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_rci_responder` FOREIGN KEY (`responder_id`) REFERENCES `responders` (`responder_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_rci_team` FOREIGN KEY (`team_id`) REFERENCES `rescue_teams` (`team_id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_rci_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE SET NULL ON UPDATE CASCADE
+  CONSTRAINT `resq_64f15fb7b5ec9834_fk` FOREIGN KEY (`member_id`) REFERENCES `household_members` (`member_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_d91b5f847846ce32_fk` FOREIGN KEY (`affected_area_id`) REFERENCES `affected_areas` (`affected_area_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -1889,12 +2107,12 @@ CREATE TABLE `responder_communication_logs` (
   `message` text,
   `timestamp` datetime NOT NULL,
   PRIMARY KEY (`communication_id`),
-  KEY `idx_rcl_disaster_time` (`disaster_id`, `timestamp`),
-  KEY `idx_rcl_team_time` (`team_id`, `timestamp`),
-  KEY `idx_rcl_responder_time` (`responder_id`, `timestamp`),
+  KEY `idx_rcl_disaster_time` (`disaster_id`,`timestamp`),
+  KEY `idx_rcl_team_time` (`team_id`,`timestamp`),
+  KEY `idx_rcl_responder_time` (`responder_id`,`timestamp`),
+  CONSTRAINT `fk_rcl_disaster` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_rcl_responder` FOREIGN KEY (`responder_id`) REFERENCES `responders` (`responder_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_rcl_team` FOREIGN KEY (`team_id`) REFERENCES `rescue_teams` (`team_id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_rcl_disaster` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE
+  CONSTRAINT `fk_rcl_team` FOREIGN KEY (`team_id`) REFERENCES `rescue_teams` (`team_id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -1910,8 +2128,8 @@ CREATE TABLE `responder_field_report_details` (
   PRIMARY KEY (`detail_id`),
   KEY `idx_rfrd_report` (`report_id`),
   KEY `idx_rfrd_category` (`category_id`),
-  CONSTRAINT `fk_rfrd_report` FOREIGN KEY (`report_id`) REFERENCES `responder_field_reports` (`report_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_rfrd_category` FOREIGN KEY (`category_id`) REFERENCES `field_report_categories` (`category_id`) ON DELETE RESTRICT ON UPDATE CASCADE
+  CONSTRAINT `fk_rfrd_category` FOREIGN KEY (`category_id`) REFERENCES `field_report_categories` (`category_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_rfrd_report` FOREIGN KEY (`report_id`) REFERENCES `responder_field_reports` (`report_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -1934,10 +2152,11 @@ CREATE TABLE `responder_field_report_members` (
   KEY `rf_member_event_household_idx` (`disaster_id`,`household_id`),
   KEY `idx_rfrm_member` (`member_id`),
   KEY `idx_rfrm_status` (`status_id`),
-  CONSTRAINT `fk_rfrm_report` FOREIGN KEY (`report_id`) REFERENCES `responder_field_reports` (`report_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_rfrm_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  KEY `fk_rfrm_household` (`household_id`),
   CONSTRAINT `fk_rfrm_disaster` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_rfrm_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_rfrm_member` FOREIGN KEY (`member_id`) REFERENCES `household_members` (`member_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_rfrm_report` FOREIGN KEY (`report_id`) REFERENCES `responder_field_reports` (`report_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_rfrm_status` FOREIGN KEY (`status_id`) REFERENCES `member_statuses` (`status_id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -1967,13 +2186,18 @@ CREATE TABLE `responder_field_reports` (
   `submitted_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`report_id`),
   UNIQUE KEY `uk_rfr_idempotency` (`idempotency_key`),
-  KEY `idx_rfr_disaster_household` (`disaster_id`, `household_id`),
-  KEY `idx_rfr_responder` (`responder_id`, `created_at`),
+  KEY `idx_rfr_disaster_household` (`disaster_id`,`household_id`),
+  KEY `idx_rfr_responder` (`responder_id`,`created_at`),
   KEY `idx_rfr_assignment` (`assignment_id`),
-  CONSTRAINT `fk_rfr_responder` FOREIGN KEY (`responder_id`) REFERENCES `responders` (`responder_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  KEY `fk_rfr_household` (`household_id`),
+  KEY `resq_6beb664e75439fd1_fk` (`status_log_id`),
+  KEY `resq_5bd01543efdb9459_fk` (`property_damage`),
+  CONSTRAINT `fk_rfr_assignment` FOREIGN KEY (`assignment_id`) REFERENCES `responder_assignments` (`assignment_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_rfr_disaster` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_rfr_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_rfr_assignment` FOREIGN KEY (`assignment_id`) REFERENCES `responder_assignments` (`assignment_id`) ON DELETE SET NULL ON UPDATE CASCADE
+  CONSTRAINT `fk_rfr_responder` FOREIGN KEY (`responder_id`) REFERENCES `responders` (`responder_id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `resq_5bd01543efdb9459_fk` FOREIGN KEY (`property_damage`) REFERENCES `property_damage_levels` (`damage_key`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `resq_6beb664e75439fd1_fk` FOREIGN KEY (`status_log_id`) REFERENCES `household_status_logs` (`status_log_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -1989,7 +2213,7 @@ CREATE TABLE `responder_location_logs` (
   `signal_strength` int DEFAULT NULL,
   `logged_at` datetime NOT NULL,
   PRIMARY KEY (`log_id`),
-  KEY `idx_rll_responder_time` (`responder_id`, `logged_at`),
+  KEY `idx_rll_responder_time` (`responder_id`,`logged_at`),
   CONSTRAINT `fk_rll_responder` FOREIGN KEY (`responder_id`) REFERENCES `responders` (`responder_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -2019,8 +2243,8 @@ CREATE TABLE `responder_routes` (
   KEY `idx_rr_responder` (`responder_id`),
   KEY `idx_rr_household` (`household_id`),
   CONSTRAINT `fk_rr_route_assignment` FOREIGN KEY (`assignment_id`) REFERENCES `responder_assignments` (`assignment_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_rr_route_responder` FOREIGN KEY (`responder_id`) REFERENCES `responders` (`responder_id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_rr_route_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE SET NULL ON UPDATE CASCADE
+  CONSTRAINT `fk_rr_route_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_rr_route_responder` FOREIGN KEY (`responder_id`) REFERENCES `responders` (`responder_id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -2058,11 +2282,27 @@ CREATE TABLE `responders` (
   PRIMARY KEY (`responder_id`),
   UNIQUE KEY `uk_responders_code` (`responder_code`),
   KEY `idx_responders_user` (`user_id`),
-  KEY `idx_responders_team` (`team_id`, `duty_status`),
+  KEY `idx_responders_team` (`team_id`,`duty_status`),
   KEY `idx_responders_username` (`username`),
-  CONSTRAINT `fk_responders_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_responders_team` FOREIGN KEY (`team_id`) REFERENCES `rescue_teams` (`team_id`) ON DELETE SET NULL ON UPDATE CASCADE
+  CONSTRAINT `fk_responders_team` FOREIGN KEY (`team_id`) REFERENCES `rescue_teams` (`team_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_responders_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------------------------------------------------------
+-- Table: `resq_orphan_references`
+-- ----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `resq_orphan_references`;
+CREATE TABLE `resq_orphan_references` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `source_table` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `source_key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `source_column` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `original_value` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `parent_table` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `preserved_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `resq_orphan_source_unique` (`source_table`,`source_key`,`source_column`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
 -- Table: `roles`
@@ -2094,7 +2334,7 @@ CREATE TABLE `route_coordinates` (
   `recorded_at` datetime DEFAULT NULL,
   `accuracy_m` decimal(8,2) DEFAULT NULL,
   PRIMARY KEY (`coordinate_id`),
-  KEY `idx_route_coords_route_seq` (`route_id`, `sequence_order`),
+  KEY `idx_route_coords_route_seq` (`route_id`,`sequence_order`),
   CONSTRAINT `fk_route_coords_route` FOREIGN KEY (`route_id`) REFERENCES `responder_routes` (`route_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -2122,6 +2362,7 @@ CREATE TABLE `severity_levels` (
   `severity_id` int NOT NULL,
   `severity_key` varchar(50) DEFAULT NULL,
   `severity_label` varchar(100) DEFAULT NULL,
+  `severity_desc` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`severity_id`),
   UNIQUE KEY `uk_severity_levels_key` (`severity_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -2138,6 +2379,24 @@ CREATE TABLE `sitios` (
   KEY `idx_sitios_barangay` (`barangay_id`),
   CONSTRAINT `fk_sitios_barangay` FOREIGN KEY (`barangay_id`) REFERENCES `barangays` (`barangay_id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------------------------------------------------------
+-- Table: `situation_report_submissions`
+-- ----------------------------------------------------------------------------
+DROP TABLE IF EXISTS `situation_report_submissions`;
+CREATE TABLE `situation_report_submissions` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `sit_rep_id` int NOT NULL,
+  `submitted_at` timestamp NOT NULL,
+  `delivered_by` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `received_by` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `recorded_by` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `situation_report_submissions_sit_rep_id_index` (`sit_rep_id`),
+  CONSTRAINT `resq_65e805833d7f909a_fk` FOREIGN KEY (`sit_rep_id`) REFERENCES `situation_reports` (`sit_rep_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
 -- Table: `situation_reports`
@@ -2158,9 +2417,13 @@ CREATE TABLE `situation_reports` (
   `generated_at` datetime NOT NULL,
   `archived_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL,
+  `schema_version` varchar(8) NOT NULL DEFAULT '2.0',
+  `sitrep_type` varchar(16) DEFAULT NULL,
+  `approved_by` varchar(150) DEFAULT NULL,
+  `operator_inputs` json DEFAULT NULL,
   PRIMARY KEY (`sit_rep_id`),
   UNIQUE KEY `uk_sitrep_number` (`report_number`),
-  KEY `idx_sitrep_disaster` (`disaster_id`, `generated_at`),
+  KEY `idx_sitrep_disaster` (`disaster_id`,`generated_at`),
   KEY `idx_sitrep_household` (`household_id`),
   CONSTRAINT `fk_sitrep_disaster` FOREIGN KEY (`disaster_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_sitrep_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE SET NULL ON UPDATE CASCADE
@@ -2188,6 +2451,8 @@ CREATE TABLE `status_reminders` (
   UNIQUE KEY `status_reminders_event_member_attempt_unique` (`event_id`,`member_id`,`attempt`),
   KEY `status_reminders_due_index` (`status`,`scheduled_at`),
   KEY `status_reminders_household_index` (`event_id`,`household_id`,`status`),
+  KEY `fk_status_reminders_household` (`household_id`),
+  KEY `fk_status_reminders_member` (`member_id`),
   CONSTRAINT `fk_status_reminders_event` FOREIGN KEY (`event_id`) REFERENCES `disaster_events` (`event_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_status_reminders_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_status_reminders_member` FOREIGN KEY (`member_id`) REFERENCES `household_members` (`member_id`) ON DELETE CASCADE ON UPDATE CASCADE
@@ -2269,9 +2534,9 @@ CREATE TABLE `unit_allocations` (
   KEY `idx_unit_alloc_evac` (`evacuation_id`),
   KEY `idx_unit_alloc_unit` (`unit_id`),
   KEY `idx_unit_alloc_assigned_by` (`assigned_by`),
+  CONSTRAINT `fk_unit_alloc_assigned_by` FOREIGN KEY (`assigned_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_unit_alloc_evac` FOREIGN KEY (`evacuation_id`) REFERENCES `evacuation_records` (`evacuation_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_unit_alloc_unit` FOREIGN KEY (`unit_id`) REFERENCES `accommodation_units` (`unit_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_unit_alloc_assigned_by` FOREIGN KEY (`assigned_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE
+  CONSTRAINT `fk_unit_alloc_unit` FOREIGN KEY (`unit_id`) REFERENCES `accommodation_units` (`unit_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -2291,6 +2556,7 @@ CREATE TABLE `user_notifications` (
   PRIMARY KEY (`id`),
   KEY `idx_user_notifications_user_id` (`user_id`),
   KEY `idx_user_notifications_read_at` (`read_at`),
+  KEY `idx_user_notif_unread_created` (`user_id`,`read_at`,`created_at` DESC),
   CONSTRAINT `fk_user_notifications_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -2334,10 +2600,10 @@ CREATE TABLE `users` (
   KEY `idx_users_username` (`username`),
   KEY `idx_users_assigned_center` (`assigned_center_id`),
   KEY `idx_users_deleted` (`deleted_at`),
-  CONSTRAINT `fk_users_role` FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_users_assigned_center` FOREIGN KEY (`assigned_center_id`) REFERENCES `evacuation_centers` (`evacuation_center_id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_users_household` FOREIGN KEY (`household_id`) REFERENCES `households` (`household_id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `fk_users_member` FOREIGN KEY (`member_id`) REFERENCES `household_members` (`member_id`) ON DELETE SET NULL ON UPDATE CASCADE
+  CONSTRAINT `fk_users_member` FOREIGN KEY (`member_id`) REFERENCES `household_members` (`member_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_users_role` FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -2411,7 +2677,8 @@ CREATE TABLE `web_push_subscriptions` (
   UNIQUE KEY `web_push_subscriptions_endpoint_hash_unique` (`endpoint_hash`),
   KEY `web_push_subscriptions_user_id_index` (`user_id`),
   KEY `web_push_subscriptions_token_id_index` (`token_id`),
-  CONSTRAINT `fk_web_push_subs_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `fk_web_push_subs_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `resq_e20d31d8baa70e39_fk` FOREIGN KEY (`token_id`) REFERENCES `personal_access_tokens` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------------------------------------------------------
@@ -2428,9 +2695,51 @@ CREATE TABLE `zipcodes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ============================================================================
--- ANALYTICAL & MONITORING VIEWS (SQL SECURITY INVOKER)
+-- Analytical Views
 -- ============================================================================
 
+-- ----------------------------------------------------------------------------
+-- View: `v_household_status_board`
+-- ----------------------------------------------------------------------------
+DROP VIEW IF EXISTS `v_household_status_board`;
+CREATE SQL SECURITY INVOKER VIEW `v_household_status_board` AS
+SELECT
+  `mds`.`disaster_id` AS `disaster_id`,
+  `h`.`household_id` AS `household_id`,
+  `h`.`household_code` AS `household_code`,
+  `h`.`household_name` AS `household_name`,
+  `hs`.`status_id` AS `household_status_id`,
+  `hs`.`status_label` AS `household_status_label`,
+  `hs`.`color_hex` AS `household_status_color`,
+  COUNT(0) AS `total_members`,
+  SUM(`ms`.`status_key` = 'unknown') AS `unreported`,
+  SUM(`ms`.`status_key` IN ('safe', 'safe_at_home', 'evacuated')) AS `accounted_safe`,
+  SUM(`ms`.`requires_rescue` = 1) AS `needs_rescue_count`,
+  SUM(`ms`.`status_key` = 'missing') AS `missing_count`,
+  SUM(`ms`.`status_key` = 'injured') AS `injured_count`,
+  SUM(`ms`.`status_key` = 'deceased') AS `deceased_count`,
+  MAX(`mds`.`severity_rank`) AS `worst_severity`,
+  MAX(`mds`.`reported_at`) AS `last_reported_at`,
+  MAX(`mds`.`latitude`) AS `latitude`,
+  MAX(`mds`.`longitude`) AS `longitude`
+FROM `member_disaster_statuses` `mds`
+JOIN `household_members` `hm` ON (`hm`.`member_id` = `mds`.`member_id` AND `hm`.`deleted_at` IS NULL)
+JOIN `households` `h` ON (`h`.`household_id` = `mds`.`household_id`)
+JOIN `member_statuses` `ms` ON (`ms`.`status_id` = `mds`.`status_id`)
+LEFT JOIN `household_disasters` `hd` ON (`hd`.`disaster_id` = `mds`.`disaster_id` AND `hd`.`household_id` = `mds`.`household_id`)
+LEFT JOIN `household_statuses` `hs` ON (`hs`.`status_id` = `hd`.`current_status_id`)
+GROUP BY
+  `mds`.`disaster_id`,
+  `h`.`household_id`,
+  `h`.`household_code`,
+  `h`.`household_name`,
+  `hs`.`status_id`,
+  `hs`.`status_label`,
+  `hs`.`color_hex`;
+
+-- ----------------------------------------------------------------------------
+-- View: `v_member_status_monitor`
+-- ----------------------------------------------------------------------------
 DROP VIEW IF EXISTS `v_member_status_monitor`;
 CREATE SQL SECURITY INVOKER VIEW `v_member_status_monitor` AS
 SELECT
@@ -2495,41 +2804,5 @@ LEFT JOIN `users` `u` ON (`u`.`member_id` = `hm`.`member_id` AND `u`.`deleted_at
 LEFT JOIN `household_members` `rep` ON (`rep`.`member_id` = `mds`.`reported_by_member_id`)
 WHERE `hm`.`deleted_at` IS NULL
   AND `h`.`deleted_at` IS NULL;
-
-DROP VIEW IF EXISTS `v_household_status_board`;
-CREATE SQL SECURITY INVOKER VIEW `v_household_status_board` AS
-SELECT
-  `mds`.`disaster_id` AS `disaster_id`,
-  `h`.`household_id` AS `household_id`,
-  `h`.`household_code` AS `household_code`,
-  `h`.`household_name` AS `household_name`,
-  `hs`.`status_id` AS `household_status_id`,
-  `hs`.`status_label` AS `household_status_label`,
-  `hs`.`color_hex` AS `household_status_color`,
-  COUNT(0) AS `total_members`,
-  SUM(`ms`.`status_key` = 'unknown') AS `unreported`,
-  SUM(`ms`.`status_key` IN ('safe', 'safe_at_home', 'evacuated')) AS `accounted_safe`,
-  SUM(`ms`.`requires_rescue` = 1) AS `needs_rescue_count`,
-  SUM(`ms`.`status_key` = 'missing') AS `missing_count`,
-  SUM(`ms`.`status_key` = 'injured') AS `injured_count`,
-  SUM(`ms`.`status_key` = 'deceased') AS `deceased_count`,
-  MAX(`mds`.`severity_rank`) AS `worst_severity`,
-  MAX(`mds`.`reported_at`) AS `last_reported_at`,
-  MAX(`mds`.`latitude`) AS `latitude`,
-  MAX(`mds`.`longitude`) AS `longitude`
-FROM `member_disaster_statuses` `mds`
-JOIN `household_members` `hm` ON (`hm`.`member_id` = `mds`.`member_id` AND `hm`.`deleted_at` IS NULL)
-JOIN `households` `h` ON (`h`.`household_id` = `mds`.`household_id`)
-JOIN `member_statuses` `ms` ON (`ms`.`status_id` = `mds`.`status_id`)
-LEFT JOIN `household_disasters` `hd` ON (`hd`.`disaster_id` = `mds`.`disaster_id` AND `hd`.`household_id` = `mds`.`household_id`)
-LEFT JOIN `household_statuses` `hs` ON (`hs`.`status_id` = `hd`.`current_status_id`)
-GROUP BY
-  `mds`.`disaster_id`,
-  `h`.`household_id`,
-  `h`.`household_code`,
-  `h`.`household_name`,
-  `hs`.`status_id`,
-  `hs`.`status_label`,
-  `hs`.`color_hex`;
 
 SET FOREIGN_KEY_CHECKS = 1;

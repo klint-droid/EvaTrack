@@ -35,3 +35,7 @@ Homestead.yaml
 .DS_Store
 Thumbs.db
 ~$*
+
+# Android / Kotlin scratch
+/docs/Kotlin/
+

@@ -151,7 +151,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('events', [EvacuationEventController::class, 'index']);
     Route::get('events/history', [EvacuationEventController::class, 'history']);
     Route::get('events/active', [EvacuationEventController::class, 'active']);
-    Route::post('events', [EvacuationEventController::class, 'store']);
     Route::patch('events/{id}/end', [EvacuationEventController::class, 'end']);
     Route::patch('/events/{id}/assign-centers', [EvacuationEventController::class, 'assignCenters']);
     Route::patch('/centers/{centerId}/unassign', [EvacuationEventController::class, 'unassignCenter']);

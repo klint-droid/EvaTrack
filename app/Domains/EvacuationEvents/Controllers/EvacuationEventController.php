@@ -83,32 +83,16 @@ class EvacuationEventController extends Controller
 
     #[OA\Post(
         path: '/events',
-        summary: 'Create a new disaster event',
+        summary: 'Create a new disaster event (Disabled)',
         security: [['bearerAuth' => []]],
         tags: ['Disaster Events']
     )]
-    #[OA\RequestBody(
-        required: true,
-        content: new OA\JsonContent(
-            required: ['name', 'type_id'],
-            properties: [
-                new OA\Property(property: 'name', type: 'string'),
-                new OA\Property(property: 'type_id', type: 'integer'),
-                new OA\Property(property: 'severity_id', type: 'integer', nullable: true),
-            ]
-        )
-    )]
-    #[OA\Response(response: 201, description: 'Created successfully')]
-    #[OA\Response(response: 401, description: 'Unauthenticated')]
-    public function store(StoreDisasterEventRequest $request, CreateDisasterEventAction $action)
+    #[OA\Response(response: 403, description: 'Forbidden: Managed externally')]
+    public function store()
     {
-        $dto = DisasterEventDTO::fromRequest($request);
-        $event = $action->execute($dto);
-
         return response()->json([
-            'message' => 'Event created successfully',
-            'data'    => $event->load(['primaryType', 'severity'])
-        ], 201);
+            'message' => 'Disaster events are managed externally by SafeTrack / ResQperation and cannot be created within EvaTrack.'
+        ], 403);
     }
 
     #[OA\Patch(

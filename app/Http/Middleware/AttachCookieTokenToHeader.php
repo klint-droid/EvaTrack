@@ -29,3 +29,4 @@ class AttachCookieTokenToHeader
         return $next($request);
     }
 }
+

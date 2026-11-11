@@ -23,13 +23,13 @@ class DeleteResourceRequestAction
 
         $pendingStatusId = ResourceRequestStatus::where('status_key', ResourceRequestStatus::PENDING)->value('status_id') ?? 1;
 
+        if ($request->status_id !== $pendingStatusId) {
+            throw new Exception("Only pending requests can be deleted.", 400);
+        }
+
         if ($user->isEvacPersonnel()) {
             if ($request->requested_by !== $user->user_id) {
                 throw new Exception("You can only delete your own request.", 403);
-            }
-
-            if ($request->status_id !== $pendingStatusId) {
-                throw new Exception("Only pending requests can be deleted.", 400);
             }
         }
 
