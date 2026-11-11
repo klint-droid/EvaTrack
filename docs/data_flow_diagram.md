@@ -1,23 +1,26 @@
-# EvaTrack – Data Flow Diagrams (DFD)
+# EvaTrack – Data Flow Diagrams & External Systems Integration
 
 **Project Title:** EVATRACK: Streamlined Evacuation Processes and Coordination Platform Integrating SafeTrack Demographics and ResQperation Response Support  
 **Proponents:** Klint M. Ruales, Danica Gelbolingo, Anna Rhea Villadolid, Vhenz Cernal  
 
-Render these diagrams using [Mermaid Live Editor](https://mermaid.live) or view them natively in Markdown preview.
+Render these diagrams using [Mermaid Live Editor](https://mermaid.live), GitHub Markdown viewer, or your IDE's Markdown preview.
 
 ---
 
 ## 1. Architectural System Context & Scope
 
 EvaTrack operates as the central camp coordination and evacuation management platform within an interconnected tri-platform disaster management ecosystem:
+
 1. **EvaTrack (Central System):** Camp coordination, shelter intake, resident admission & room allocation, real-time occupancy tracking, in-center incident triage, resource shortage requests, SMS & push notification broadcasts, and demographic analytics.
-2. **SafeTrack (Demographic & Census Authority - External System):** Manages pre-disaster resident census profiles, family rosters, vulnerability statuses (PWD, pregnant, seniors, infants), and issues unique household QR codes.
-3. **ResQperation (Emergency Operations & Dispatch - External System):** Manages disaster incident response, rescue logistics, emergency supply fulfillment, and hosts the mobile push notification gateway for smartphone residents.
-4. **Households / Residents (End Beneficiaries):** Present SafeTrack QR codes or identification at evacuation centers, receive real-time SMS broadcasts and mobile push alerts.
-5. **System Operators:**
-   - **Super Admin:** System-wide administrator (MDRRMO) managing all user accounts, role provisioning, global center registrations, disaster event activations, and cross-center analytics.
-   - **Evacuation Admin:** Camp Incident Commander managing shelter capacities, room assignments, staff shifts, resource request approvals, and local emergency broadcast dispatches.
-   - **Evacuation Personnel:** Frontline desk staff verifying evacuees against SafeTrack records, checking in/out households, logging room allocations, reporting facility/medical incidents, and drafting supply requests.
+2. **SafeTrack (Demographic & Census Master - External Partner System):** Manages pre-disaster resident census profiles, family rosters, vulnerability statuses (PWD, pregnant, seniors, infants), and issues unique household QR codes.
+3. **ResQperation (Emergency Operations & Dispatch - External Partner System):** Manages disaster incident response, rescue logistics, emergency supply fulfillment, and consumes EvaTrack humanitarian analytics.
+4. **TextBee Cellular Gateway (External SMS Gateway):** Direct carrier GSM SMS dispatch gateway for real-time text message alerts to resident mobile phones.
+5. **OneSignal Gateway (External Push Gateway):** Mobile push notification delivery gateway targeting smartphone app users via registered device player tokens and subscription IDs.
+6. **Households / Residents (End Beneficiaries):** Present SafeTrack QR codes or identification at evacuation centers, receive real-time SMS broadcasts and mobile push alerts.
+7. **System Operators:**
+   - **Super Admin (MDRRMO):** System-wide administrator managing all user accounts, role provisioning (`SUP`), global center registrations, disaster event activations, and cross-center analytics.
+   - **Evacuation Admin (Camp Commander):** Camp Incident Commander managing shelter capacities (`EAD`), room assignments, staff shifts, resource request approvals, and local emergency broadcast dispatches.
+   - **Evacuation Personnel (Frontline Desk Registrar):** Frontline desk staff (`EPE`) verifying evacuees against SafeTrack records, checking in/out households, logging room allocations, reporting facility/medical incidents, and drafting supply requisitions.
 
 ---
 
@@ -26,7 +29,6 @@ EvaTrack operates as the central camp coordination and evacuation management pla
 The Level 0 Context Diagram depicts the entire EvaTrack system as a single central process interacting with all internal actors, external partner systems, and beneficiaries.
 
 ```mermaid
-%%{ init: { "flowchart": { "rankSpacing": 80, "nodeSpacing": 50 } } }%%
 flowchart LR
 
     %% ── Internal Actors (Left) ──
@@ -37,15 +39,17 @@ flowchart LR
     end
 
     %% ── Central System ──
-    SYS(["🗂️ EvaTrack System\n(Evacuation Management & Tracking Platform)"])
+    SYS(["🗂️ 0.0 EvaTrack System\n(Evacuation Management & Tracking Platform)"])
 
     %% ── External Ecosystem & Beneficiaries (Right) ──
-    subgraph GRP_EXTERNAL["🌐 Integrated Systems & Beneficiaries"]
+    subgraph GRP_EXTERNAL["🌐 Integrated Systems & Gateways"]
         ST["📋 SafeTrack Platform\n(Demographic & Census Master)"]
         RQ["🚑 ResQperation Platform\n(Response Dispatch & Logistics)"]
-        HH["📱 Households / Residents\n(Displaced Evacuees)"]
-        GW["📡 Cellular SMS Gateway\n(TextBee Direct Carrier)"]
+        TB["📡 Cellular SMS Gateway\n(TextBee GSM Carrier API)"]
+        OS["🔔 OneSignal Gateway\n(Mobile Push Notification API)"]
     end
+
+    HH["📱 Households / Residents\n(Displaced Evacuees)"]
 
     %% ── Super Admin Flows ──
     SA -->|"User registration, role provisioning,\nglobal center config, disaster event declaration"| SYS
@@ -63,17 +67,20 @@ flowchart LR
     SYS <-->|"Query household ID / QR code →\nReturn demographic roster & vulnerability flags"| ST
 
     %% ── ResQperation Integration Flows ──
-    SYS -->|"Approved resource requests (supplies, cots, medical)\n& mobile push notification dispatch payload"| RQ
-    RQ -->|"Logistics fulfillment updates, delivery confirmations,\n& push delivery receipts"| SYS
+    SYS -->|"Approved resource requests (supplies, cots, medical)"| RQ
+    RQ -->|"Logistics fulfillment updates & delivery confirmations"| SYS
+    RQ -->|"Inbound requests for DROMIC & demographic reports"| SYS
+    SYS -->|"Generated disaster evacuation reports (PDF/CSV)"| RQ
+
+    %% ── Alert Gateways to Households ──
+    SYS -->|"Emergency broadcast text dispatch"| TB
+    TB -->|"Direct SMS broadcast alerts"| HH
+    SYS -->|"Push notification payload & device player IDs"| OS
+    OS -->|"Mobile app push notification alerts"| HH
 
     %% ── Household Beneficiary Flows ──
     HH -->|"Present SafeTrack QR code / ID at intake,\nrequest checkout upon return"| SYS
     SYS -->|"In-center admission confirmation,\nassigned room ticket"| HH
-
-    %% ── Gateway Alerts to Households ──
-    SYS -->|"Emergency broadcast text dispatch"| GW
-    GW -->|"Direct SMS broadcast alerts"| HH
-    RQ -->|"Mobile app push notification alerts"| HH
 
     %% ── Styling ──
     classDef operatorNode fill:#1e40af,stroke:#1d4ed8,stroke-width:2px,color:#fff,font-weight:bold
@@ -83,22 +90,21 @@ flowchart LR
 
     class SA,EA,EP operatorNode
     class SYS systemNode
-    class ST,RQ,GW partnerNode
+    class ST,RQ,TB,OS partnerNode
     class HH recipNode
 ```
 
 ---
 
-## 3. Level 1: Data Flow Diagram (All System Subsystems)
+## 3. Level 1: Data Flow Diagram (All Subsystems)
 
 The Level 1 DFD decomposes EvaTrack into **nine functional sub-processes**, displaying data flows between system operators, external partner platforms, data stores, and recipient gateways.
 
 ```mermaid
-%%{ init: { "flowchart": { "rankSpacing": 70, "nodeSpacing": 45 } } }%%
 flowchart TB
 
     %% ══════════════════════════════════════════════════════════════════════════
-    %% EXTERNAL ENTITIES (Top & Bottom Boundaries)
+    %% EXTERNAL ENTITIES
     %% ══════════════════════════════════════════════════════════════════════════
     subgraph ACTORS["👥 System Operators & External Systems"]
         SA["👤 Super Admin"]
@@ -106,8 +112,9 @@ flowchart TB
         EP["👤 Evacuation Personnel"]
         ST["📋 SafeTrack Platform"]
         RQ["🚑 ResQperation Platform"]
+        TB["📡 TextBee SMS Gateway"]
+        OS["🔔 OneSignal Gateway"]
         HH["📱 Households / Residents"]
-        GW["📡 Cellular SMS Gateway"]
     end
 
     %% ══════════════════════════════════════════════════════════════════════════
@@ -219,10 +226,10 @@ flowchart TB
     P8 <-->|"Retrieve contact numbers & active device tokens"| D5
     P8 <-->|"Retrieve push tokens"| D9
     P8 <-->|"Persist broadcast records & delivery logs"| D9
-    P8 -->|"Send SMS payload to direct carrier"| GW
-    GW -->|"Direct SMS broadcast alerts"| HH
-    P8 -->|"Send Push payload to mobile gateway"| RQ
-    RQ -->|"Mobile app push notification dispatches"| HH
+    P8 -->|"Send SMS payload to direct carrier"| TB
+    TB -->|"Direct SMS broadcast alerts"| HH
+    P8 -->|"Send Push payload to mobile gateway"| OS
+    OS -->|"Mobile app push notification dispatches"| HH
 
     %% Process 9.0 (Live Demographic Analytics & Reporting)
     D6 -->|"Aggregated admission & member records"| P9
@@ -231,6 +238,8 @@ flowchart TB
     P9 <-->|"Persist computed periodic & live snapshots"| D10
     P9 -->|"Demographic breakdown (Age, Gender, PWD, Pregnant), Occupancy Rate"| EA
     P9 -->|"Cross-center disaster rollup, city-wide humanitarian metrics"| SA
+    RQ -->|"Request external DROMIC & utilization reports"| P9
+    P9 -->|"Generated PDF/CSV report stream"| RQ
 
     %% ══════════════════════════════════════════════════════════════════════════
     %% STYLING
@@ -242,7 +251,7 @@ flowchart TB
     classDef storeNode   fill:#0f766e,stroke:#0d9488,stroke-width:2px,color:#fff,font-weight:bold
 
     class SA,EA,EP actorNode
-    class ST,RQ,GW extNode
+    class ST,RQ,TB,OS extNode
     class HH recipNode
     class P1,P2,P3,P4,P5,P6,P7,P8,P9 processNode
     class D1,D2,D3,D4,D5,D6,D7,D8,D9,D10 storeNode
@@ -253,19 +262,13 @@ flowchart TB
 ## 4. Sub-Process Functional Specifications
 
 ### 1.0 User Provisioning, Station Assignment & Security Access Control
-- **Purpose:** Securely manages user identity, role-based access control (RBAC), multi-tier authentication security (HttpOnly session cookies, brute-force rate limiting), and personnel-to-center station assignment lifecycle with full historical auditing.
+- **Purpose:** Securely manages user identity, role-based access control (RBAC), multi-tier authentication security (HttpOnly session cookies, brute-force rate limiting), and personnel-to-center station assignment lifecycle with historical auditing.
 - **Inputs:** 
   - Super Admin: Staff creation requests (names, email, role selection: `SUP`, `EAD`, `EPE`, center assignment).
   - Evacuation Admin: Personnel center station assignment, transfer, and relief commands.
   - All Users: Login credentials (User ID / email, password).
 - **Outputs:** HttpOnly `access_token` cookies (web SPA) and Sanctum API bearer tokens (mobile), user profile payloads, station assignment audit records, in-app alerts, and SMS assignment notifications.
 - **Data Stores Accessed:** `D1 Users, Roles & Station Assignments`, `D2 Evacuation Centers & Occupancy`.
-- **Business Logic:**
-  - Enforces exclusive user creation rights to Super Admin.
-  - Automatically generates formatted User IDs (`SUP-YYYY-XXXXXX`, `EAD-YYYY-XXXXXX`, `EPE-YYYY-XXXXXX`).
-  - **Station Assignment Audit Lifecycle:** When personnel are assigned to a shelter, an immutable record is logged in `center_personnel_assignments` with `status = 'active'`, `assigned_by`, and `assigned_at`. Reassigning transfers the prior record to `status = 'transferred'` with `relieved_at = now()`, while relieving marks it `completed`. The `users.assigned_center_id` serves as a high-speed cached pointer.
-  - **Station Alerts:** Assignment or transfer dispatches an instant in-app notification and SMS alert via TextBee to the personnel's contact number.
-  - **Security & Session Hardening:** Authentication issues `HttpOnly`, `SameSite=Lax` cookies with 7-day sliding expiration and enforces brute-force rate-limiting (`throttle:6,1` on login) to prevent unauthorized credential harvesting.
 
 ### 2.0 Center & Room Configuration
 - **Purpose:** Maintains the physical inventory of evacuation shelters and internal living quarters.
@@ -274,93 +277,55 @@ flowchart TB
   - Evacuation Admin: Internal accommodation units (classrooms, modular tents, gym sectors, individual room capacities).
 - **Outputs:** Real-time facility availability lists, room inventory matrices, maximum capacity thresholds.
 - **Data Stores Accessed:** `D2 Evacuation Centers & Occupancy`, `D3 Accommodation Units`.
-- **Business Logic:**
-  - Centers generate formatted IDs (`EC-YYYY-XXXXXX`).
-  - Total room capacities cannot exceed total facility design capacity.
-  - Tracks room-level availability to prevent physical over-allocation.
 
 ### 3.0 Disaster Event & Severity Activation
 - **Purpose:** Declares, categorizes, and tracks disaster operations.
 - **Inputs:** Super Admin: Disaster event declarations, hazard type selection (Typhoon, Flood, Earthquake, Landslide, Fire), severity level ratings (Low, Moderate, High, Critical), activation dates.
 - **Outputs:** Active disaster event context provided to intake, alerting, and reporting modules.
 - **Data Stores Accessed:** `D4 Disaster Events`.
-- **Business Logic:**
-  - Centers are linked to an active `current_event_id`.
-  - Closing an event archives evacuation records and marks shelter occupancy as resolved.
 
 ### 4.0 SafeTrack Intake & Demographic Sync
 - **Purpose:** Interfaces directly with the SafeTrack master census platform to fetch household demographics, member identities, and vulnerability tags during shelter arrival.
 - **Inputs:** Evacuation Personnel: SafeTrack QR code scan payload or manual `household_id` search.
 - **Outputs:** Verified household roster, list of registered family members, vulnerability flags (PWD, pregnant, senior, infant).
 - **Data Stores Accessed:** `D5 Households & Demographics`.
-- **External Interfaces:** `SafeTrack Platform` (REST API).
-- **Business Logic:**
-  - **Data Privacy Rule:** Full demographic data and vulnerability classifications are exposed strictly to authenticated Evacuation Personnel on their intake screen and are never exposed publicly or reflected back to unauthenticated devices.
-  - If a household record is updated in SafeTrack, the latest demographic snapshot is synchronized with EvaTrack's cache (`households`, `household_members`).
+- **External Interfaces:** `SafeTrack Platform` (`GET /api/external/households`).
 
 ### 5.0 Admission, Room Allocation & Checkout
-- **Purpose:** Handles physical intake, member headcount verification, living space / accommodation unit assignment (both at intake and dynamically via the Evacuated Household Details drawer), and departure of displaced families.
-- **Inputs:**
-  - Evacuation Personnel: Checkbox selection of physically present members, accommodation unit assignment (`unit_id`), unit transfers/unallocations, departure/checkout trigger.
-  - Households: Presentation of QR code or physical ID.
+- **Purpose:** Handles physical intake, member headcount verification, living space / accommodation unit assignment, and departure of displaced families.
+- **Inputs:** Evacuation Personnel: Member checkboxes, accommodation unit assignment (`unit_id`), departure/checkout trigger.
 - **Outputs:** Admission confirmation, room assignment ticket, auto-updated center headcount, room allocation status.
 - **Data Stores Accessed:** `D6 Evacuation Records`, `D3 Accommodation Units`, `D2 Evacuation Centers & Occupancy`.
-- **Business Logic:**
-  - Admission creates an `evacuation_records` entry, marks `household_status_id` = `Evacuated`, and logs verified individuals in `evacuated_members`.
-  - Atomically increments `center_occupancies.current_occupancy` and updates room allocation slots in `unit_allocations`.
-  - **Dynamic Unit Allocation:** Frontline staff can directly assign, reassign, or release rooms/units from within the Evacuated Household Details drawer, with automated modal confirmation and room capacity validation.
-  - Processing checkout changes `household_status_id` = `Not Evacuated`, frees accommodation unit capacity, and decrements `center_occupancies.current_occupancy`.
 
 ### 6.0 In-Center Incident & Health Issue Triage
 - **Purpose:** Enables frontline camp staff to report and triage operational incidents, facility damage, sanitation problems, medical emergencies, and security issues.
-- **Inputs:**
-  - Evacuation Personnel: Incident category (`facility_damage`, `medical_emergency`, `sanitation`, `security`, `food_water`), description, severity rating, photo attachment.
-  - Evacuation Admin: Triage status updates (`pending`, `under_review`, `in_progress`, `resolved`), assigned handler user.
+- **Inputs:** Evacuation Personnel: Incident category, issue name/title, optional description, photo attachment.
 - **Outputs:** Incident tickets (`CIR-YYYY-XXXXXX`), real-time in-app dashboard notifications, resolution reports.
 - **Data Stores Accessed:** `D7 Center Issue Reports`, `D1 Users & Roles`.
-- **Business Logic:**
-  - Critical/high severity incidents immediately trigger in-app notifications to center Camp Managers.
-  - Photo attachments are stored securely in local app storage and served via signed asset URLs.
 
 ### 7.0 Resource Shortage & ResQperation Routing
 - **Purpose:** Tracks in-center material and personnel deficits, enables administrative approval, and dispatches external logistics requests directly to the ResQperation disaster response platform.
-- **Inputs:**
-  - Evacuation Personnel: Supply deficit requisition (item type, quantity needed, priority, justification).
-  - Evacuation Admin: Administrative review, quantity adjustment, approval or rejection.
-  - ResQperation Platform: Dispatch acknowledgment, tracking reference, fulfillment and delivery status.
+- **Inputs:** Evacuation Personnel: Supply deficit requisition; Evacuation Admin: Administrative review & approval; ResQperation: Fulfillment & delivery callbacks.
 - **Outputs:** Requisition tickets (`REQ-YYYY-XXXXXX`), outbound JSON payload to ResQperation, delivery receipts.
 - **Data Stores Accessed:** `D8 Resource Requests`.
 - **External Interfaces:** `ResQperation Platform` (REST API).
-- **Business Logic:**
-  - Personnel create requests in `pending` status.
-  - Evacuation Admin approves the request, which triggers the dispatch integration payload to ResQperation.
-  - Status updates (`acknowledged`, `approved`, `delivered`) synchronize back into EvaTrack.
 
 ### 8.0 Multi-Channel Alert Broadcast Engine
-- **Purpose:** Dispatches critical emergency bulletins, weather advisories, and evacuation notices across multiple communication channels tailored to resident connectivity.
-- **Inputs:** Evacuation Admin / Super Admin: Advisory message text, urgency level, channel selection (`sms`, `push`, `both`), target filter (barangay, evacuation center, or all).
-- **Outputs:** Outbound SMS dispatches via cellular gateway, outbound push notification requests to ResQperation / OneSignal, recipient delivery audit logs.
+- **Purpose:** Dispatches critical emergency bulletins, weather advisories, and evacuation notices across cellular SMS and mobile push channels.
+- **Inputs:** Evacuation Admin / Super Admin: Advisory message text, urgency level, channel selection (`sms`, `push`, `both`), target filter.
+- **Outputs:** Outbound SMS dispatches via TextBee GSM gateway, outbound push notification requests to OneSignal, recipient delivery audit logs.
 - **Data Stores Accessed:** `D9 Notifications & Logs`, `D5 Households & Demographics`.
-- **External Interfaces:** `Cellular SMS Gateway` (TextBee GSM API), `ResQperation / OneSignal Push Gateway`.
-- **Business Logic:**
-  - **Hybrid Delivery Strategy:**
-    - Non-smartphone or offline households receive direct cellular SMS text broadcasts.
-    - Smartphone app users receive instant push notifications via device tokens.
-  - Delivery attempts, status responses (`sent`, `delivered`, `failed`), and retry counts are logged per recipient in `notification_logs`.
+- **External Interfaces:** `TextBee SMS Gateway` (Direct GSM), `OneSignal Push Gateway` (REST API v1).
 
 ### 9.0 Live Demographic Analytics & Reporting
-- **Purpose:** Aggregates real-time intake data to produce demographic distributions and humanitarian intelligence for camp managers and disaster agency executives.
+- **Purpose:** Aggregates real-time intake data to produce demographic distributions, shelter utilization, and external humanitarian intelligence (e.g. DROMIC reports).
 - **Inputs:** Data streams from `D6 Evacuation Records`, `D5 Households & Demographics`, and `D2 Evacuation Centers & Occupancy`.
-- **Outputs:**
-  - Center-level dashboard: Real-time occupancy percentage, gender distribution (Male vs. Female), age brackets (Children, Adults, Elderly), vulnerability counts (PWD, Pregnant, Lactating).
-  - City-wide / MDRRMO dashboard: Total affected population, total displaced families, aggregate resource consumption rates, downloadable CSV/PDF audit summaries.
+- **Outputs:** Interactive dashboards, periodic snapshots, streamed PDF/CSV downloads for partner platforms (`/api/v1/external/reports/generate`).
 - **Data Stores Accessed:** `D10 Analytics Snapshots`.
-- **Business Logic:**
-  - Aggregations are calculated live upon query and periodically captured as immutable historical snapshots by background scheduler jobs (`analytics_job_logs`).
 
 ---
 
-## 5. Data Store Dictionary
+## 5. System Data Store Dictionary
 
 | Data Store | Primary Tables | Schema Key Elements | Functional Purpose |
 |---|---|---|---|
@@ -384,7 +349,238 @@ flowchart TB
 | **Super Admin** | Internal Operator | In / Out | In: User accounts, center configs, disaster declarations.<br>Out: System audit logs, global analytics, multi-center summaries. | HTTPS / REST / Web GUI |
 | **Evacuation Admin** | Internal Operator | In / Out | In: Room configs, supply request approvals, broadcast dispatches.<br>Out: Center occupancy dashboards, room rosters, incident triage alerts. | HTTPS / REST / Web GUI |
 | **Evacuation Personnel** | Internal Operator | In / Out | In: SafeTrack QR scans, admission checklists, room assignments, incident reports.<br>Out: Verified family rosters, admission receipts, room availability. | HTTPS / REST / Mobile Web GUI |
-| **SafeTrack Platform** | Partner System | Bidirectional | Out to ST: Query Household ID / QR code.<br>In from ST: Household demographics, member roster, vulnerability flags. | RESTful API / JSON over HTTPS |
-| **ResQperation Platform** | Partner System | Bidirectional | Out to RQ: Approved resource requests, push alert payloads.<br>In from RQ: Logistics delivery updates, push delivery statuses. | RESTful API / Webhooks / HTTPS |
-| **Cellular SMS Gateway** | Delivery Service | Outbound | Out to Gateway: Recipient phone number, alert text message body.<br>In from Gateway: Carrier delivery status, message reference ID. | REST API (TextBee) / GSM Gateway |
+| **SafeTrack Platform** | Partner System | Bidirectional | Out to ST: Query Household ID / QR code.<br>In from ST: Household demographics, member roster, vulnerability flags. | RESTful API / JSON over HTTPS (`X-API-KEY`) |
+| **ResQperation Platform** | Partner System | Bidirectional | Out to RQ: Approved resource requests, supply requisitions.<br>In from RQ: Logistics delivery updates, DROMIC report queries. | RESTful API / Webhooks / HTTPS |
+| **TextBee SMS Gateway** | Delivery Service | Outbound | Out to Gateway: Recipient phone number, alert text message body.<br>In from Gateway: Carrier delivery status, message reference ID. | REST API (TextBee) / GSM Gateway |
+| **OneSignal Push Gateway** | Delivery Service | Outbound | Out to Gateway: App ID, player/subscription IDs, title, body.<br>In from Gateway: OneSignal notification ID, delivery stats. | REST API v1 (`Basic API Key`) |
 | **Households / Residents** | End Beneficiaries | In / Out | In to System: SafeTrack QR code, personal identity, member presence.<br>Out to Household: Admission tickets, room assignments, SMS alerts, mobile push notices. | Physical QR / Mobile SMS / Push |
+
+---
+
+## 7. Detailed External Integration Sequence Workflows
+
+### 7.1 SafeTrack Master Demographic Ingestion & QR Check-In Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Evacuee as 📱 Displaced Resident
+    actor Registrar as 👤 Evacuation Personnel
+    participant EvaFront as 💻 EvaTrack Web SPA
+    participant EvaBack as ⚙️ EvaTrack Backend
+    participant SafeTrack as 📋 SafeTrack API (External)
+    participant LocalDB as 💽 Local Cache (D5/D6)
+
+    Evacuee->>Registrar: Presents SafeTrack QR code or Household ID
+    Registrar->>EvaFront: Scans QR code or enters ID at intake desk
+    EvaFront->>EvaBack: GET /api/v1/households/{id}
+    alt Not in local cache or sync cooldown elapsed
+        EvaBack->>SafeTrack: GET /api/external/households (Headers: X-API-KEY)
+        SafeTrack-->>EvaBack: 200 OK (Household profile, member roster, PWD/vulnerability tags)
+        EvaBack->>LocalDB: Upsert into households, household_members, addresses
+    end
+    LocalDB-->>EvaBack: Return synchronized family data
+    EvaBack-->>EvaFront: Display family roster with checkboxes for members present
+    Registrar->>EvaFront: Selects present members & assigns Room/Unit
+    EvaFront->>EvaBack: POST /api/v1/evacuations (Intake Admission)
+    EvaBack->>LocalDB: Insert evacuation_records, update center_occupancies (+N)
+    EvaBack-->>EvaFront: 201 Created (Admission ticket confirmed)
+    EvaFront-->>Evacuee: Issue accommodation assignment & shelter admission
+```
+
+---
+
+### 7.2 ResQperation Resource Fulfillment & Logistics Tracking Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Registrar as 👤 Evacuation Personnel
+    actor Commander as 👤 Evacuation Admin
+    participant EvaBack as ⚙️ EvaTrack Backend
+    participant ResQ as 🚑 ResQperation API (External)
+    participant LocalDB as 💽 Local DB (D8)
+
+    Registrar->>EvaBack: POST /api/v1/resource-requests (e.g. 50 cots, 100 food packs)
+    EvaBack->>LocalDB: Store request (status = "pending")
+    EvaBack-->>Commander: In-app notification: New shortage request pending review
+    Commander->>EvaBack: PATCH /api/v1/resource-requests/{id} (status = "approved")
+    EvaBack->>LocalDB: Update status = "approved"
+    EvaBack->>ResQ: POST /api/external/logistics/dispatch (Item, Qty, Shelter GPS, Priority)
+    ResQ-->>EvaBack: 200 OK (Tracking ID: "RSQ-LOG-2026-90812", status = "en_route")
+    EvaBack->>LocalDB: Store external tracking ID & status
+    Note over ResQ,EvaBack: When supplies arrive at the evacuation center
+    ResQ->>EvaBack: POST /api/external/logistics/status-update (status = "delivered")
+    EvaBack->>LocalDB: Update resource_requests (status = "fulfilled")
+    EvaBack-->>Commander: Notify Camp Commander: Supplies delivered
+```
+
+---
+
+### 7.3 Multi-Channel Emergency Alerts (TextBee SMS + OneSignal Push) Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Commander as 👤 Evacuation Admin / Super Admin
+    participant EvaBack as ⚙️ EvaTrack Notification Service
+    participant LocalDB as 💽 Local DB (D5 & D9)
+    participant TextBee as 📡 TextBee GSM API (External)
+    participant OneSignal as 🔔 OneSignal Push API (External)
+    actor Resident as 📱 Displaced Residents
+
+    Commander->>EvaBack: POST /api/v1/notifications (Message, Channel: "both", Target: "All Evacuated")
+    EvaBack->>LocalDB: Create notification record (status = "pending")
+    EvaBack->>LocalDB: Resolve target phone numbers and device player IDs
+
+    par Direct Cellular SMS Flow
+        EvaBack->>TextBee: POST /api/v1/gateway/devices/{id}/send-sms (Recipients, Message)
+        TextBee->>Resident: Cellular SMS transmission to feature phones & smartphones
+        TextBee-->>EvaBack: 200 OK (Carrier Message IDs)
+        EvaBack->>LocalDB: Log per-recipient SMS status in notification_logs ("sent")
+    and Mobile Push Notification Flow
+        EvaBack->>OneSignal: POST /api/v1/notifications (include_player_ids / include_subscription_ids)
+        OneSignal->>Resident: Mobile App push banner alert delivered to smartphones
+        OneSignal-->>EvaBack: 200 OK (OneSignal Notification ID)
+        EvaBack->>LocalDB: Log per-recipient Push status in notification_logs ("sent")
+    end
+
+    EvaBack->>LocalDB: Mark master notification (status = "sent")
+    EvaBack-->>Commander: Return broadcast summary & delivery metrics
+```
+
+---
+
+### 7.4 Inbound External Reporting API (DROMIC & Humanitarian Analytics) Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor ExternalPartner as 🏢 Partner System / MDRRMO Executive
+    participant EvaAPI as ⚙️ EvaTrack External Reports API
+    participant Middleware as 🛡️ ValidateExternalApiKey
+    participant DB as 💽 Local DB (D2, D5, D6, D10)
+
+    ExternalPartner->>EvaAPI: POST /api/v1/external/reports/generate (report_type: "dromic", format: "pdf")
+    EvaAPI->>Middleware: Inspect X-API-KEY header
+    alt Invalid or missing API Key
+        Middleware-->>ExternalPartner: 401 Unauthorized
+    else Valid API Key
+        Middleware->>EvaAPI: Allow request
+        EvaAPI->>DB: Query aggregated evacuee headcounts, age/gender brackets, PWD/vulnerability sums
+        EvaAPI->>EvaAPI: Render DomPDF DROMIC Disaster Report template
+        EvaAPI->>DB: Save generated PDF to secure storage
+        EvaAPI-->>ExternalPartner: 200 OK (Signed download URL + file metadata)
+        ExternalPartner->>EvaAPI: GET /api/v1/external/reports/download/{filename}
+        EvaAPI-->>ExternalPartner: Binary PDF Stream (DROMIC Evacuation Report)
+    end
+```
+
+---
+
+## 8. External Data Payload Specifications
+
+### 8.1 SafeTrack Inbound Household Payload (`GET /api/external/households`)
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "household_id": "NHH-2026-000142",
+      "household_head": "Juan Dela Cruz",
+      "contact_number": "09171234567",
+      "address": {
+        "region": "Region VII",
+        "province": "Cebu",
+        "city": "Cebu City",
+        "barangay": "Apas",
+        "sitio": "San Antonio",
+        "purok": "Purok 3"
+      },
+      "members": [
+        {
+          "member_id": "MEM-2026-000412",
+          "first_name": "Juan",
+          "last_name": "Dela Cruz",
+          "relationship_to_head": "Head",
+          "birth_date": "1980-05-14",
+          "gender": "Male",
+          "is_pwd": false,
+          "is_pregnant": false
+        },
+        {
+          "member_id": "MEM-2026-000413",
+          "first_name": "Maria",
+          "last_name": "Dela Cruz",
+          "relationship_to_head": "Spouse",
+          "birth_date": "1984-08-22",
+          "gender": "Female",
+          "is_pwd": false,
+          "is_pregnant": true
+        }
+      ]
+    }
+  ]
+}
+```
+
+### 8.2 ResQperation Resource Requisition Payload
+```json
+{
+  "request_id": "REQ-2026-000089",
+  "evacuation_center_id": "EC-2026-000004",
+  "center_name": "Apas National High School",
+  "latitude": 10.3341,
+  "longitude": 123.8992,
+  "item_type": "Folding Beds / Cots",
+  "quantity_requested": 50,
+  "urgency": "High",
+  "justification": "Surge in evacuated families due to flash flood in Sitio San Antonio",
+  "status": "approved",
+  "requested_at": "2026-11-11T14:30:00Z"
+}
+```
+
+### 8.3 OneSignal Push Notification Payload (`POST /api/v1/notifications`)
+```json
+{
+  "app_id": "bc6266ac-90a4-4bfe-b4d5-59c57939e7a5",
+  "headings": {
+    "en": "Disaster Alert: Evacuation Advisory"
+  },
+  "contents": {
+    "en": "Urgent advisory: Heavy rainfall warning raised to Red. Apas NHS is open for evacuation."
+  },
+  "include_subscription_ids": [
+    "5a6e5925-b61a-447b-9e8d-afc7539d028e",
+    "61ae232f-dfd2-4cfb-a830-93c4552899c6"
+  ],
+  "data": {
+    "notif_id": 42,
+    "url": "http://100.73.14.100:5173/evacuation-centers/EC-2026-000004",
+    "center_id": "EC-2026-000004",
+    "event_id": 3
+  }
+}
+```
+
+### 8.4 External Reports Generation API Payload (`POST /api/v1/external/reports/generate`)
+```json
+{
+  "report_type": "dromic",
+  "format": "pdf",
+  "start_date": "2026-11-01",
+  "end_date": "2026-11-11"
+}
+```
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Report generated successfully.",
+  "download_url": "http://127.0.0.1:8000/api/v1/external/reports/download/dromic_20261111_143000_a1b2c3d4.pdf",
+  "file_name": "dromic_20261111_143000_a1b2c3d4.pdf",
+  "format": "pdf",
+  "expires_in_minutes": 60
+}
+```
