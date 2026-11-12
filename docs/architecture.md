@@ -133,11 +133,17 @@ architecture-beta
     group evatrack(cloud)[EVATRACK SYSTEM]
     group safetrack(cloud)[SafeTrack]
     group resq(cloud)[ResQperation]
+    group thirdparty(cloud)[Third-Party Services]
 
     service admin_ui(internet)[Admin Web Interface] in evatrack
     service staff_ui(internet)[Personnel Web Interface] in evatrack
     junction ui in evatrack
     service api(server)[EvaTrack Web Server] in evatrack
+
+    service textbee(internet)[TextBee SMS Gateway] in thirdparty
+    service onesignal(internet)[OneSignal Push Service] in thirdparty
+    junction tp_top
+    junction tp in thirdparty
 
     service safe_client(internet)[SafeTrack Clients] in safetrack
     service safe_api(server)[SafeTrack API] in safetrack
@@ -152,6 +158,11 @@ architecture-beta
     ui:R --> L:api
     api:R <--> L:db
 
+    api:B -- T:tp_top
+    tp_top:B -- T:tp
+    tp:L --> R:textbee
+    tp:R --> L:onesignal
+
     safe_client:B --> T:safe_api
     safe_api:B <--> T:db
 
@@ -159,7 +170,7 @@ architecture-beta
     resq_api:L <--> R:db
 ```
 
-How to read it (same flow as the reference picture): the **Admin** (Super Admin, Evacuation Admin) and **Personnel** (Evacuation Personnel) use their web interfaces → both go to the **EvaTrack Web Server** → the server reads and writes the **Shared Database**. **SafeTrack** (above) and **ResQperation** (right) each connect their API to the same database.
+How to read it (same flow as the reference picture): the **Admin** (Super Admin, Evacuation Admin) and **Personnel** (Evacuation Personnel) use their web interfaces → both go to the **EvaTrack Web Server** → the server reads and writes the **Shared Database**. **SafeTrack** (above) and **ResQperation** (right) each connect their API to the same database. The EvaTrack Web Server also calls two third-party services: **TextBee** (SMS to residents' phones) and **OneSignal** (push notifications).
 
 ---
 
