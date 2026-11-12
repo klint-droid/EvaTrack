@@ -124,41 +124,28 @@ flowchart TD
 
 ---
 
-### 1.2 Mermaid Architecture-Beta Specification
-
-This diagram uses the Mermaid `architecture-beta` syntax to define system boundaries, groups, micro-components, and external cloud integrations:
+### 1.2 Simple Mermaid Architecture
 
 ```mermaid
 architecture-beta
-    group frontend(cloud)[Frontend Clients]
-    group backend(cloud)[EvaTrack Backend]
-    group storage(database)[Data Storage]
-    group external(cloud)[External Connected Systems]
+    group frontend(cloud)[Frontend]
+    group backend(cloud)[Backend]
+    group external(cloud)[External Systems]
 
-    service web(internet)[Web Admin Console] in frontend
-    service mobile(internet)[Mobile Portal & Tablet] in frontend
+    service web(internet)[Web App] in frontend
+    service mobile(internet)[Mobile App] in frontend
 
-    service api(server)[Laravel 12 API] in backend
-    service auth(server)[Sanctum Auth & RBAC] in backend
+    service api(server)[API Server] in backend
+    service db(database)[Database] in backend
 
-    service db(database)[MySQL shared_db] in storage
-    service files(disk)[Report & File Storage] in storage
-
-    service safetrack(server)[SafeTrack System] in external
-    service resq(server)[ResQperation Platform] in external
-    service textbee(internet)[TextBee SMS Gateway] in external
-    service onesignal(internet)[OneSignal Push Service] in external
+    service safetrack(server)[SafeTrack] in external
+    service resq(server)[ResQperation] in external
 
     web:R --> L:api
     mobile:R --> L:api
-    api:R --> L:auth
     api:B --> T:db
-    db:R -- L:files
-
-    safetrack:B --> T:api
+    safetrack:R --> L:api
     api:R --> L:resq
-    api:R --> L:textbee
-    api:R --> L:onesignal
 ```
 
 ---
