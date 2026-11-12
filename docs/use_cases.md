@@ -51,15 +51,15 @@ flowchart LR
     %% ==========================================
     %% 1. SYSTEM ACTORS (UML Stick Figures — Unenclosed / No Bounding Boxes)
     %% ==========================================
-    SA["🧍<br/><b>Super Admin</b><br/><i>(IT Admin)</i>"]:::actorNode
-    EA["🧍<br/><b>Evacuation Admin</b><br/><i>(Camp Commander)</i>"]:::actorNode
-    EP["🧍<br/><b>Evacuation Personnel</b><br/><i>(Intake Staff)</i>"]:::actorNode
-    HH["🧍<br/><b>Resident / Household</b><br/><i>(General Public)</i>"]:::actorNode
+    SA["🧍<br/><b>Super Admin</b>"]:::actorNode
+    EA["🧍<br/><b>Evacuation Admin</b>"]:::actorNode
+    EP["🧍<br/><b>Evacuation Personnel</b>"]:::actorNode
+    HH["🧍<br/><b>Resident / Household</b>"]:::actorNode
 
     %% ==========================================
     %% 2. SYSTEM BOUNDARY (The Only Enclosed Rectangle)
     %% ==========================================
-    subgraph EVATRACK ["EVATRACK PLATFORM (SYSTEM BOUNDARY)"]
+    subgraph EVATRACK ["EVATRACK PLATFORM"]
         direction TB
         
         %% Super Admin Use Case
@@ -88,8 +88,8 @@ flowchart LR
     %% ==========================================
     %% 3. EXTERNAL SYSTEMS (Unenclosed Secondary Systems on Right)
     %% ==========================================
-    ST["«external system»<br/><b>SafeTrack System</b><br/><i>(Demographic Repository)</i>"]:::extNode
-    RQ["«external system»<br/><b>ResQperation Platform</b><br/><i>(Response & Aid Dispatch)</i>"]:::extNode
+    ST["«external system»<br/><b>SafeTrack System</b>"]:::extNode
+    RQ["«external system»<br/><b>ResQperation Platform</b>"]:::extNode
 
     %% ==========================================
     %% 4. ACTOR-TO-USE-CASE ASSOCIATIONS
