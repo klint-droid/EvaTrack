@@ -126,7 +126,7 @@ flowchart TD
 
 ### 1.2 Simple Mermaid Architecture
 
-One shared database serves three systems. EvaTrack (web only, no mobile app) follows the reference flow: user interfaces → web server → database. SafeTrack and ResQperation keep their own clients and API and connect to the same database.
+One shared database serves three systems. EvaTrack (web only, no mobile app) follows the reference flow: user interfaces → API → database. SafeTrack (web server) and ResQperation (API) keep their own clients and connect to the same database.
 
 ```mermaid
 architecture-beta
@@ -138,7 +138,7 @@ architecture-beta
     service admin_ui(internet)[Admin Web Interface] in evatrack
     service staff_ui(internet)[Personnel Web Interface] in evatrack
     junction ui in evatrack
-    service api(server)[EvaTrack Web Server] in evatrack
+    service api(server)[EvaTrack API] in evatrack
 
     service textbee(internet)[TextBee SMS Gateway] in thirdparty
     service onesignal(internet)[OneSignal Push Service] in thirdparty
@@ -146,7 +146,7 @@ architecture-beta
     junction tp in thirdparty
 
     service safe_client(internet)[SafeTrack Clients] in safetrack
-    service safe_api(server)[SafeTrack API] in safetrack
+    service safe_api(server)[SafeTrack Web Server] in safetrack
 
     service resq_client(internet)[ResQperation Clients] in resq
     service resq_api(server)[ResQperation API] in resq
@@ -170,7 +170,7 @@ architecture-beta
     resq_api:L <--> R:db
 ```
 
-How to read it (same flow as the reference picture): the **Admin** (Super Admin, Evacuation Admin) and **Personnel** (Evacuation Personnel) use their web interfaces → both go to the **EvaTrack Web Server** → the server reads and writes the **Shared Database**. **SafeTrack** (above) and **ResQperation** (right) each connect their API to the same database. The EvaTrack Web Server also calls two third-party services: **TextBee** (SMS to residents' phones) and **OneSignal** (push notifications).
+How to read it (same flow as the reference picture): the **Admin** (Super Admin, Evacuation Admin) and **Personnel** (Evacuation Personnel) use their web interfaces → both go to the **EvaTrack API** → the API reads and writes the **Shared Database**. **SafeTrack** (above) and **ResQperation** (right) each connect their server to the same database. The EvaTrack API also calls two third-party services: **TextBee** (SMS to residents' phones) and **OneSignal** (push notifications).
 
 ---
 
