@@ -29,90 +29,106 @@ EvaTrack streamlines evacuation operations, real-time center occupancy tracking,
 
 | Actor | Role Type | Description & System Scope |
 |-------|-----------|-----------------------------|
-| **Super Admin** | Primary System Actor | Dedicated solely to system-level user account administration. **Exclusively authorized to register new user accounts** (`POST /api/users`), assign roles, and activate/deactivate accounts. |
-| **Evacuation Admin** | Primary System Actor | Coordinates center operations and emergency directives. Declares disaster events, configures evacuation centers, assigns personnel to centers, broadcasts emergency SMS and push alerts, monitors resource logistics and center issues, and analyzes demographic reports. |
+| **Super Admin** | Primary System Actor | Dedicated solely to system-level user account administration (Barangay IT / System Administrator). **Exclusively authorized to register new user accounts** (`POST /api/users`), assign roles, and activate/deactivate accounts. |
+| **Evacuation Admin** | Primary System Actor | Coordinates center operations and emergency directives (Barangay Camp Commander / BDRRMC Operations Lead). Declares disaster events, configures evacuation centers, assigns personnel to centers, broadcasts emergency SMS and push alerts, monitors resource logistics and center issues, and analyzes demographic reports. |
 | **Evacuation Personnel** | Primary System Actor | Stationed at an assigned evacuation center. Performs on-site intake verification via QR scanning or demographic search, admits households, configures accommodation units, allocates living spaces, tracks member stay and departure checkout, reports facility issues, and submits resource requests. |
-| **Households / Residents** | Secondary Actor (Passive) | Displaced citizens. Possess no login credentials. View shelter availability on the public map portal, receive SMS/Push warnings, and present official SafeTrack QR codes or identification upon arriving at a center. |
-| **SafeTrack System** | External Integration | Authoritative demographic repository. Provides pre-registered household rosters, addresses, and vulnerability tags for verification and analytics. |
-| **ResQperation System** | External Integration | Emergency response coordination platform. Receives forwarded resource/personnel aid requests from EvaTrack and serves as the push notification delivery gateway for smartphone alerts. |
+| **Resident / Household** | System Actor | Displaced citizens and community members. Possess no administrative login credentials. Interacts with public-facing evacuation services: views real-time shelter availability and vacancies on the public map portal, and receives emergency alerts via cellular SMS and mobile push notifications. |
+| **SafeTrack System** | External System Integration | Authoritative demographic repository. Provides pre-registered household rosters, addresses, and vulnerability tags for verification and analytics. |
+| **ResQperation System** | External System Integration | Emergency response coordination platform. Receives forwarded resource/personnel aid requests from EvaTrack and serves as the push notification delivery gateway for smartphone alerts. |
 
 ---
 
-## 3. Core Use Case Diagram (Black & White Elements with Color-Coded Arrows)
+## 3. Core Use Case Diagram (UML Standard: Solid Associations & External Integration Boundaries)
 
 ```mermaid
 flowchart LR
-    %% LEFT: Human Actors
+    %% ==========================================
+    %% LEFT: Human System Actors
+    %% ==========================================
     subgraph ACTORS ["System Actors"]
         direction TB
         SA["👤 Super Admin"]:::bwNode
         EA["👤 Evacuation Admin"]:::bwNode
         EP["👤 Evacuation Personnel"]:::bwNode
-        HH["📱 Resident / Household (Passive)"]:::bwNode
+        HH["👤 Resident / Household"]:::bwNode
     end
 
-    %% CENTER: EvaTrack Core Platform
+    %% ==========================================
+    %% CENTER: EvaTrack Core Platform Boundary
+    %% ==========================================
     subgraph EVATRACK ["EVATRACK PLATFORM"]
         direction TB
         
-        %% Super Admin
+        %% Super Admin Use Case
         UC_USERS(["Manage User Accounts"]):::bwUC
         
-        %% Evacuation Admin
+        %% Evacuation Admin Use Cases
         UC_EVENTS(["Manage Disaster Events"]):::bwUC
         UC_CENTERS(["Manage Centers & Assign Personnel"]):::bwUC
         UC_ALERTS(["Broadcast Emergency Alerts (SMS & Push)"]):::bwUC
         UC_ANALYTICS(["View & Export Evacuation Analytics"]):::bwUC
 
-        %% Shared Collaborative Operations
+        %% Shared Collaborative Operations (Admin & Personnel)
         UC_ISSUES(["Report & Monitor Center Issues"]):::bwUC
         UC_RESOURCES(["Request & Track Logistics Assistance"]):::bwUC
 
-        %% Evacuation Personnel
+        %% Evacuation Personnel Use Cases
         UC_VERIFY(["Verify & Admit Households (QR / Manual)"]):::bwUC
         UC_UNITS(["Configure Units & Allocate Families"]):::bwUC
         UC_CHECKOUT(["Track Member Stay & Process Checkout"]):::bwUC
 
-        %% Resident Public View
+        %% Resident Public View & Interaction Use Cases
         UC_PORTAL(["View Public Evacuation Map"]):::bwUC
+        UC_RCV_ALERTS(["Receive Emergency Alerts"]):::bwUC
     end
 
+    %% ==========================================
     %% RIGHT: External Partner Systems
+    %% ==========================================
     subgraph EXTERNAL ["External Systems"]
         direction TB
         ST["🌐 SafeTrack System"]:::bwNode
         RQ["🌐 ResQperation System"]:::bwNode
     end
 
-    %% Super Admin Connections (Purple)
-    SA --> UC_USERS
+    %% ==========================================
+    %% ACTOR-TO-USE-CASE ASSOCIATIONS
+    %% (Solid Association Lines Without Arrowheads per UML Standard)
+    %% ==========================================
 
-    %% Evacuation Admin Connections (Blue)
-    EA --> UC_EVENTS
-    EA --> UC_CENTERS
-    EA --> UC_ALERTS
-    EA --> UC_ANALYTICS
-    EA --> UC_ISSUES
-    EA --> UC_RESOURCES
+    %% Super Admin Associations (Purple)
+    SA --- UC_USERS
 
-    %% Evacuation Personnel Connections (Green)
-    EP --> UC_VERIFY
-    EP --> UC_UNITS
-    EP --> UC_CHECKOUT
-    EP --> UC_ISSUES
-    EP --> UC_RESOURCES
+    %% Evacuation Admin Associations (Blue)
+    EA --- UC_EVENTS
+    EA --- UC_CENTERS
+    EA --- UC_ALERTS
+    EA --- UC_ANALYTICS
+    EA --- UC_ISSUES
+    EA --- UC_RESOURCES
 
-    %% Resident Connections (Teal / Dashed)
-    HH -.-> UC_PORTAL
-    HH -.-> UC_ALERTS
-    HH -.-> UC_VERIFY
+    %% Evacuation Personnel Associations (Green)
+    EP --- UC_VERIFY
+    EP --- UC_UNITS
+    EP --- UC_CHECKOUT
+    EP --- UC_ISSUES
+    EP --- UC_RESOURCES
 
-    %% External System Connections (Center to Right)
+    %% Resident / Household Associations (Teal)
+    HH --- UC_PORTAL
+    HH --- UC_RCV_ALERTS
+
+    %% ==========================================
+    %% EXTERNAL SYSTEM INTEGRATIONS
+    %% (Directed Labeled Flows to Distinguish from Actor Associations)
+    %% ==========================================
     UC_VERIFY -->|"Demographics Query"| ST
     UC_RESOURCES -->|"Logistics Demand"| RQ
     UC_ALERTS -->|"Push Notification Dispatch"| RQ
 
-    %% Node Styling (Clean Black and White / Grayscale)
+    %% ==========================================
+    %% STYLING CLASSES (Clean Black & White with High-Contrast Text)
+    %% ==========================================
     classDef bwNode fill:#ffffff,stroke:#0f172a,stroke-width:2px,color:#0f172a,font-weight:bold;
     classDef bwUC fill:#ffffff,stroke:#334155,stroke-width:1.8px,color:#0f172a;
 
@@ -120,7 +136,7 @@ flowchart LR
     style EVATRACK fill:#ffffff,stroke:#0f172a,stroke-width:2px;
     style EXTERNAL fill:#f8fafc,stroke:#94a3b8,stroke-width:1.5px,stroke-dasharray: 4 4;
 
-    %% Color-Coded Arrows (linkStyle)
+    %% Color-Coded Associations (linkStyle)
     %% Link 0: Super Admin (Purple)
     linkStyle 0 stroke:#9333ea,stroke-width:2.5px;
 
@@ -139,15 +155,14 @@ flowchart LR
     linkStyle 10 stroke:#059669,stroke-width:2.5px;
     linkStyle 11 stroke:#059669,stroke-width:2.5px;
 
-    %% Links 12-14: Resident / Public (Teal)
-    linkStyle 12 stroke:#0891b2,stroke-width:2px;
-    linkStyle 13 stroke:#0891b2,stroke-width:2px;
-    linkStyle 14 stroke:#0891b2,stroke-width:2px;
+    %% Links 12-13: Resident / Household (Teal)
+    linkStyle 12 stroke:#0891b2,stroke-width:2.5px;
+    linkStyle 13 stroke:#0891b2,stroke-width:2.5px;
 
-    %% Links 15-17: External Systems (SafeTrack Indigo & ResQperation Rose)
-    linkStyle 15 stroke:#4f46e5,stroke-width:2.5px;
+    %% Links 14-16: External Systems (SafeTrack Indigo & ResQperation Rose)
+    linkStyle 14 stroke:#4f46e5,stroke-width:2.5px;
+    linkStyle 15 stroke:#e11d48,stroke-width:2.5px;
     linkStyle 16 stroke:#e11d48,stroke-width:2.5px;
-    linkStyle 17 stroke:#e11d48,stroke-width:2.5px;
 ```
 
 ---
@@ -529,7 +544,7 @@ flowchart LR
 
 ## 5. Role-to-Use-Case Traceability Matrix
 
-| Use Case ID & Title | Super Admin | Evac Admin | Evac Personnel | Households | SafeTrack | ResQperation |
+| Use Case ID & Title | Super Admin | Evac Admin | Evac Personnel | Resident / Household | SafeTrack | ResQperation |
 |:---|:---:|:---:|:---:|:---:|:---:|:---:|
 | **UC-01 Login with Credentials** | ✓ | ✓ | ✓ | — | — | — |
 | **UC-02 Logout & Revoke Session** | ✓ | ✓ | ✓ | — | — | — |
