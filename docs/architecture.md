@@ -126,33 +126,33 @@ flowchart TD
 
 ### 1.2 Simple Mermaid Architecture
 
+One shared database sits in the center and is used by three systems (EvaTrack, SafeTrack, ResQperation), each with its own clients.
+
 ```mermaid
 architecture-beta
-    group frontend(cloud)[EvaTrack Frontend]
-    group backend(cloud)[EvaTrack Backend]
-    group external(cloud)[External Systems]
+    group evatrack(cloud)[EvaTrack]
+    group safetrack(cloud)[SafeTrack]
+    group resq(cloud)[ResQperation]
 
-    service web(internet)[Website] in frontend
-    service mobile(internet)[Mobile App] in frontend
+    service eva_client(internet)[EvaTrack Clients] in evatrack
+    service eva_api(server)[EvaTrack API] in evatrack
 
-    service api(server)[API Server] in backend
-    service auth(server)[Auth Service] in backend
-    service db(database)[Shared Database] in backend
-    service files(disk)[File Storage] in backend
+    service safe_client(internet)[SafeTrack Clients] in safetrack
+    service safe_api(server)[SafeTrack API] in safetrack
 
-    service safetrack(server)[SafeTrack] in external
-    service resq(server)[ResQperation] in external
+    service resq_client(internet)[ResQperation Clients] in resq
+    service resq_api(server)[ResQperation API] in resq
 
-    web:R --> L:api
-    mobile:R --> L:api
-    api:R --> L:auth
-    api:B --> T:db
-    db:R -- L:files
+    service db(database)[Shared Database]
 
-    safetrack:L --> R:api
-    api:R --> L:resq
-    safetrack:L --> R:db
-    resq:L --> R:db
+    eva_client:R --> L:eva_api
+    eva_api:R <--> L:db
+
+    safe_client:B --> T:safe_api
+    safe_api:B <--> T:db
+
+    resq_client:L --> R:resq_api
+    resq_api:L <--> R:db
 ```
 
 ---
