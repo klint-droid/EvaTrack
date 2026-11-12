@@ -20,9 +20,9 @@
 
 ---
 
-## 2. Global Core ERD (Chen Notation: Entities, Relationships & Cardinalities)
+## 2. Global Core ERD (Chen Notation: Complete System Features)
 
-This diagram outlines the complete barangay evacuation domain: Strong & Weak entities connected through relationship diamonds with exact cardinality mappings.
+This diagram outlines the complete barangay evacuation domain across all operational subsystems: Shelter Management, Demographics & Intake, Staff Administration, Center Logistics & Issues, **Emergency Broadcast Notifications**, and **Evacuation Analytics**.
 
 ```mermaid
 flowchart TD
@@ -37,9 +37,14 @@ flowchart TD
     RRSTAT["RESOURCE_REQUEST_STATUS\n(Strong Entity)"]:::strongEntity
     CICAT["CENTER_ISSUE_CATEGORIES\n(Strong Entity)"]:::strongEntity
     CISTAT["CENTER_ISSUE_REPORT_STATUSES\n(Strong Entity)"]:::strongEntity
+    
+    %% Broadcast Notification Strong Entities
     NOTIF["NOTIFICATIONS\n(Strong Entity)"]:::strongEntity
+    NCHAN["NOTIFICATION_CHANNELS\n(Strong Entity)"]:::strongEntity
+    NSTAT["NOTIFICATION_STATUSES\n(Strong Entity)"]:::strongEntity
+    RECTYPE["RECURRENCE_TYPES\n(Strong Entity)"]:::strongEntity
 
-    %% ── External Partner Strong Entities (Bridges) ──
+    %% External Partner Strong Entities (Bridges)
     HH["HOUSEHOLDS\n(SafeTrack External Strong)"]:::extEntity
     EVT["DISASTER_EVENTS\n(ResQ External Strong)"]:::extEntity
 
@@ -53,7 +58,12 @@ flowchart TD
     ASSIGN[["CENTER_PERSONNEL_ASSIGNMENTS\n(Associative Weak)"]]:::weakEntity
     RR[["RESOURCE_REQUESTS\n(Weak to Centers/Users)"]]:::weakEntity
     CIR[["CENTER_ISSUE_REPORTS\n(Weak to Centers/Users)"]]:::weakEntity
+    
+    %% Notification & Analytics Weak / Associative Entities
     RECP[["NOTIFICATION_RECIPIENTS\n(Associative Weak)"]]:::weakEntity
+    NLOG[["NOTIFICATION_LOGS\n(Associative Weak)"]]:::weakEntity
+    DEVTOK[["DEVICE_TOKENS\n(Weak to Households)"]]:::weakEntity
+    ANL[["ANALYTICS\n(Associative Weak)"]]:::weakEntity
 
     %% ══════════════════════════════════════════════════════════════════════════
     %% RELATIONSHIP DIAMONDS
@@ -74,8 +84,22 @@ flowchart TD
     R_REPORTED_BY{"Reported_By"}:::relDiamond
     R_ISSUE_CAT{"Categorized_By"}:::relDiamond
     R_ISSUE_STAT{"Resolution_Status"}:::relDiamond
+    
+    %% Broadcast Notification Relationships
+    R_BROADCASTS{"Broadcasts"}:::relDiamond
+    R_TARGETS_CTR{"Target_Center"}:::relDiamond
+    R_TARGETS_EVT{"Alert_For_Event"}:::relDiamond
+    R_HAS_RECUR{"Has_Recurrence"}:::relDiamond
     R_DISPATCHES{"Dispatched_To"}:::relDiamond
-    R_SENT_BY{"Broadcast_By"}:::relDiamond
+    R_RECEIVED_BY{"Received_By"}:::relDiamond
+    R_RECORDS_LOG{"Records_Log"}:::relDiamond
+    R_SENT_VIA{"Sent_Via"}:::relDiamond
+    R_DELIV_STATUS{"Has_Delivery_Status"}:::relDiamond
+    R_REGISTERS_DEV{"Registers"}:::relDiamond
+
+    %% Analytics Relationships
+    R_SUMM_CTR{"Summarizes_Center"}:::relDiamond
+    R_SUMM_EVT{"Summarizes_Event"}:::relDiamond
 
     %% ══════════════════════════════════════════════════════════════════════════
     %% CONNECTIONS & CARDINALITIES
@@ -137,12 +161,39 @@ flowchart TD
     CIR ---|N| R_ISSUE_STAT
     R_ISSUE_STAT ---|1| CISTAT
 
-    %% Notifications (Dispatched to Households)
-    USER ---|1| R_SENT_BY
-    R_SENT_BY ---|N| NOTIF
+    %% ── Broadcast Notification Pipeline ──
+    USER ---|1| R_BROADCASTS
+    R_BROADCASTS ---|N| NOTIF
+
+    EC ---|1| R_TARGETS_CTR
+    R_TARGETS_CTR ---|N| NOTIF
+
+    EVT ---|1| R_TARGETS_EVT
+    R_TARGETS_EVT ---|N| NOTIF
+
+    RECTYPE ---|1| R_HAS_RECUR
+    R_HAS_RECUR ---|N| NOTIF
+
     NOTIF ---|1| R_DISPATCHES
     R_DISPATCHES ---|N| RECP
-    RECP ---|N| HH
+    RECP ---|N| R_RECEIVED_BY
+    R_RECEIVED_BY ---|1| HH
+
+    NOTIF ---|1| R_RECORDS_LOG
+    R_RECORDS_LOG ---|N| NLOG
+    NLOG ---|N| R_SENT_VIA
+    R_SENT_VIA ---|1| NCHAN
+    NLOG ---|N| R_DELIV_STATUS
+    R_DELIV_STATUS ---|1| NSTAT
+
+    HH ---|1| R_REGISTERS_DEV
+    R_REGISTERS_DEV ---|N| DEVTOK
+
+    %% ── Analytics Snapshots ──
+    EC ---|1| R_SUMM_CTR
+    R_SUMM_CTR ---|N| ANL
+    EVT ---|1| R_SUMM_EVT
+    R_SUMM_EVT ---|N| ANL
 
     %% ══════════════════════════════════════════════════════════════════════════
     %% STYLING CLASSES
@@ -440,10 +491,189 @@ flowchart TD
 
 ---
 
+### Subsystem E: Emergency Broadcasts & Multi-Channel Notification Pipeline
+Models SMS & mobile push alerts dispatched by administrators, audience filters, delivery logs, channels, statuses, recurrence schedules, and mobile device token registries.
+
+```mermaid
+flowchart TD
+
+    %% ── Entities ──
+    NOTIF["NOTIFICATIONS\n(Strong Entity)"]:::strongEntity
+    USER["USERS\n(Strong Entity)"]:::strongEntity
+    HH["HOUSEHOLDS\n(SafeTrack)"]:::extEntity
+    RECP[["NOTIFICATION_RECIPIENTS\n(Associative Weak)"]]:::weakEntity
+    NLOG[["NOTIFICATION_LOGS\n(Associative Weak)"]]:::weakEntity
+    NCHAN["NOTIFICATION_CHANNELS\n(Strong Entity)"]:::strongEntity
+    NSTAT["NOTIFICATION_STATUSES\n(Strong Entity)"]:::strongEntity
+    RECTYPE["RECURRENCE_TYPES\n(Strong Entity)"]:::strongEntity
+    DEVTOK[["DEVICE_TOKENS\n(Weak Entity)"]]:::weakEntity
+
+    %% ── Notification Attributes ──
+    A_NO_ID(["<u>notif_id</u>"]):::pkOval
+    A_NO_MSG(["message"]):::attrOval
+    A_NO_TITLE(["advisory_title"]):::attrOval
+    A_NO_SCHED(["scheduled_at"]):::attrOval
+    A_NO_REC(["is_recurring"]):::attrOval
+    A_NO_CHAN(["channel"]):::attrOval
+    A_NO_STAT(["status"]):::attrOval
+    A_NO_FILT(["target_filter"]):::attrOval
+    A_NO_CR(["created_at"]):::attrOval
+
+    NOTIF --- A_NO_ID
+    NOTIF --- A_NO_MSG
+    NOTIF --- A_NO_TITLE
+    NOTIF --- A_NO_SCHED
+    NOTIF --- A_NO_REC
+    NOTIF --- A_NO_CHAN
+    NOTIF --- A_NO_STAT
+    NOTIF --- A_NO_FILT
+    NOTIF --- A_NO_CR
+
+    %% ── Recipient Attributes ──
+    A_RC_ID(["<u>id</u>"]):::pkOval
+    A_RC_READ(["read_at"]):::attrOval
+    A_RC_ACK(["acknowledged_at"]):::attrOval
+
+    RECP --- A_RC_ID
+    RECP --- A_RC_READ
+    RECP --- A_RC_ACK
+
+    %% ── Notification Log Attributes ──
+    A_NL_ID(["<u>log_id</u>"]):::pkOval
+    A_NL_SENT(["sent_at"]):::attrOval
+    A_NL_RETRY(["retry_count"]):::attrOval
+    A_NL_EXT(["external_message_id"]):::attrOval
+
+    NLOG --- A_NL_ID
+    NLOG --- A_NL_SENT
+    NLOG --- A_NL_RETRY
+    NLOG --- A_NL_EXT
+
+    %% ── Channel & Status Attributes ──
+    A_NC_ID(["<u>channel_id</u>"]):::pkOval
+    A_NC_KEY(["channel_key\n('sms','push','in_app')"]):::attrOval
+    NCHAN --- A_NC_ID
+    NCHAN --- A_NC_KEY
+
+    A_NS_ID(["<u>status_id</u>"]):::pkOval
+    A_NS_KEY(["status_key\n('pending','sent','failed')"]):::attrOval
+    NSTAT --- A_NS_ID
+    NSTAT --- A_NS_KEY
+
+    %% ── Device Token Attributes ──
+    A_DT_ID(["<u>id</u>"]):::pkOval
+    A_DT_UUID(["device_uuid"]):::attrOval
+    A_DT_PLAT(["platform\n('android','ios','web')"]):::attrOval
+    A_DT_PROV(["push_provider"]):::attrOval
+    A_DT_PLAY(["player_id"]):::attrOval
+
+    DEVTOK --- A_DT_ID
+    DEVTOK --- A_DT_UUID
+    DEVTOK --- A_DT_PLAT
+    DEVTOK --- A_DT_PROV
+    DEVTOK --- A_DT_PLAY
+
+    %% ── Relationships ──
+    R_SENDS{"Broadcasts"}:::relDiamond
+    R_RECUR{"Recurrence"}:::relDiamond
+    R_DISPATCH{"Dispatched_To"}:::relDiamond
+    R_RECV{"Received_By"}:::relDiamond
+    R_RECLOG{"Logs_Dispatch"}:::relDiamond
+    R_CH{"Via_Channel"}:::relDiamond
+    R_ST{"With_Status"}:::relDiamond
+    R_DEV{"Registers"}:::relDiamond
+
+    USER ---|1| R_SENDS
+    R_SENDS ---|N| NOTIF
+
+    RECTYPE ---|1| R_RECUR
+    R_RECUR ---|N| NOTIF
+
+    NOTIF ---|1| R_DISPATCH
+    R_DISPATCH ---|N| RECP
+    RECP ---|N| R_RECV
+    R_RECV ---|1| HH
+
+    NOTIF ---|1| R_RECLOG
+    R_RECLOG ---|N| NLOG
+
+    NLOG ---|N| R_CH
+    R_CH ---|1| NCHAN
+
+    NLOG ---|N| R_ST
+    R_ST ---|1| NSTAT
+
+    HH ---|1| R_DEV
+    R_DEV ---|N| DEVTOK
+
+    classDef strongEntity fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#fff,font-weight:bold
+    classDef weakEntity   fill:#064e3b,stroke:#10b981,stroke-width:3px,color:#fff,font-weight:bold
+    classDef extEntity    fill:#4c1d95,stroke:#8b5cf6,stroke-width:2px,color:#fff,font-weight:bold
+    classDef relDiamond   fill:#78350f,stroke:#f59e0b,stroke-width:2px,color:#fff,font-weight:bold
+    classDef pkOval       fill:#b91c1c,stroke:#ef4444,stroke-width:2px,color:#fff,font-weight:bold
+    classDef attrOval     fill:#334155,stroke:#64748b,stroke-width:1.5px,color:#fff
+```
+
+---
+
+### Subsystem F: Evacuation Analytics & Demographic Intelligence Snapshots
+Models historical and live demographic summary rollups per evacuation center and disaster scenario (age cohorts, gender, vulnerable sectors).
+
+```mermaid
+flowchart TD
+
+    %% ── Entities ──
+    EC["EVACUATION_CENTERS"]:::strongEntity
+    EVT["DISASTER_EVENTS"]:::extEntity
+    ANL[["ANALYTICS\n(Associative Weak)"]]:::weakEntity
+
+    %% ── Analytics Attributes ──
+    A_AN_ID(["<u>analytic_id</u>"]):::pkOval
+    A_AN_DATE(["record_period"]):::attrOval
+    A_AN_HH(["total_households"]):::attrOval
+    A_AN_POP(["total_population"]):::attrOval
+    A_AN_MAL(["total_males"]):::attrOval
+    A_AN_FEM(["total_females"]):::attrOval
+    A_AN_PWD(["total_pwd"]):::attrOval
+    A_AN_SEN(["total_seniors"]):::attrOval
+    A_AN_CHI(["total_children"]):::attrOval
+    A_AN_ADU(["total_adults"]):::attrOval
+
+    ANL --- A_AN_ID
+    ANL --- A_AN_DATE
+    ANL --- A_AN_HH
+    ANL --- A_AN_POP
+    ANL --- A_AN_MAL
+    ANL --- A_AN_FEM
+    ANL --- A_AN_PWD
+    ANL --- A_AN_SEN
+    ANL --- A_AN_CHI
+    ANL --- A_AN_ADU
+
+    %% ── Relationships ──
+    R_AN_CTR{"Summarizes_Center"}:::relDiamond
+    R_AN_EVT{"Summarizes_Event"}:::relDiamond
+
+    EC ---|1| R_AN_CTR
+    R_AN_CTR ---|N| ANL
+
+    EVT ---|1| R_AN_EVT
+    R_AN_EVT ---|N| ANL
+
+    classDef strongEntity fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#fff,font-weight:bold
+    classDef extEntity    fill:#4c1d95,stroke:#8b5cf6,stroke-width:2px,color:#fff,font-weight:bold
+    classDef weakEntity   fill:#064e3b,stroke:#10b981,stroke-width:3px,color:#fff,font-weight:bold
+    classDef relDiamond   fill:#78350f,stroke:#f59e0b,stroke-width:2px,color:#fff,font-weight:bold
+    classDef pkOval       fill:#b91c1c,stroke:#ef4444,stroke-width:2px,color:#fff,font-weight:bold
+    classDef attrOval     fill:#334155,stroke:#64748b,stroke-width:1.5px,color:#fff
+```
+
+---
+
 ## 4. Entity & Cardinality Summary Table
 
 | Relationship (Diamond) | Entity 1 (Rectangle) | Entity 2 (Rectangle) | Cardinality Ratio | Participation Constraint | Description |
-| :--- | :--- | :--- | :---: | :---: | :--- |
+| :--- | :--- | :--- | :--- | :--- | :--- |
 | **`Houses`** | `EVACUATION_CENTERS` | `ACCOMMODATION_UNITS` | **1 : N** | Mandatory (1) to Optional (N) | One center partitions into zero or many rooms/tents. |
 | **`Classifies`** | `ACCOMMODATION_TYPES` | `ACCOMMODATION_UNITS` | **1 : N** | Optional (1) to Mandatory (N) | Room classification (classroom, tent, hall). |
 | **`Allocates`** | `ACCOMMODATION_UNITS` | `UNIT_ALLOCATIONS` | **1 : N** | Optional (1) to Optional (N) | Living spaces allocated to admitted family units. |
@@ -455,4 +685,15 @@ flowchart TD
 | **`Granted`** | `ROLES` | `USERS` | **1 : N** | Mandatory (1) to Mandatory (N) | Defines access tier (`super_admin`, `evac_admin`, `evac_personnel`). |
 | **`Originates`** | `EVACUATION_CENTERS` | `RESOURCE_REQUESTS` | **1 : N** | Optional (1) to Optional (N) | Shelters submitting logistics/supply replenishment requests. |
 | **`Logs_Incident`**| `EVACUATION_CENTERS` | `CENTER_ISSUE_REPORTS` | **1 : N** | Optional (1) to Optional (N) | Center incident tracking (sanitation, medical, security). |
-| **`Dispatched_To`**| `NOTIFICATIONS` | `HOUSEHOLDS` | **M : N** (via `RECIPIENTS`) | Optional (M) to Optional (N) | Broadcast SMS and Push emergency alerts dispatched to residents. |
+| **`Broadcasts`** | `USERS` | `NOTIFICATIONS` | **1 : N** | Optional (1) to Optional (N) | Administrators drafting and sending emergency broadcast advisories. |
+| **`Target_Center`** | `EVACUATION_CENTERS` | `NOTIFICATIONS` | **1 : N** | Optional (1) to Optional (N) | Facility-targeted notifications broadcast to occupants of a specific center. |
+| **`Alert_For_Event`**| `DISASTER_EVENTS` | `NOTIFICATIONS` | **1 : N** | Optional (1) to Optional (N) | Advisory notifications associated with a declared calamity umbrella. |
+| **`Has_Recurrence`**| `RECURRENCE_TYPES` | `NOTIFICATIONS` | **1 : N** | Optional (1) to Optional (N) | Schedule recurrence definitions (`once`, `hourly`, `daily`, `weekly`). |
+| **`Dispatched_To`**| `NOTIFICATIONS` | `NOTIFICATION_RECIPIENTS`| **1 : N** | Mandatory (1) to Mandatory (N) | Multi-target broadcast audience distribution list. |
+| **`Received_By`** | `NOTIFICATION_RECIPIENTS`| `HOUSEHOLDS` | **N : 1** | Mandatory (N) to Optional (1) | Households receiving alerts and recording read/acknowledged timestamps. |
+| **`Records_Log`** | `NOTIFICATIONS` | `NOTIFICATION_LOGS` | **1 : N** | Optional (1) to Mandatory (N) | Technical transmission dispatch attempts and retry histories. |
+| **`Sent_Via`** | `NOTIFICATION_LOGS` | `NOTIFICATION_CHANNELS` | **N : 1** | Mandatory (N) to Optional (1) | Transmission gateway (`sms`, `push`, `in_app`). |
+| **`Has_Delivery_Status`**| `NOTIFICATION_LOGS` | `NOTIFICATION_STATUSES` | **N : 1** | Mandatory (N) to Optional (1) | Delivery status tracking (`pending`, `sent`, `failed`, `delivered`). |
+| **`Registers`** | `HOUSEHOLDS` | `DEVICE_TOKENS` | **1 : N** | Optional (1) to Optional (N) | Mobile devices registered by resident households for OneSignal alerts. |
+| **`Summarizes_Center`**| `EVACUATION_CENTERS`| `ANALYTICS` | **1 : N** | Optional (1) to Optional (N) | Periodic demographic snapshots aggregated per evacuation center. |
+| **`Summarizes_Event`** | `DISASTER_EVENTS` | `ANALYTICS` | **1 : N** | Optional (1) to Optional (N) | Demographic intelligence aggregated per disaster incident. |
