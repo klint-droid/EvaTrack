@@ -126,34 +126,42 @@ flowchart TD
 
 ### 1.2 Simple Mermaid Architecture
 
-One shared database sits in the center and is used by three systems (EvaTrack, SafeTrack, ResQperation), each with its own clients.
+One shared database serves three systems. EvaTrack is the main system (largest group, with its clients, API and auth). SafeTrack and ResQperation sit above and below the database and connect to it directly.
 
 ```mermaid
 architecture-beta
-    group evatrack(cloud)[EvaTrack]
+    group evatrack(cloud)[EVATRACK SYSTEM]
     group safetrack(cloud)[SafeTrack]
     group resq(cloud)[ResQperation]
 
-    service eva_client(internet)[EvaTrack Clients] in evatrack
-    service eva_api(server)[EvaTrack API] in evatrack
+    service web(internet)[Web App] in evatrack
+    service mobile(internet)[Mobile App] in evatrack
+    junction clients in evatrack
+    service api(server)[EvaTrack API Server] in evatrack
+    service auth(server)[Auth Service] in evatrack
 
     service safe_client(internet)[SafeTrack Clients] in safetrack
     service safe_api(server)[SafeTrack API] in safetrack
 
-    service resq_client(internet)[ResQperation Clients] in resq
     service resq_api(server)[ResQperation API] in resq
+    service resq_client(internet)[ResQperation Clients] in resq
 
     service db(database)[Shared Database]
 
-    eva_client:R --> L:eva_api
-    eva_api:R <--> L:db
+    web:B -- T:clients
+    mobile:T -- B:clients
+    clients:R --> L:api
+    api:B --> T:auth
+    api:R <--> L:db
 
     safe_client:B --> T:safe_api
     safe_api:B <--> T:db
 
-    resq_client:L --> R:resq_api
-    resq_api:L <--> R:db
+    resq_client:T --> B:resq_api
+    resq_api:T <--> B:db
 ```
+
+How to read it (same flow as the reference picture): users use the **Web App / Mobile App** → they call the **EvaTrack API Server** (checked by the **Auth Service**) → the API reads and writes the **Shared Database**. **SafeTrack** and **ResQperation** each have their own clients and API, and both connect to the same database.
 
 ---
 
