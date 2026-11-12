@@ -132,18 +132,25 @@ architecture-beta
     group backend(cloud)[Backend]
     group external(cloud)[External Systems]
 
-    service web(internet)[Web App] in frontend
+    service web(internet)[Website] in frontend
     service mobile(internet)[Mobile App] in frontend
 
     service api(server)[API Server] in backend
-    service db(database)[Database] in backend
+    service auth(server)[Auth Service] in backend
+    service db(database)[Shared Database] in backend
+    service files(disk)[File Storage] in backend
 
     service safetrack(server)[SafeTrack] in external
     service resq(server)[ResQperation] in external
 
     web:R --> L:api
     mobile:R --> L:api
+    api:R --> L:auth
     api:B --> T:db
+    db:R -- L:files
+
+    safetrack:R --> L:db
+    resq:L --> R:db
     safetrack:R --> L:api
     api:R --> L:resq
 ```
