@@ -126,7 +126,7 @@ flowchart TD
 
 ### 1.2 Simple Mermaid Architecture
 
-One shared database serves three systems. EvaTrack is the main system (largest group, with its clients, API and auth). SafeTrack and ResQperation sit above and below the database and connect to it directly.
+One shared database serves three systems. EvaTrack (web only, no mobile app) follows the reference flow: user interfaces → web server → database. SafeTrack and ResQperation keep their own clients and API and connect to the same database.
 
 ```mermaid
 architecture-beta
@@ -134,34 +134,34 @@ architecture-beta
     group safetrack(cloud)[SafeTrack]
     group resq(cloud)[ResQperation]
 
-    service web(internet)[Web App] in evatrack
-    service mobile(internet)[Mobile App] in evatrack
-    junction clients in evatrack
-    service api(server)[EvaTrack API Server] in evatrack
+    service admin_ui(internet)[Admin Web Interface] in evatrack
+    service staff_ui(internet)[Personnel Web Interface] in evatrack
+    junction ui in evatrack
+    service api(server)[EvaTrack Web Server] in evatrack
     service auth(server)[Auth Service] in evatrack
 
     service safe_client(internet)[SafeTrack Clients] in safetrack
     service safe_api(server)[SafeTrack API] in safetrack
 
-    service resq_api(server)[ResQperation API] in resq
     service resq_client(internet)[ResQperation Clients] in resq
+    service resq_api(server)[ResQperation API] in resq
 
     service db(database)[Shared Database]
 
-    web:B -- T:clients
-    mobile:T -- B:clients
-    clients:R --> L:api
+    admin_ui:B -- T:ui
+    staff_ui:T -- B:ui
+    ui:R --> L:api
     api:B --> T:auth
     api:R <--> L:db
 
     safe_client:B --> T:safe_api
     safe_api:B <--> T:db
 
-    resq_client:T --> B:resq_api
-    resq_api:T <--> B:db
+    resq_client:L --> R:resq_api
+    resq_api:L <--> R:db
 ```
 
-How to read it (same flow as the reference picture): users use the **Web App / Mobile App** → they call the **EvaTrack API Server** (checked by the **Auth Service**) → the API reads and writes the **Shared Database**. **SafeTrack** and **ResQperation** each have their own clients and API, and both connect to the same database.
+How to read it (same flow as the reference picture): the **Admin** (Super Admin, Evacuation Admin) and **Personnel** (Evacuation Personnel) use their web interfaces → both go to the **EvaTrack Web Server** (checked by the **Auth Service**) → the server reads and writes the **Shared Database**. **SafeTrack** (above) and **ResQperation** (right) each connect their API to the same database.
 
 ---
 
