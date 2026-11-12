@@ -138,7 +138,6 @@ architecture-beta
     service staff_ui(internet)[Personnel Web Interface] in evatrack
     junction ui in evatrack
     service api(server)[EvaTrack Web Server] in evatrack
-    service auth(server)[Auth Service] in evatrack
 
     service safe_client(internet)[SafeTrack Clients] in safetrack
     service safe_api(server)[SafeTrack API] in safetrack
@@ -151,7 +150,6 @@ architecture-beta
     admin_ui:B -- T:ui
     staff_ui:T -- B:ui
     ui:R --> L:api
-    api:B --> T:auth
     api:R <--> L:db
 
     safe_client:B --> T:safe_api
@@ -161,7 +159,7 @@ architecture-beta
     resq_api:L <--> R:db
 ```
 
-How to read it (same flow as the reference picture): the **Admin** (Super Admin, Evacuation Admin) and **Personnel** (Evacuation Personnel) use their web interfaces → both go to the **EvaTrack Web Server** (checked by the **Auth Service**) → the server reads and writes the **Shared Database**. **SafeTrack** (above) and **ResQperation** (right) each connect their API to the same database.
+How to read it (same flow as the reference picture): the **Admin** (Super Admin, Evacuation Admin) and **Personnel** (Evacuation Personnel) use their web interfaces → both go to the **EvaTrack Web Server** → the server reads and writes the **Shared Database**. **SafeTrack** (above) and **ResQperation** (right) each connect their API to the same database.
 
 ---
 
