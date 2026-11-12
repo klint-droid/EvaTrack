@@ -38,25 +38,28 @@ EvaTrack streamlines evacuation operations, real-time center occupancy tracking,
 
 ---
 
-## 3. Core Use Case Diagram (UML Standard: Solid Associations & External Integration Boundaries)
+## 3. Core Use Case Diagram (UML Standard: Stick Figure Actors & System Boundary)
+
+> **UML Standard Compliance Note:**  
+> In accordance with UML 2.5 standards, human actors are represented as stick figures standing outside the system boundary. Actors are **not enclosed within bounding boxes or subgraph frames**. The rectangular boundary belongs solely to the **EvaTrack Platform**. All actor-to-use-case connections are **solid undirected association lines** (`---`). External systems are modeled outside on the right with directed, labeled integration flows.  
+> 
+> A publication-quality vector graphic is available at [`use_case_diagram.svg`](file:///c:/CAPSTONE/EvaTrack/docs/use_case_diagram.svg).
 
 ```mermaid
 flowchart LR
-    %% ==========================================
-    %% LEFT: Human System Actors
-    %% ==========================================
-    subgraph ACTORS ["System Actors"]
-        direction TB
-        SA["👤 Super Admin"]:::bwNode
-        EA["👤 Evacuation Admin"]:::bwNode
-        EP["👤 Evacuation Personnel"]:::bwNode
-        HH["👤 Resident / Household"]:::bwNode
-    end
 
     %% ==========================================
-    %% CENTER: EvaTrack Core Platform Boundary
+    %% 1. SYSTEM ACTORS (UML Stick Figures — Unenclosed / No Bounding Boxes)
     %% ==========================================
-    subgraph EVATRACK ["EVATRACK PLATFORM"]
+    SA["🧍<br/><b>Super Admin</b><br/><i>(IT Admin)</i>"]:::actorNode
+    EA["🧍<br/><b>Evacuation Admin</b><br/><i>(Camp Commander)</i>"]:::actorNode
+    EP["🧍<br/><b>Evacuation Personnel</b><br/><i>(Intake Staff)</i>"]:::actorNode
+    HH["🧍<br/><b>Resident / Household</b><br/><i>(General Public)</i>"]:::actorNode
+
+    %% ==========================================
+    %% 2. SYSTEM BOUNDARY (The Only Enclosed Rectangle)
+    %% ==========================================
+    subgraph EVATRACK ["EVATRACK PLATFORM (SYSTEM BOUNDARY)"]
         direction TB
         
         %% Super Admin Use Case
@@ -83,16 +86,13 @@ flowchart LR
     end
 
     %% ==========================================
-    %% RIGHT: External Partner Systems
+    %% 3. EXTERNAL SYSTEMS (Unenclosed Secondary Systems on Right)
     %% ==========================================
-    subgraph EXTERNAL ["External Systems"]
-        direction TB
-        ST["🌐 SafeTrack System"]:::bwNode
-        RQ["🌐 ResQperation System"]:::bwNode
-    end
+    ST["«external system»<br/><b>SafeTrack System</b><br/><i>(Demographic Repository)</i>"]:::extNode
+    RQ["«external system»<br/><b>ResQperation Platform</b><br/><i>(Response & Aid Dispatch)</i>"]:::extNode
 
     %% ==========================================
-    %% ACTOR-TO-USE-CASE ASSOCIATIONS
+    %% 4. ACTOR-TO-USE-CASE ASSOCIATIONS
     %% (Solid Association Lines Without Arrowheads per UML Standard)
     %% ==========================================
 
@@ -119,7 +119,7 @@ flowchart LR
     HH --- UC_RCV_ALERTS
 
     %% ==========================================
-    %% EXTERNAL SYSTEM INTEGRATIONS
+    %% 5. EXTERNAL SYSTEM INTEGRATIONS
     %% (Directed Labeled Flows to Distinguish from Actor Associations)
     %% ==========================================
     UC_VERIFY -->|"Demographics Query"| ST
@@ -127,14 +127,14 @@ flowchart LR
     UC_ALERTS -->|"Push Notification Dispatch"| RQ
 
     %% ==========================================
-    %% STYLING CLASSES (Clean Black & White with High-Contrast Text)
+    %% STYLING CLASSES (Pure Unenclosed Actors & High-Contrast Boundary)
     %% ==========================================
-    classDef bwNode fill:#ffffff,stroke:#0f172a,stroke-width:2px,color:#0f172a,font-weight:bold;
-    classDef bwUC fill:#ffffff,stroke:#334155,stroke-width:1.8px,color:#0f172a;
+    %% Unenclosed Actor Nodes (No fill, no stroke, no box)
+    classDef actorNode fill:transparent,stroke:none,color:#0f172a,font-size:12px;
+    classDef extNode fill:#f8fafc,stroke:#475569,stroke-width:1.8px,color:#0f172a,font-size:11px;
+    classDef bwUC fill:#ffffff,stroke:#334155,stroke-width:1.8px,color:#0f172a,font-weight:600;
 
-    style ACTORS fill:#f8fafc,stroke:#94a3b8,stroke-width:1.5px,stroke-dasharray: 4 4;
-    style EVATRACK fill:#ffffff,stroke:#0f172a,stroke-width:2px;
-    style EXTERNAL fill:#f8fafc,stroke:#94a3b8,stroke-width:1.5px,stroke-dasharray: 4 4;
+    style EVATRACK fill:#ffffff,stroke:#0f172a,stroke-width:2.5px;
 
     %% Color-Coded Associations (linkStyle)
     %% Link 0: Super Admin (Purple)

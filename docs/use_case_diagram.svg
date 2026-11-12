@@ -1,0 +1,239 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1320 990" width="100%" height="100%" style="background:#ffffff; font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <!-- Drop Shadow Filter for System Boundary & External Nodes -->
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.08" />
+    </filter>
+    <filter id="cardShadow" x="-10%" y="-10%" width="125%" height="125%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#1e293b" flood-opacity="0.10" />
+    </filter>
+
+    <!-- Arrow Markers for External Systems -->
+    <marker id="arrowIndigo" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#4f46e5" />
+    </marker>
+    <marker id="arrowRose" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#e11d48" />
+    </marker>
+  </defs>
+
+  <!-- ================= HEADER TITLE ================= -->
+  <text x="60" y="40" font-size="22" font-weight="800" fill="#0f172a" letter-spacing="-0.5">EVATRACK — UML USE CASE DIAGRAM</text>
+  <text x="60" y="60" font-size="13" font-weight="500" fill="#64748b">Standard UML 2.5 Representation: Unenclosed Stick Figure Actors &amp; Defined System Boundary</text>
+  <line x1="60" y1="72" x2="1260" y2="72" stroke="#e2e8f0" stroke-width="1.5" />
+
+  <!-- ================= SYSTEM BOUNDARY RECTANGLE ================= -->
+  <!-- The Only Enclosed Box in the Diagram -->
+  <g filter="url(#shadow)">
+    <rect x="290" y="90" width="660" height="870" rx="10" fill="#ffffff" stroke="#0f172a" stroke-width="2.5" />
+    <!-- System Boundary Header Banner -->
+    <rect x="290" y="90" width="660" height="38" rx="10" fill="#0f172a" />
+    <rect x="290" y="116" width="660" height="12" fill="#0f172a" />
+    <text x="620" y="115" font-size="14" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="1">EVATRACK PLATFORM (SYSTEM BOUNDARY)</text>
+  </g>
+
+  <!-- ================= USE CASE OVALS (Inside System Boundary) ================= -->
+  
+  <!-- 1. UC_USERS -->
+  <g transform="translate(620, 155)">
+    <ellipse cx="0" cy="0" rx="170" ry="22" fill="#ffffff" stroke="#334155" stroke-width="1.8" />
+    <text x="0" y="5" font-size="12.5" font-weight="700" fill="#0f172a" text-anchor="middle">Manage User Accounts</text>
+  </g>
+
+  <!-- 2. UC_EVENTS -->
+  <g transform="translate(620, 225)">
+    <ellipse cx="0" cy="0" rx="170" ry="22" fill="#ffffff" stroke="#334155" stroke-width="1.8" />
+    <text x="0" y="5" font-size="12.5" font-weight="700" fill="#0f172a" text-anchor="middle">Manage Disaster Events</text>
+  </g>
+
+  <!-- 3. UC_CENTERS -->
+  <g transform="translate(620, 295)">
+    <ellipse cx="0" cy="0" rx="170" ry="22" fill="#ffffff" stroke="#334155" stroke-width="1.8" />
+    <text x="0" y="5" font-size="12.5" font-weight="700" fill="#0f172a" text-anchor="middle">Manage Centers &amp; Assign Personnel</text>
+  </g>
+
+  <!-- 4. UC_ALERTS -->
+  <g transform="translate(620, 365)">
+    <ellipse cx="0" cy="0" rx="170" ry="22" fill="#ffffff" stroke="#334155" stroke-width="1.8" />
+    <text x="0" y="5" font-size="12.5" font-weight="700" fill="#0f172a" text-anchor="middle">Broadcast Emergency Alerts (SMS &amp; Push)</text>
+  </g>
+
+  <!-- 5. UC_ANALYTICS -->
+  <g transform="translate(620, 435)">
+    <ellipse cx="0" cy="0" rx="170" ry="22" fill="#ffffff" stroke="#334155" stroke-width="1.8" />
+    <text x="0" y="5" font-size="12.5" font-weight="700" fill="#0f172a" text-anchor="middle">View &amp; Export Evacuation Analytics</text>
+  </g>
+
+  <!-- 6. UC_ISSUES -->
+  <g transform="translate(620, 505)">
+    <ellipse cx="0" cy="0" rx="170" ry="22" fill="#ffffff" stroke="#334155" stroke-width="1.8" />
+    <text x="0" y="5" font-size="12.5" font-weight="700" fill="#0f172a" text-anchor="middle">Report &amp; Monitor Center Issues</text>
+  </g>
+
+  <!-- 7. UC_RESOURCES -->
+  <g transform="translate(620, 575)">
+    <ellipse cx="0" cy="0" rx="170" ry="22" fill="#ffffff" stroke="#334155" stroke-width="1.8" />
+    <text x="0" y="5" font-size="12.5" font-weight="700" fill="#0f172a" text-anchor="middle">Request &amp; Track Logistics Assistance</text>
+  </g>
+
+  <!-- 8. UC_VERIFY -->
+  <g transform="translate(620, 645)">
+    <ellipse cx="0" cy="0" rx="170" ry="22" fill="#ffffff" stroke="#334155" stroke-width="1.8" />
+    <text x="0" y="5" font-size="12.5" font-weight="700" fill="#0f172a" text-anchor="middle">Verify &amp; Admit Households (QR / Manual)</text>
+  </g>
+
+  <!-- 9. UC_UNITS -->
+  <g transform="translate(620, 715)">
+    <ellipse cx="0" cy="0" rx="170" ry="22" fill="#ffffff" stroke="#334155" stroke-width="1.8" />
+    <text x="0" y="5" font-size="12.5" font-weight="700" fill="#0f172a" text-anchor="middle">Configure Units &amp; Allocate Families</text>
+  </g>
+
+  <!-- 10. UC_CHECKOUT -->
+  <g transform="translate(620, 785)">
+    <ellipse cx="0" cy="0" rx="170" ry="22" fill="#ffffff" stroke="#334155" stroke-width="1.8" />
+    <text x="0" y="5" font-size="12.5" font-weight="700" fill="#0f172a" text-anchor="middle">Track Member Stay &amp; Process Checkout</text>
+  </g>
+
+  <!-- 11. UC_PORTAL -->
+  <g transform="translate(620, 855)">
+    <ellipse cx="0" cy="0" rx="170" ry="22" fill="#ffffff" stroke="#334155" stroke-width="1.8" />
+    <text x="0" y="5" font-size="12.5" font-weight="700" fill="#0f172a" text-anchor="middle">View Public Evacuation Map</text>
+  </g>
+
+  <!-- 12. UC_RCV_ALERTS -->
+  <g transform="translate(620, 920)">
+    <ellipse cx="0" cy="0" rx="170" ry="22" fill="#ffffff" stroke="#334155" stroke-width="1.8" />
+    <text x="0" y="5" font-size="12.5" font-weight="700" fill="#0f172a" text-anchor="middle">Receive Emergency Alerts</text>
+  </g>
+
+  <!-- ================= STICK FIGURE ACTORS (Unenclosed / No Boxes) ================= -->
+
+  <!-- ACTOR 1: SUPER ADMIN (x = 110, y = 120) -->
+  <g transform="translate(110, 115)">
+    <!-- Head -->
+    <circle cx="0" cy="0" r="13" fill="#ffffff" stroke="#9333ea" stroke-width="2.5" />
+    <!-- Torso -->
+    <line x1="0" y1="13" x2="0" y2="44" stroke="#9333ea" stroke-width="2.5" />
+    <!-- Arms -->
+    <line x1="-20" y1="25" x2="20" y2="25" stroke="#9333ea" stroke-width="2.5" />
+    <!-- Left Leg -->
+    <line x1="0" y1="44" x2="-14" y2="70" stroke="#9333ea" stroke-width="2.5" />
+    <!-- Right Leg -->
+    <line x1="0" y1="44" x2="14" y2="70" stroke="#9333ea" stroke-width="2.5" />
+    <!-- Label (No enclosing box) -->
+    <text x="0" y="90" font-size="13" font-weight="800" fill="#0f172a" text-anchor="middle">Super Admin</text>
+    <text x="0" y="105" font-size="10.5" font-weight="600" fill="#9333ea" text-anchor="middle">(IT Administrator)</text>
+  </g>
+
+  <!-- ACTOR 2: EVACUATION ADMIN (x = 110, y = 320) -->
+  <g transform="translate(110, 320)">
+    <!-- Head -->
+    <circle cx="0" cy="0" r="13" fill="#ffffff" stroke="#2563eb" stroke-width="2.5" />
+    <!-- Torso -->
+    <line x1="0" y1="13" x2="0" y2="44" stroke="#2563eb" stroke-width="2.5" />
+    <!-- Arms -->
+    <line x1="-20" y1="25" x2="20" y2="25" stroke="#2563eb" stroke-width="2.5" />
+    <!-- Left Leg -->
+    <line x1="0" y1="44" x2="-14" y2="70" stroke="#2563eb" stroke-width="2.5" />
+    <!-- Right Leg -->
+    <line x1="0" y1="44" x2="14" y2="70" stroke="#2563eb" stroke-width="2.5" />
+    <!-- Label (No enclosing box) -->
+    <text x="0" y="90" font-size="13" font-weight="800" fill="#0f172a" text-anchor="middle">Evacuation Admin</text>
+    <text x="0" y="105" font-size="10.5" font-weight="600" fill="#2563eb" text-anchor="middle">(Camp Commander)</text>
+  </g>
+
+  <!-- ACTOR 3: EVACUATION PERSONNEL (x = 110, y = 590) -->
+  <g transform="translate(110, 590)">
+    <!-- Head -->
+    <circle cx="0" cy="0" r="13" fill="#ffffff" stroke="#059669" stroke-width="2.5" />
+    <!-- Torso -->
+    <line x1="0" y1="13" x2="0" y2="44" stroke="#059669" stroke-width="2.5" />
+    <!-- Arms -->
+    <line x1="-20" y1="25" x2="20" y2="25" stroke="#059669" stroke-width="2.5" />
+    <!-- Left Leg -->
+    <line x1="0" y1="44" x2="-14" y2="70" stroke="#059669" stroke-width="2.5" />
+    <!-- Right Leg -->
+    <line x1="0" y1="44" x2="14" y2="70" stroke="#059669" stroke-width="2.5" />
+    <!-- Label (No enclosing box) -->
+    <text x="0" y="90" font-size="13" font-weight="800" fill="#0f172a" text-anchor="middle">Evacuation Personnel</text>
+    <text x="0" y="105" font-size="10.5" font-weight="600" fill="#059669" text-anchor="middle">(Intake Desk Staff)</text>
+  </g>
+
+  <!-- ACTOR 4: RESIDENT / HOUSEHOLD (x = 110, y = 820) -->
+  <g transform="translate(110, 820)">
+    <!-- Head -->
+    <circle cx="0" cy="0" r="13" fill="#ffffff" stroke="#0891b2" stroke-width="2.5" />
+    <!-- Torso -->
+    <line x1="0" y1="13" x2="0" y2="44" stroke="#0891b2" stroke-width="2.5" />
+    <!-- Arms -->
+    <line x1="-20" y1="25" x2="20" y2="25" stroke="#0891b2" stroke-width="2.5" />
+    <!-- Left Leg -->
+    <line x1="0" y1="44" x2="-14" y2="70" stroke="#0891b2" stroke-width="2.5" />
+    <!-- Right Leg -->
+    <line x1="0" y1="44" x2="14" y2="70" stroke="#0891b2" stroke-width="2.5" />
+    <!-- Label (No enclosing box) -->
+    <text x="0" y="90" font-size="13" font-weight="800" fill="#0f172a" text-anchor="middle">Resident / Household</text>
+    <text x="0" y="105" font-size="10.5" font-weight="600" fill="#0891b2" text-anchor="middle">(General Public)</text>
+  </g>
+
+  <!-- ================= SOLID ASSOCIATION LINES (No Arrowheads) ================= -->
+
+  <!-- 1. Super Admin Associations (Purple) -->
+  <line x1="140" y1="155" x2="450" y2="155" stroke="#9333ea" stroke-width="2.5" />
+
+  <!-- 2. Evacuation Admin Associations (Blue) -->
+  <line x1="140" y1="360" x2="450" y2="225" stroke="#2563eb" stroke-width="2.5" />
+  <line x1="140" y1="360" x2="450" y2="295" stroke="#2563eb" stroke-width="2.5" />
+  <line x1="140" y1="360" x2="450" y2="365" stroke="#2563eb" stroke-width="2.5" />
+  <line x1="140" y1="360" x2="450" y2="435" stroke="#2563eb" stroke-width="2.5" />
+  <line x1="140" y1="360" x2="450" y2="505" stroke="#2563eb" stroke-width="2.5" />
+  <line x1="140" y1="360" x2="450" y2="575" stroke="#2563eb" stroke-width="2.5" />
+
+  <!-- 3. Evacuation Personnel Associations (Green) -->
+  <line x1="140" y1="630" x2="450" y2="505" stroke="#059669" stroke-width="2.5" />
+  <line x1="140" y1="630" x2="450" y2="575" stroke="#059669" stroke-width="2.5" />
+  <line x1="140" y1="630" x2="450" y2="645" stroke="#059669" stroke-width="2.5" />
+  <line x1="140" y1="630" x2="450" y2="715" stroke="#059669" stroke-width="2.5" />
+  <line x1="140" y1="630" x2="450" y2="785" stroke="#059669" stroke-width="2.5" />
+
+  <!-- 4. Resident / Household Associations (Teal) -->
+  <line x1="140" y1="860" x2="450" y2="855" stroke="#0891b2" stroke-width="2.5" />
+  <line x1="140" y1="860" x2="450" y2="920" stroke="#0891b2" stroke-width="2.5" />
+
+  <!-- ================= EXTERNAL SYSTEMS (Right Column) ================= -->
+  
+  <!-- SafeTrack System -->
+  <g transform="translate(1010, 605)" filter="url(#cardShadow)">
+    <rect x="0" y="0" width="230" height="78" rx="8" fill="#ffffff" stroke="#4f46e5" stroke-width="2" />
+    <text x="115" y="24" font-size="11" font-weight="700" fill="#4f46e5" text-anchor="middle">«external system»</text>
+    <text x="115" y="44" font-size="14" font-weight="800" fill="#0f172a" text-anchor="middle">SafeTrack System</text>
+    <text x="115" y="62" font-size="11" font-weight="500" fill="#475569" text-anchor="middle">Demographic Repository</text>
+  </g>
+
+  <!-- ResQperation System -->
+  <g transform="translate(1010, 420)" filter="url(#cardShadow)">
+    <rect x="0" y="0" width="230" height="96" rx="8" fill="#ffffff" stroke="#e11d48" stroke-width="2" />
+    <text x="115" y="24" font-size="11" font-weight="700" fill="#e11d48" text-anchor="middle">«external system»</text>
+    <text x="115" y="44" font-size="14" font-weight="800" fill="#0f172a" text-anchor="middle">ResQperation Platform</text>
+    <text x="115" y="62" font-size="11" font-weight="500" fill="#475569" text-anchor="middle">Response &amp; Aid Dispatch</text>
+    <text x="115" y="78" font-size="10.5" font-weight="600" fill="#e11d48" text-anchor="middle">(Push Alert Gateway)</text>
+  </g>
+
+  <!-- ================= EXTERNAL INTEGRATION FLOWS (Directed Labeled Arrows) ================= -->
+
+  <!-- Flow 1: UC_VERIFY to SafeTrack -->
+  <path d="M 790 645 L 1000 645" fill="none" stroke="#4f46e5" stroke-width="2.5" marker-end="url(#arrowIndigo)" />
+  <rect x="815" y="622" width="160" height="20" rx="3" fill="#eef2ff" stroke="#c7d2fe" />
+  <text x="895" y="636" font-size="10.5" font-weight="700" fill="#3730a3" text-anchor="middle">Demographics Query</text>
+
+  <!-- Flow 2: UC_RESOURCES to ResQperation -->
+  <path d="M 790 575 L 890 575 L 890 480 L 1000 480" fill="none" stroke="#e11d48" stroke-width="2.5" marker-end="url(#arrowRose)" />
+  <rect x="860" y="500" width="130" height="20" rx="3" fill="#fff1f2" stroke="#fecdd3" />
+  <text x="925" y="514" font-size="10.5" font-weight="700" fill="#9f1239" text-anchor="middle">Logistics Demand</text>
+
+  <!-- Flow 3: UC_ALERTS to ResQperation -->
+  <path d="M 790 365 L 890 365 L 890 440 L 1000 440" fill="none" stroke="#e11d48" stroke-width="2.5" marker-end="url(#arrowRose)" />
+  <rect x="805" y="380" width="175" height="20" rx="3" fill="#fff1f2" stroke="#fecdd3" />
+  <text x="892" y="394" font-size="10.5" font-weight="700" fill="#9f1239" text-anchor="middle">Push Notification Dispatch</text>
+
+</svg>
