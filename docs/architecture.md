@@ -128,8 +128,8 @@ flowchart TD
 
 ```mermaid
 architecture-beta
-    group frontend(cloud)[Frontend]
-    group backend(cloud)[Backend]
+    group frontend(cloud)[EvaTrack Frontend]
+    group backend(cloud)[EvaTrack Backend]
     group external(cloud)[External Systems]
 
     service web(internet)[Website] in frontend
@@ -149,10 +149,10 @@ architecture-beta
     api:B --> T:db
     db:R -- L:files
 
-    safetrack:R --> L:db
-    resq:L --> R:db
-    safetrack:R --> L:api
+    safetrack:L --> R:api
     api:R --> L:resq
+    safetrack:L --> R:db
+    resq:L --> R:db
 ```
 
 ---
