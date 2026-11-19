@@ -37,7 +37,13 @@
           <mxGeometry height="140" width="180" x="539" y="440" as="geometry" />
         </mxCell>
         <mxCell id="NqAwiChjAVAv-p03-OqJ-15" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="Third Party Services" vertex="1">
-          <mxGeometry height="100" width="560" x="150" y="630" as="geometry" />
+          <mxGeometry height="100" width="290" x="279.5" y="660" as="geometry" />
+        </mxCell>
+        <mxCell id="NqAwiChjAVAv-p03-OqJ-18" parent="NqAwiChjAVAv-p03-OqJ-15" style="aspect=fixed;html=1;align=center;shadow=0;dashed=0;fillColor=#FF6A00;strokeColor=none;shape=mxgraph.alibaba_cloud.cmp_cloud_mobile_push;" value="" vertex="1">
+          <mxGeometry height="35.699999999999996" width="49.199999999999996" x="190.5" y="39.99999999999996" as="geometry" />
+        </mxCell>
+        <mxCell id="NqAwiChjAVAv-p03-OqJ-16" parent="NqAwiChjAVAv-p03-OqJ-15" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#505050;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.communications.sms_gateway;labelPerimeter=1;" value="" vertex="1">
+          <mxGeometry height="37" width="59" x="60" y="40" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
