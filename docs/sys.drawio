@@ -1,37 +1,11 @@
 <mxfile host="app.diagrams.net">
   <diagram name="Page-1" id="HGmcImaiz1dMKId7jrMz">
-    <mxGraphModel dx="1587" dy="949" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="2271" dy="1359" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-11" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;defaultLabelBackgroundColor=page;labelPadding=0 4;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="NqAwiChjAVAv-p03-OqJ-29">
-          <mxGeometry relative="1" x="-0.204" as="geometry" />
-        </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-12" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;defaultLabelBackgroundColor=page;labelPadding=0 4;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="NqAwiChjAVAv-p03-OqJ-7">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="540" y="470" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-22" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;labelPadding=0 4;exitX=0;exitY=1;exitDx=0;exitDy=0;" target="NqAwiChjAVAv-p03-OqJ-20">
-          <mxGeometry relative="1" x="-0.1723" as="geometry" />
-        </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-28" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;defaultLabelBackgroundColor=page;labelPadding=0 4;exitX=0;exitY=0.75;exitDx=0;exitDy=0;" target="NqAwiChjAVAv-p03-OqJ-26">
-          <mxGeometry relative="1" x="-0.1014" as="geometry" />
-        </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-37" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;labelPadding=0 4;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" target="NqAwiChjAVAv-p03-OqJ-33">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-40" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;labelPadding=0 4;exitX=0;exitY=0.25;exitDx=0;exitDy=0;" target="NqAwiChjAVAv-p03-OqJ-38">
-          <mxGeometry relative="1" x="-0.1186" as="geometry" />
-        </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-58" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;labelPadding=0 4;exitX=0.25;exitY=0;exitDx=0;exitDy=0;" target="NqAwiChjAVAv-p03-OqJ-41">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-2" parent="1" style="shape=image;html=1;verticalAlign=top;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;aspect=fixed;image=https://icons.diagrams.net/assets/databases/1/MySQL-25.svg;labelPerimeter=1;" value="" vertex="1">
-          <mxGeometry height="60" width="53" x="398" y="480" as="geometry" />
-        </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-4" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="EvaTrack Backend" vertex="1">
-          <mxGeometry height="170" width="180" x="130" y="410" as="geometry">
+        <mxCell id="NqAwiChjAVAv-p03-OqJ-4" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="EvaTrack App" vertex="1">
+          <mxGeometry height="170" width="180" x="140" y="340" as="geometry">
             <mxRectangle height="30" width="150" x="130" y="410" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
@@ -51,22 +25,16 @@
           <mxGeometry height="20" width="150" x="15" y="30" as="geometry" />
         </mxCell>
         <mxCell id="NqAwiChjAVAv-p03-OqJ-6" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="SafeTrack Backend" vertex="1">
-          <mxGeometry height="140" width="180" x="335" y="260" as="geometry" />
+          <mxGeometry height="170" width="180" x="335" y="340" as="geometry" />
         </mxCell>
         <mxCell id="NqAwiChjAVAv-p03-OqJ-29" parent="NqAwiChjAVAv-p03-OqJ-6" style="html=1;whiteSpace=wrap;" value="HouseholdService" vertex="1">
           <mxGeometry height="30" width="110" x="35" y="90" as="geometry" />
         </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-9" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;labelPadding=0 4;" target="NqAwiChjAVAv-p03-OqJ-2">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
         <mxCell id="NqAwiChjAVAv-p03-OqJ-7" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="ResQperation Backend" vertex="1">
-          <mxGeometry height="140" width="180" x="539" y="440" as="geometry" />
-        </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-32" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;labelPadding=0 4;" target="NqAwiChjAVAv-p03-OqJ-20">
-          <mxGeometry relative="1" as="geometry" />
+          <mxGeometry height="170" width="180" x="530" y="340" as="geometry" />
         </mxCell>
         <mxCell id="NqAwiChjAVAv-p03-OqJ-15" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="Third Party Services" vertex="1">
-          <mxGeometry height="100" width="290" x="279.5" y="660" as="geometry" />
+          <mxGeometry height="90" width="290" x="240" y="590" as="geometry" />
         </mxCell>
         <mxCell id="NqAwiChjAVAv-p03-OqJ-18" parent="NqAwiChjAVAv-p03-OqJ-15" style="aspect=fixed;html=1;align=center;shadow=0;dashed=0;fillColor=#FF6A00;strokeColor=none;shape=mxgraph.alibaba_cloud.cmp_cloud_mobile_push;" value="" vertex="1">
           <mxGeometry height="35.699999999999996" width="49.199999999999996" x="190.5" y="39.99999999999996" as="geometry" />
@@ -74,38 +42,14 @@
         <mxCell id="NqAwiChjAVAv-p03-OqJ-16" parent="NqAwiChjAVAv-p03-OqJ-15" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#505050;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;align=center;shape=mxgraph.office.communications.sms_gateway;labelPerimeter=1;" value="" vertex="1">
           <mxGeometry height="37" width="59" x="60" y="40" as="geometry" />
         </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-24" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;labelPadding=0 4;" target="NqAwiChjAVAv-p03-OqJ-15">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="NqAwiChjAVAv-p03-OqJ-61" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="Data Layer" vertex="1">
+          <mxGeometry height="100" width="290" x="240" y="750" as="geometry" />
         </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-27" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.75;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;labelPadding=0 4;" target="NqAwiChjAVAv-p03-OqJ-2">
-          <mxGeometry relative="1" x="0.1087" as="geometry" />
+        <mxCell id="NqAwiChjAVAv-p03-OqJ-2" parent="NqAwiChjAVAv-p03-OqJ-61" style="shape=image;html=1;verticalAlign=top;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;aspect=fixed;image=https://icons.diagrams.net/assets/databases/1/MySQL-25.svg;labelPerimeter=1;" value="" vertex="1">
+          <mxGeometry height="60" width="53" x="118.5" y="30" as="geometry" />
         </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-30" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;labelPadding=0 4;" target="NqAwiChjAVAv-p03-OqJ-2">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-31" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=1;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;labelPadding=0 4;" target="NqAwiChjAVAv-p03-OqJ-2">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-34" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-33" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;labelPadding=0 4;" target="NqAwiChjAVAv-p03-OqJ-2">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-39" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-38" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.25;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;labelPadding=0 4;" target="NqAwiChjAVAv-p03-OqJ-2">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-42" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-41" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.25;entryY=0;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;labelPadding=0 4;" target="NqAwiChjAVAv-p03-OqJ-2">
-          <mxGeometry relative="1" x="-0.0835" as="geometry" />
-        </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-51" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-49" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;defaultLabelBackgroundColor=page;labelPadding=0 4;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="NqAwiChjAVAv-p03-OqJ-4" value="">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-49" parent="1" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#EF8F21;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.2d.restful_apis;labelPerimeter=1;" value="" vertex="1">
-          <mxGeometry height="44.8" width="44.8" x="197.6" y="320" as="geometry" />
-        </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-54" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-53" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;defaultLabelBackgroundColor=page;labelPadding=0 4;" target="NqAwiChjAVAv-p03-OqJ-49" value="">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-53" parent="1" style="verticalLabelPosition=bottom;html=1;verticalAlign=top;strokeWidth=1;align=center;outlineConnect=0;dashed=0;outlineConnect=0;shape=mxgraph.aws3d.client;aspect=fixed;strokeColor=none;fillColor=#777777;labelPerimeter=1;" value="" vertex="1">
-          <mxGeometry height="50" width="28.85" x="205.58" y="240" as="geometry" />
+        <mxCell id="NqAwiChjAVAv-p03-OqJ-66" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="Presentation Layer" vertex="1">
+          <mxGeometry height="80" width="570" x="140" y="110" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
