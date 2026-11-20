@@ -51,19 +51,19 @@
         <mxCell id="dGvFxSan67lWmjfFJxWv-23" parent="dGvFxSan67lWmjfFJxWv-19" style="image;aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;fontColor=#4277BB;labelBackgroundColor=default;fontSize=12;spacingTop=3;image=img/lib/ibm/management/push_notifications.svg;labelPerimeter=1;" value="" vertex="1">
           <mxGeometry height="60" width="60" x="40" y="40" as="geometry" />
         </mxCell>
-        <mxCell id="dGvFxSan67lWmjfFJxWv-24" parent="dGvFxSan67lWmjfFJxWv-19" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Helvetica;fontSize=16;" value="One Signal" vertex="1">
-          <mxGeometry height="30" width="120" x="90" y="55" as="geometry" />
+        <mxCell id="dGvFxSan67lWmjfFJxWv-24" parent="dGvFxSan67lWmjfFJxWv-19" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Verdana;fontSize=12;fontStyle=1" value="One Signal" vertex="1">
+          <mxGeometry height="30" width="120" x="80" y="55" as="geometry" />
         </mxCell>
         <mxCell id="dGvFxSan67lWmjfFJxWv-25" parent="dGvFxSan67lWmjfFJxWv-19" style="dashed=0;outlineConnect=0;html=1;align=center;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;shape=mxgraph.webicons.sms;fillColor=#86D466;gradientColor=#42B418;labelPerimeter=1;" value="" vertex="1">
           <mxGeometry height="60" width="60" x="40" y="120" as="geometry" />
         </mxCell>
-        <mxCell id="dGvFxSan67lWmjfFJxWv-26" parent="dGvFxSan67lWmjfFJxWv-19" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Helvetica;fontSize=16;" value="TextBee" vertex="1">
-          <mxGeometry height="30" width="120" x="80" y="140" as="geometry" />
+        <mxCell id="dGvFxSan67lWmjfFJxWv-26" parent="dGvFxSan67lWmjfFJxWv-19" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Verdana;fontSize=12;fontStyle=1" value="TextBee" vertex="1">
+          <mxGeometry height="30" width="120" x="75" y="135" as="geometry" />
         </mxCell>
         <mxCell id="dGvFxSan67lWmjfFJxWv-17" parent="1" style="swimlane;" value="Data Layer" vertex="1">
           <mxGeometry height="170" width="180" x="220" y="560" as="geometry" />
         </mxCell>
-        <mxCell id="dGvFxSan67lWmjfFJxWv-18" parent="dGvFxSan67lWmjfFJxWv-17" style="shape=datastore;whiteSpace=wrap;html=1;" value="MySQL" vertex="1">
+        <mxCell id="dGvFxSan67lWmjfFJxWv-18" parent="dGvFxSan67lWmjfFJxWv-17" style="shape=datastore;whiteSpace=wrap;html=1;" value="&lt;font face=&quot;Verdana&quot;&gt;&lt;b&gt;MySQL&lt;/b&gt;&lt;/font&gt;" vertex="1">
           <mxGeometry height="100" width="100" x="40" y="50" as="geometry" />
         </mxCell>
         <mxCell id="dGvFxSan67lWmjfFJxWv-57" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;defaultLabelBackgroundColor=page;labelPadding=0 4;exitX=0.5;exitY=1;exitDx=0;exitDy=0;flowAnimation=0;startArrow=classic;startFill=1;sketch=1;curveFitting=1;jiggle=2;endArrow=none;endFill=0;" target="dGvFxSan67lWmjfFJxWv-56" value="">
