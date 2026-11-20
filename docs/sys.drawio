@@ -11,10 +11,9 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="dGvFxSan67lWmjfFJxWv-54" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;labelPadding=0 4;sketch=1;curveFitting=1;jiggle=2;" target="dGvFxSan67lWmjfFJxWv-19">
+        <mxCell id="dGvFxSan67lWmjfFJxWv-54" edge="1" parent="1" source="dGvFxSan67lWmjfFJxWv-64" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;labelPadding=0 4;sketch=1;curveFitting=1;jiggle=2;" target="dGvFxSan67lWmjfFJxWv-19">
           <mxGeometry relative="1" x="-0.0535" as="geometry">
             <Array as="points">
-              <mxPoint x="525" y="355" />
               <mxPoint x="525" y="680" />
             </Array>
           </mxGeometry>
@@ -100,6 +99,18 @@
         </mxCell>
         <mxCell id="dGvFxSan67lWmjfFJxWv-62" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Verdana;fontSize=10;fontStyle=1" value="Rescue Data Access" vertex="1">
           <mxGeometry height="30" width="90" x="430" y="540" as="geometry" />
+        </mxCell>
+        <mxCell id="dGvFxSan67lWmjfFJxWv-65" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;defaultLabelBackgroundColor=page;labelPadding=0 4;sketch=1;curveFitting=1;jiggle=2;startArrow=none;startFill=0;endArrow=none;endFill=0;" target="dGvFxSan67lWmjfFJxWv-64" value="">
+          <mxGeometry relative="1" x="-0.0535" as="geometry">
+            <Array as="points">
+              <mxPoint x="525" y="355" />
+            </Array>
+            <mxPoint x="515" y="355" as="sourcePoint" />
+            <mxPoint x="545" y="680" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dGvFxSan67lWmjfFJxWv-64" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Verdana;fontSize=10;fontStyle=1" value="Send Alerts" vertex="1">
+          <mxGeometry height="30" width="90" x="480" y="460" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
