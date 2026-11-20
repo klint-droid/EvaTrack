@@ -23,6 +23,9 @@
             <mxRectangle height="30" width="150" x="130" y="410" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
+        <mxCell id="dGvFxSan67lWmjfFJxWv-68" parent="NqAwiChjAVAv-p03-OqJ-4" style="html=1;whiteSpace=wrap;fontFamily=Verdana;fontStyle=1;fontSize=10;" value="NotificationService" vertex="1">
+          <mxGeometry height="30" width="120" x="25" y="120" as="geometry" />
+        </mxCell>
         <mxCell id="dGvFxSan67lWmjfFJxWv-47" edge="1" parent="1" source="dGvFxSan67lWmjfFJxWv-56" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;labelPadding=0 4;flowAnimation=0;startArrow=none;startFill=0;sketch=1;curveFitting=1;jiggle=2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="dGvFxSan67lWmjfFJxWv-18">
           <mxGeometry relative="1" x="-0.1636" as="geometry" />
         </mxCell>
@@ -100,11 +103,8 @@
         <mxCell id="dGvFxSan67lWmjfFJxWv-62" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Verdana;fontSize=10;fontStyle=1" value="Rescue Data Access" vertex="1">
           <mxGeometry height="30" width="90" x="430" y="540" as="geometry" />
         </mxCell>
-        <mxCell id="dGvFxSan67lWmjfFJxWv-65" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;defaultLabelBackgroundColor=page;labelPadding=0 4;sketch=1;curveFitting=1;jiggle=2;startArrow=none;startFill=0;endArrow=none;endFill=0;" target="dGvFxSan67lWmjfFJxWv-64" value="">
-          <mxGeometry relative="1" x="-0.0535" as="geometry">
-            <Array as="points">
-              <mxPoint x="525" y="355" />
-            </Array>
+        <mxCell id="dGvFxSan67lWmjfFJxWv-65" edge="1" parent="1" source="dGvFxSan67lWmjfFJxWv-68" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;defaultLabelBackgroundColor=page;labelPadding=0 4;sketch=1;curveFitting=1;jiggle=2;startArrow=none;startFill=0;endArrow=none;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="dGvFxSan67lWmjfFJxWv-64" value="">
+          <mxGeometry relative="1" x="0.4211" as="geometry">
             <mxPoint x="515" y="355" as="sourcePoint" />
             <mxPoint x="545" y="680" as="targetPoint" />
           </mxGeometry>
