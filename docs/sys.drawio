@@ -36,7 +36,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="dGvFxSan67lWmjfFJxWv-53" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;labelPadding=0 4;exitX=0.75;exitY=1;exitDx=0;exitDy=0;sketch=1;curveFitting=1;jiggle=2;" target="dGvFxSan67lWmjfFJxWv-23">
+        <mxCell id="dGvFxSan67lWmjfFJxWv-53" edge="1" parent="1" source="dGvFxSan67lWmjfFJxWv-66" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;labelPadding=0 4;sketch=1;curveFitting=1;jiggle=2;" target="dGvFxSan67lWmjfFJxWv-23">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="695" y="455" as="sourcePoint" />
             <mxPoint x="645" y="665.0000000000002" as="targetPoint" />
@@ -111,6 +111,15 @@
         </mxCell>
         <mxCell id="dGvFxSan67lWmjfFJxWv-64" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Verdana;fontSize=10;fontStyle=1" value="Send Alerts" vertex="1">
           <mxGeometry height="30" width="90" x="480" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="dGvFxSan67lWmjfFJxWv-67" edge="1" parent="1" source="NqAwiChjAVAv-p03-OqJ-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;defaultLabelBackgroundColor=page;labelPadding=0 4;exitX=0.75;exitY=1;exitDx=0;exitDy=0;sketch=1;curveFitting=1;jiggle=2;endArrow=none;endFill=0;" target="dGvFxSan67lWmjfFJxWv-66" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="680" y="440" as="sourcePoint" />
+            <mxPoint x="615" y="620" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dGvFxSan67lWmjfFJxWv-66" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Verdana;fontSize=10;fontStyle=1" value="Broadcast Alerts" vertex="1">
+          <mxGeometry height="30" width="90" x="635" y="490" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
