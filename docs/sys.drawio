@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" pages="2">
   <diagram name="Page-1" id="HGmcImaiz1dMKId7jrMz">
-    <mxGraphModel dx="1211" dy="756" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1590" dy="992" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -9,29 +9,32 @@
             <mxRectangle height="30" width="150" x="130" y="410" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-20" parent="NqAwiChjAVAv-p03-OqJ-4" style="html=1;whiteSpace=wrap;" value="NotificationService" vertex="1">
-          <mxGeometry height="20" width="110" x="35" y="140" as="geometry" />
-        </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-26" parent="NqAwiChjAVAv-p03-OqJ-4" style="html=1;whiteSpace=wrap;strokeColor=#000000;" value="EvacuationService" vertex="1">
-          <mxGeometry height="20" width="110" x="35" y="115" as="geometry" />
-        </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-33" parent="NqAwiChjAVAv-p03-OqJ-4" style="html=1;whiteSpace=wrap;strokeColor=#000000;" value="EvacuationCenterService" vertex="1">
-          <mxGeometry height="20" width="150" x="15" y="90" as="geometry" />
-        </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-38" parent="NqAwiChjAVAv-p03-OqJ-4" style="html=1;whiteSpace=wrap;strokeColor=#000000;" value="ResourceRequestService" vertex="1">
-          <mxGeometry height="20" width="150" x="15" y="60" as="geometry" />
-        </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-41" parent="NqAwiChjAVAv-p03-OqJ-4" style="html=1;whiteSpace=wrap;strokeColor=#000000;" value="CenterIssuesService" vertex="1">
-          <mxGeometry height="20" width="150" x="15" y="30" as="geometry" />
-        </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-6" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="SafeTrack Backend" vertex="1">
+        <mxCell id="NqAwiChjAVAv-p03-OqJ-6" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="SafeTrack App" vertex="1">
           <mxGeometry height="170" width="180" x="125" y="270" as="geometry" />
         </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-29" parent="NqAwiChjAVAv-p03-OqJ-6" style="html=1;whiteSpace=wrap;" value="HouseholdService" vertex="1">
-          <mxGeometry height="30" width="110" x="35" y="90" as="geometry" />
-        </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-7" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="ResQperation Backend" vertex="1">
+        <mxCell id="NqAwiChjAVAv-p03-OqJ-7" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="ResQperation App" vertex="1">
           <mxGeometry height="170" width="180" x="545" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="dGvFxSan67lWmjfFJxWv-19" parent="1" style="swimlane;" value="External Service" vertex="1">
+          <mxGeometry height="200" width="240" x="480" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="dGvFxSan67lWmjfFJxWv-23" parent="dGvFxSan67lWmjfFJxWv-19" style="image;aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;fontColor=#4277BB;labelBackgroundColor=default;fontSize=12;spacingTop=3;image=img/lib/ibm/management/push_notifications.svg;labelPerimeter=1;" value="" vertex="1">
+          <mxGeometry height="60" width="60" x="40" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dGvFxSan67lWmjfFJxWv-24" parent="dGvFxSan67lWmjfFJxWv-19" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Helvetica;fontSize=22;" value="One Signal" vertex="1">
+          <mxGeometry height="30" width="120" x="120" y="55" as="geometry" />
+        </mxCell>
+        <mxCell id="dGvFxSan67lWmjfFJxWv-25" parent="dGvFxSan67lWmjfFJxWv-19" style="dashed=0;outlineConnect=0;html=1;align=center;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;shape=mxgraph.webicons.sms;fillColor=#86D466;gradientColor=#42B418;labelPerimeter=1;" value="" vertex="1">
+          <mxGeometry height="70" width="75.2" x="32.4" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="dGvFxSan67lWmjfFJxWv-26" parent="dGvFxSan67lWmjfFJxWv-19" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Helvetica;fontSize=22;" value="TextBee" vertex="1">
+          <mxGeometry height="30" width="120" x="120" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="dGvFxSan67lWmjfFJxWv-17" parent="1" style="swimlane;" value="Data Layer" vertex="1">
+          <mxGeometry height="200" width="250" x="150" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="dGvFxSan67lWmjfFJxWv-18" parent="dGvFxSan67lWmjfFJxWv-17" style="shape=datastore;whiteSpace=wrap;html=1;" value="MySQL" vertex="1">
+          <mxGeometry height="100" width="100" x="75" y="60" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
