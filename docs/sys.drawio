@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" pages="2">
   <diagram name="Page-1" id="HGmcImaiz1dMKId7jrMz">
-    <mxGraphModel dx="530" dy="331" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="919" dy="573" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -40,7 +40,7 @@
         <mxCell id="dGvFxSan67lWmjfFJxWv-47" edge="1" parent="1" source="dGvFxSan67lWmjfFJxWv-56" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;labelPadding=0 4;flowAnimation=0;startArrow=none;startFill=0;sketch=1;curveFitting=1;jiggle=2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="dGvFxSan67lWmjfFJxWv-18">
           <mxGeometry relative="1" x="-0.1636" as="geometry" />
         </mxCell>
-        <mxCell id="NqAwiChjAVAv-p03-OqJ-6" parent="1" style="swimlane;whiteSpace=wrap;html=1;startSize=20;" value="SafeTrack (Backend API)" vertex="1">
+        <mxCell id="NqAwiChjAVAv-p03-OqJ-6" parent="1" style="swimlane;whiteSpace=wrap;html=1;startSize=20;" value="SafeTrack Web App" vertex="1">
           <mxGeometry height="170" width="180" x="130" y="255" as="geometry" />
         </mxCell>
         <mxCell id="dGvFxSan67lWmjfFJxWv-49" edge="1" parent="1" source="dGvFxSan67lWmjfFJxWv-62" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;labelPadding=0 4;sketch=1;curveFitting=1;jiggle=2;" target="dGvFxSan67lWmjfFJxWv-18">
@@ -185,7 +185,7 @@
             <mxPoint x="220" y="249.5" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="dGvFxSan67lWmjfFJxWv-111" connectable="0" parent="dGvFxSan67lWmjfFJxWv-110" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=fontSize,fontColor,textOpacity,labelBorderColor,labelBorderWidth,labelBackgroundColor,defaultLabelBackgroundColor,labelPadding;defaultLabelBackgroundColor=page;labelPadding=0 4;fontFamily=Verdana;fontStyle=1" value="REST API" vertex="1">
+        <mxCell id="dGvFxSan67lWmjfFJxWv-111" connectable="0" parent="dGvFxSan67lWmjfFJxWv-110" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=fontSize,fontColor,textOpacity,labelBorderColor,labelBorderWidth,labelBackgroundColor,defaultLabelBackgroundColor,labelPadding;defaultLabelBackgroundColor=page;labelPadding=0 4;fontFamily=Verdana;fontStyle=1" value="HTTP/HTTPS" vertex="1">
           <mxGeometry relative="1" x="-0.2381" y="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
