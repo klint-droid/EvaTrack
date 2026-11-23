@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" pages="2">
   <diagram name="System Architecture" id="HGmcImaiz1dMKId7jrMz">
-    <mxGraphModel dx="1139" dy="710" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="636" dy="397" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -179,6 +179,11 @@
             </Array>
           </mxGeometry>
         </mxCell>
+        <mxCell id="WHyxovhhIO6yOiEi--zu-1" connectable="0" parent="dGvFxSan67lWmjfFJxWv-114" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=1;defaultLabelBackgroundColor=page;labelPadding=0 4;" value="&lt;font face=&quot;Verdana&quot;&gt;&lt;b&gt;API&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.164" y="2" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
         <mxCell id="dGvFxSan67lWmjfFJxWv-115" edge="1" parent="1" source="dGvFxSan67lWmjfFJxWv-107" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;labelPadding=0 4;sketch=1;curveFitting=1;jiggle=2;" target="NqAwiChjAVAv-p03-OqJ-7">
           <mxGeometry relative="1" x="-0.0012" as="geometry">
             <Array as="points">
@@ -186,6 +191,11 @@
               <mxPoint x="280" y="180" />
               <mxPoint x="575" y="180" />
             </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WHyxovhhIO6yOiEi--zu-2" connectable="0" parent="dGvFxSan67lWmjfFJxWv-115" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=1;defaultLabelBackgroundColor=page;labelPadding=0 4;" value="&lt;font face=&quot;Verdana&quot;&gt;&lt;b&gt;API&lt;/b&gt;&lt;/font&gt;" vertex="1">
+          <mxGeometry relative="1" x="0.195" y="2" as="geometry">
+            <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="dGvFxSan67lWmjfFJxWv-107" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="SafeTrack Web Frontend" vertex="1">
@@ -212,7 +222,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="yLtz4hxiWYiiZ-6KeE3-" name="Activity Diagram">
-    <mxGraphModel dx="2312" dy="1442" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
