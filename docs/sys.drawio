@@ -644,7 +644,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="1POJSQXqKT3VZBhSfgI-" name="ERD">
-    <mxGraphModel dx="919" dy="573" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="763" dy="476" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -989,7 +989,7 @@
             <mxPoint x="430" y="190" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="LDqKUl1i9fSpO0y4ydfx-2" connectable="0" parent="LDqKUl1i9fSpO0y4ydfx-1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=1;fontSize=12;defaultLabelBackgroundColor=page;labelPadding=0 4;" value="have" vertex="1">
+        <mxCell id="LDqKUl1i9fSpO0y4ydfx-2" connectable="0" parent="LDqKUl1i9fSpO0y4ydfx-1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=1;fontSize=12;defaultLabelBackgroundColor=page;labelPadding=0 4;" value="&lt;div style=&quot;text-align: start; white-space: normal; font-family: &amp;quot;Segoe UI&amp;quot;; font-size: 14px; line-height: 20px;&quot;&gt;has assignment&lt;/div&gt;" vertex="1">
           <mxGeometry relative="1" x="-0.2502" y="-1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
