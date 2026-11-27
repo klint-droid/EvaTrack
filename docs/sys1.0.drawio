@@ -647,10 +647,23 @@
     </mxGraphModel>
   </diagram>
   <diagram name="ERD" id="EbLqTjCn5y5pc3cOOXsi">
-    <mxGraphModel dx="712" dy="616" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="593" dy="513" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="L7hLHXujMIH8B-N9VQus-22" edge="1" parent="1" source="eM44ooBodU9EfY2H5t6v-110" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.25;entryY=0;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;labelPadding=0 4;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;" target="BwPhBHRZsBsftCoiQDYs-1">
+          <mxGeometry relative="1" x="0.0015" as="geometry">
+            <Array as="points">
+              <mxPoint x="130" y="430" />
+              <mxPoint x="635" y="430" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="L7hLHXujMIH8B-N9VQus-23" connectable="0" parent="L7hLHXujMIH8B-N9VQus-22" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=1;defaultLabelBackgroundColor=page;labelPadding=0 4;" value="verifies" vertex="1">
+          <mxGeometry relative="1" x="0.0887" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
         <mxCell id="eM44ooBodU9EfY2H5t6v-110" parent="1" style="shape=table;startSize=30;container=1;collapsible=1;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;html=1;" value="Users" vertex="1">
           <mxGeometry height="300" width="180" x="40" y="20" as="geometry" />
         </mxCell>
@@ -1493,7 +1506,7 @@
         </mxCell>
         <mxCell id="L7hLHXujMIH8B-N9VQus-15" connectable="0" parent="L7hLHXujMIH8B-N9VQus-14" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];inheritText=1;defaultLabelBackgroundColor=page;labelPadding=0 4;" value="belongs to" vertex="1">
           <mxGeometry relative="1" x="0.0215" y="1" as="geometry">
-            <mxPoint as="offset" />
+            <mxPoint y="-19" as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="L7hLHXujMIH8B-N9VQus-16" edge="1" parent="1" source="oRzo96nWnTmEfWhYHYPE-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;defaultLabelBackgroundColor=page;labelPadding=0 4;startArrow=ERmandOne;startFill=0;endArrow=ERzeroToMany;endFill=0;" target="BwPhBHRZsBsftCoiQDYs-11">
